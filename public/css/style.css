@@ -1,3 +1,11 @@
+table, th, td {
+    border: 0px solid black;
+}
+
+th, td {
+    padding: 10px;
+}
+
 body {
   padding-top: 40px; /* 40px to make the container go all the way to the bottom of the topbar */
   font-family: "Ubuntu";
@@ -146,7 +154,7 @@ hr {
 }
 
 .compare td {
-  padding: 0 3px;
+  padding: 10 3px;
   border-top-width: 0
 }
 
