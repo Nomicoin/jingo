@@ -1,0 +1,10 @@
+extends layout
+
+block content
+
+  h1 meta
+
+  ul
+    each file in files
+      li 
+        a(href="/meta/#{file}") #{file}
