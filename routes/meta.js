@@ -9,16 +9,18 @@ function initFiles() {
 
     console.log("\n\n>>>meta " + list.length + "\n\n");
 
-    list.forEach(function(file) {
-      var path = Git.absPath(file);
-      Git.hashes(path, 1, function(err, hashes) {
-	console.log(path, err, hashes);
+    files = list.map(function(file) {
+      return {
+	name: file,
+	path: Git.absPath(file),
+	hash: null
+      };
+    });
 
-	files.push({
-	  name: file,
-	  path: path,
-	  hash: hashes[0]
-	});
+    files.forEach(function(file) {
+      Git.hashes(file.path, 1, function(err, hashes) {
+	console.log(file.path, err, hashes);
+	file.hash = hashes[0];
       });
     });
   });
@@ -27,6 +29,7 @@ function initFiles() {
 initFiles();
 
 router.get("/meta", _getMeta);
+router.get("/meta/:page", _getMetaPage);
 
 function _getMeta(req, res) {
 
@@ -35,6 +38,18 @@ function _getMeta(req, res) {
   res.render("meta", {
     title: "meta",
     files: files
+  });
+}
+
+function _getMetaPage(req, res) {
+
+  var page = "# metadata display page stub\n";
+
+  page += "* hash: " + req.params.page + "\n";
+
+  res.render("minimal", {
+    title: "meta",
+    content: renderer.render(page)
   });
 }
 
