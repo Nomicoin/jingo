@@ -13,14 +13,19 @@ function initFiles() {
       return {
 	name: file,
 	path: Git.absPath(file),
-	hash: null
+	hash: 'pending'
       };
     });
 
     files.forEach(function(file) {
-      Git.hashes(file.path, 1, function(err, hashes) {
-	console.log(file.path, err, hashes);
-	file.hash = hashes[0];
+//      Git.hashes(file.path, 1, function(err, hashes) {
+//	console.log(file.path, err, hashes);
+//	file.hash = hashes[0];
+//      });
+
+      Git.log(file.path, 'HEAD', function(err, metadata) {
+	console.log(file.path, metadata);
+	file.hash = metadata.hash;
       });
     });
   });
@@ -29,7 +34,7 @@ function initFiles() {
 initFiles();
 
 router.get("/meta", _getMeta);
-router.get("/meta/:page", _getMetaPage);
+router.get("/meta/:commit/:file", _getMetaPage);
 
 function _getMeta(req, res) {
 
@@ -45,7 +50,8 @@ function _getMetaPage(req, res) {
 
   var page = "# metadata display page stub\n";
 
-  page += "* hash: " + req.params.page + "\n";
+  page += "* commit: " + req.params.commit + "\n";
+  page += "* file: " + req.params.file + "\n";
 
   res.render("minimal", {
     title: "meta",
