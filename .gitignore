@@ -3,5 +3,5 @@ config.yaml
 config.yml
 data/*
 
-# Ignore all emacs backup files
 *~
+*.pyc
