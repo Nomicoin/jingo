@@ -15,7 +15,7 @@ class Snapshot:
     def add(self, entry, xid):
         metadata = str(xid)[:8] + "|" + str(entry.id)[:8]
         self.files[entry.name] = metadata
-        self.xids[entry.hex] = metadata
+        self.xids[entry.hex] = str(xid)
 
 class Project:
     def __init__(self):
@@ -42,10 +42,8 @@ project.init('/home/david/dev/Meridion.wiki/.git')
 
 print len(project.snapshots)
 
-latest = project.snapshots[-1]
-#print latest.files
-
-print toml.dumps(latest.xids)
+#latest = project.snapshots[-1]
+#print toml.dumps(latest.xids)
 
 for snapshot in project.snapshots:
     metadata = str(project.xid)[:8] + "|" + str(snapshot.commit.id)[:8]
@@ -58,10 +56,7 @@ for snapshot in project.snapshots:
     with open(path, 'w') as f:
         f.write(toml.dumps(snapshot.xids))
 
+save = { 'project': { 'repo': project.repo.path, 'xid': str(project.xid) } }
 
-
-
-
-
-
-
+with open(os.path.join(".meta", "index.toml"), 'w') as f:
+    f.write(toml.dumps(save))
