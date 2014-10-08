@@ -1,5 +1,5 @@
 from pygit2 import *
-import uuid
+import uuid, toml, os
 
 class File:
     def __init__(self, entry):
@@ -13,7 +13,7 @@ class Snapshot:
         self.xids = {}
 
     def add(self, entry, xid):
-        metadata = str(xid)[:8] + "/" + str(entry.id)[:8]
+        metadata = str(xid)[:8] + "|" + str(entry.id)[:8]
         self.files[entry.name] = metadata
         self.xids[entry.hex] = metadata
 
@@ -40,10 +40,26 @@ class Project:
 project = Project()
 project.init('/home/david/dev/Meridion.wiki/.git')
 
-#for snapshot in project.snapshots:
-#    print snapshot.commit.id, len(snapshot.files)
-
 print len(project.snapshots)
+
+latest = project.snapshots[-1]
+#print latest.files
+
+print toml.dumps(latest.xids)
+
+for snapshot in project.snapshots:
+    metadata = str(project.xid)[:8] + "|" + str(snapshot.commit.id)[:8]
+    path = os.path.join(".meta", *metadata.split("|")) + ".toml"
+    print metadata, path, len(snapshot.xids)
+
+    if not os.path.exists(os.path.dirname(path)):
+        os.makedirs(os.path.dirname(path))
+
+    with open(path, 'w') as f:
+        f.write(toml.dumps(snapshot.xids))
+
+
+
 
 
 
