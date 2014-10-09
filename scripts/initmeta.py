@@ -1,5 +1,6 @@
 from pygit2 import *
 import uuid, toml, os
+from datetime import datetime
 
 class File:
     def __init__(self, entry):
@@ -9,12 +10,9 @@ class File:
 class Snapshot:
     def __init__(self, commit):
         self.commit = commit
-        self.files = {}
         self.xids = {}
 
     def add(self, entry, xid):
-        #metadata = str(xid)[:8] + "|" + str(entry.id)[:8]
-        #self.files[entry.name] = metadata
         self.xids[entry.hex] = [str(xid), entry.name]
 
 class Project:
@@ -52,9 +50,6 @@ project.init('/home/david/dev/Meridion.wiki/.git')
 
 print len(project.snapshots)
 
-#latest = project.snapshots[-1]
-#print toml.dumps(latest.xids)
-
 for snapshot in project.snapshots:
     path = createPath(project.xid, snapshot.commit.id)
     with open(path, 'w') as f:
@@ -62,16 +57,15 @@ for snapshot in project.snapshots:
     for hash in snapshot.xids:
         xid, name = snapshot.xids[hash]
         path = createPath(xid, hash)
-        if os.path.isfile(path):
-            print path, "exists already"
-        else:
+        if not os.path.isfile(path):
+            dt = datetime.fromtimestamp(snapshot.commit.commit_time)
             xidb = { 
                 'xid': str(xid), 
                 'hash': hash, 
                 'name': name, 
                 'author': snapshot.commit.author.name,
                 'email': snapshot.commit.author.email,
-                #'time': snapshot.commit.commit_time,
+                'time': dt.isoformat(),
                 'message': snapshot.commit.message
                 }
             print xidb
