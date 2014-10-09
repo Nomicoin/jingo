@@ -62,7 +62,21 @@ for snapshot in project.snapshots:
     for hash in snapshot.xids:
         xid, name = snapshot.xids[hash]
         path = createPath(xid, hash)
-        print path, name
+        if os.path.isfile(path):
+            print path, "exists already"
+        else:
+            xidb = { 
+                'xid': str(xid), 
+                'hash': hash, 
+                'name': name, 
+                'author': snapshot.commit.author.name,
+                'email': snapshot.commit.author.email,
+                #'time': snapshot.commit.commit_time,
+                'message': snapshot.commit.message
+                }
+            print xidb
+            with open(path, 'w') as f:
+                f.write(toml.dumps({ 'xidb': xidb }))
 
 save = { 'project': { 'repo': project.repo.path, 'xid': str(project.xid) } }
 
