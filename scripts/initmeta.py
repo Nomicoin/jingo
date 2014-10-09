@@ -1,5 +1,5 @@
+import uuid, toml, os, shutil
 from pygit2 import *
-import uuid, toml, os
 from datetime import datetime
 
 class File:
@@ -50,11 +50,16 @@ project.init('/home/david/dev/Meridion.wiki/.git')
 
 print len(project.snapshots)
 
+shutil.rmtree('.meta')
+
 for snapshot in project.snapshots:
     path = createPath(project.xid, snapshot.commit.id)
     with open(path, 'w') as f:
         f.write(toml.dumps(snapshot.xids))
     for hash in snapshot.xids:
+        blob = project.repo[hash]
+        if blob.type != GIT_OBJ_BLOB:
+            continue
         xid, name = snapshot.xids[hash]
         path = createPath(xid, hash)
         if not os.path.isfile(path):
@@ -63,6 +68,8 @@ for snapshot in project.snapshots:
                 'xid': str(xid), 
                 'hash': hash, 
                 'name': name, 
+                'size': blob.size,
+                'binary': blob.is_binary,
                 'author': snapshot.commit.author.name,
                 'email': snapshot.commit.author.email,
                 'time': dt.isoformat(),
