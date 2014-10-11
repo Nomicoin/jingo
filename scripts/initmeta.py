@@ -3,17 +3,18 @@ from pygit2 import *
 from datetime import datetime
 
 class Asset:
-    def __init__(self, entry, xid):
-        self.xid = xid
-        self.entry = entry
+    def __init__(self, id, xid, name):
+        self.id = str(id)
+        self.xid = str(xid)
+        self.name = name
 
 class Snapshot:
     def __init__(self, commit):
         self.commit = commit
         self.xids = {}
 
-    def add(self, entry, xid):
-        self.xids[entry.hex] = [str(xid), entry.name]
+    def add(self, asset):
+        self.xids[asset.id] = [asset.xid, asset.name]
 
 class Project:
     def __init__(self, repoDir):
@@ -29,25 +30,45 @@ class Project:
                 if self.repo.path in projects:
                     self.xid = projects[self.repo.path]
                 else:
-                    self.save()
+                    self.xid = str(uuid.uuid4())
+                    projects[self.repo.path] = self.xid
+                    self.save(projects)
         else:
-            self.save()
-
-    def save(self):
             self.xid = str(uuid.uuid4())
-            save = { 'projects': { self.repo.path: str(self.xid) } }
-            
+            self.save({ self.repo.path: self.xid })
+
+    def save(self, projects):
             metaDir = os.path.dirname(self.path)
             if not os.path.exists(metaDir):
                 os.makedirs(metaDir)
-
             with open(self.path, 'w') as f:
-                f.write(toml.dumps(save))
+                f.write(toml.dumps({'projects': projects}))
 
     def init(self):
         self.initSnapshots()
         self.initMetadata()
 
+    def addTree(self, tree, path, snapshot):
+        print "addTree", path
+        for entry in tree:
+            try:
+                obj = self.repo[entry.id]
+            except:
+                print "bad id?", entry.id
+                continue
+            if obj.type == GIT_OBJ_TREE:
+                self.addTree(obj, os.path.join(path, entry.name), snapshot)
+            elif obj.type == GIT_OBJ_BLOB:
+                name = os.path.join(path, entry.name)
+                print "adding", name
+                if name in self.assets:
+                    asset = self.assets[name]
+                else:
+                    asset = Asset(entry.id, uuid.uuid4(), name)
+                    self.assets[name] = asset
+                    print "Adding", name
+                snapshot.add(asset)
+        
     def initSnapshots(self):
         for commit in self.repo.walk(self.repo.head.target, GIT_SORT_TIME | GIT_SORT_REVERSE):
             snapshot = Snapshot(commit)
@@ -57,22 +78,15 @@ class Project:
                     assets = toml.loads(f.read())['assets']
                 for id in assets:
                     xid, name = assets[id]
-                    entry = commit.tree[name]
                     if name in self.assets:
-                        asset = self.assets[entry.name]
+                        asset = self.assets[name]
                     else:
                         print "Adding %s as %s" % (name, xid)
-                        self.assets[name] = Asset(entry, xid)
-                    snapshot.add(entry, xid)
+                        asset = Asset(id, xid, name)
+                        self.assets[name] = asset
+                    snapshot.add(asset)
             else:
-                for entry in commit.tree:
-                    if entry.name in self.assets:
-                        asset = self.assets[entry.name]
-                    else:
-                        asset = Asset(entry, uuid.uuid4())
-                        self.assets[entry.name] = asset
-                        print "Adding", entry.name
-                    snapshot.add(entry, asset.xid)
+                self.addTree(commit.tree, '', snapshot)
 
                 path, commitLink  = createPath(project.xid, snapshot.commit.id)
                 dt = datetime.fromtimestamp(snapshot.commit.commit_time)
@@ -96,7 +110,12 @@ class Project:
             dt = datetime.fromtimestamp(snapshot.commit.commit_time)
 
             for hash in snapshot.xids:
-                blob = self.repo[hash]
+                try:
+                    blob = self.repo[hash]
+                except:
+                    print "bad blob?", snapshot.xids[hash]
+                    continue
+
                 if blob.type != GIT_OBJ_BLOB:
                     continue
                 xid, name = snapshot.xids[hash]
@@ -132,7 +151,8 @@ def createPath(xid, hash):
         os.makedirs(dirName)
     return path, pathId
 
-project = Project('/home/david/dev/Meridion.wiki/.git')
+#project = Project('/home/david/dev/Meridion.wiki/.git')
+project = Project('/home/david/dev/jingo/.git')
 project.open()
 project.init()
 
