@@ -38,46 +38,62 @@ class Project:
 def createPath(xid, hash):
     xidRef = str(xid)[:8]
     hashRef = str(hash)[:8]
+    pathId = os.path.join(xidRef, hashRef)
     dirName = os.path.join(".meta", xidRef)
     metadata = hashRef + ".toml"
     path = os.path.join(dirName, metadata)
     if not os.path.exists(dirName):
         os.makedirs(dirName)
-    return path
+    return path, pathId
 
 project = Project()
 project.init('/home/david/dev/Meridion.wiki/.git')
 
 print len(project.snapshots)
 
-shutil.rmtree('.meta')
+if os.path.exists('.meta'):
+    shutil.rmtree('.meta')
 
 for snapshot in project.snapshots:
-    path = createPath(project.xid, snapshot.commit.id)
+    path, commitLink  = createPath(project.xid, snapshot.commit.id)
+    dt = datetime.fromtimestamp(snapshot.commit.commit_time)
+    metaCommit = {
+        'project': str(project.xid),
+        'author': snapshot.commit.author.name,
+        'email': snapshot.commit.author.email,
+        'time': dt.isoformat(),
+        'message': snapshot.commit.message,
+        'commit': str(snapshot.commit.id)
+    }
+
     with open(path, 'w') as f:
-        f.write(toml.dumps(snapshot.xids))
+        f.write(toml.dumps({'commit': metaCommit, 'assets': snapshot.xids}))
+
     for hash in snapshot.xids:
         blob = project.repo[hash]
         if blob.type != GIT_OBJ_BLOB:
             continue
         xid, name = snapshot.xids[hash]
-        path = createPath(xid, hash)
+        path, blobLink = createPath(xid, hash)
         if not os.path.isfile(path):
-            dt = datetime.fromtimestamp(snapshot.commit.commit_time)
-            xidb = { 
-                'xid': str(xid), 
-                'hash': hash, 
-                'name': name, 
+            meta = {
+                'xid': str(xid),
+                'commit': commitLink,
+                'type': '',
+                'link': blobLink,
+                'name': name,
+                'description': '',
+                'authors': str([]),
+                'timestamp': dt.isoformat(),
+                'asset': hash, 
                 'size': blob.size,
-                'binary': blob.is_binary,
-                'author': snapshot.commit.author.name,
-                'email': snapshot.commit.author.email,
-                'time': dt.isoformat(),
-                'message': snapshot.commit.message
-                }
-            print xidb
+                'encoding': 'binary' if blob.is_binary else 'text',
+                'comments': '',
+                'votes': ''
+            }
+            print meta
             with open(path, 'w') as f:
-                f.write(toml.dumps({ 'xidb': xidb }))
+                f.write(toml.dumps({'xidb': meta}))
 
 save = { 'project': { 'repo': project.repo.path, 'xid': str(project.xid) } }
 
