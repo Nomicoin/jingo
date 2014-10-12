@@ -84,6 +84,7 @@ class Project:
         for commit in self.repo.walk(self.repo.head.target, GIT_SORT_TIME | GIT_SORT_REVERSE):
             snapshot = Snapshot(commit)
             path, link = createPath(self.xid, commit.id)
+            print "Building snapshot", link
             if os.path.exists(path):
                 with open(path) as f:
                     assets = toml.loads(f.read())['assets']
@@ -133,7 +134,9 @@ class Project:
                 xid, name = snapshot.xids[hash]
                 path, blobLink = createPath(xid, hash)
                 asset = self.assets[name]
-                if not os.path.isfile(path):
+                if os.path.isfile(path):
+                    print "found metadata for", name, blobLink
+                else:
                     meta = {
                         'xid': str(xid),
                         'commit': commitLink,
@@ -166,15 +169,12 @@ def createPath(xid, hash):
     return path, pathId
 
 #project = Project('/home/david/dev/Meridion.wiki/.git')
-#project = Project('/home/david/dev/jingo/.git')
-project = Project('/home/david/dev/test/.git')
+project = Project('/home/david/dev/jingo/.git')
+#project = Project('/home/david/dev/test/.git')
 project.open()
 project.init()
 
 print len(project.snapshots)
 
-for name in project.assets:
-    asset = project.assets[name]
-    print name, asset.versions
 
 
