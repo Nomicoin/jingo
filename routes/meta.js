@@ -49,10 +49,14 @@ function _getMeta(req, res) {
 
 function _getMetaPage(req, res) {
 
+  var commit = req.params.commit;
+  var file = req.params.file;
+  var metadata = xidb.getMetadata('/home/david/dev/Meridion.wiki/.git/', commit, file);
   var page = "# metadata display page stub\n";
 
-  page += "* commit: " + req.params.commit + "\n";
-  page += "* file: " + req.params.file + "\n";
+  for(key in metadata) {
+    page += "* " + key + ": " + metadata[key] + "\n";
+  }
 
   res.render("minimal", {
     title: "meta",
