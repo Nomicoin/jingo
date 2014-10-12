@@ -4,9 +4,22 @@ from datetime import datetime
 
 class Asset:
     def __init__(self, id, xid, name):
-        self.id = str(id)
         self.xid = str(xid)
         self.name = name
+        self.versions = [str(id)]
+
+    def addVersion(self, id):
+        latest = self.versions[-1]
+        if (id != latest):
+            self.versions.append(str(id))
+
+    def prevLink(self, id):
+        i = self.versions.index(id)
+        if i > 0:
+            prev = self.versions[i-1]
+            return createPath(self.xid, prev)[1]
+        else:
+            return ''
 
 class Snapshot:
     def __init__(self, commit):
@@ -49,7 +62,6 @@ class Project:
         self.initMetadata()
 
     def addTree(self, tree, path, snapshot):
-        print "addTree", path
         for entry in tree:
             try:
                 obj = self.repo[entry.id]
@@ -62,11 +74,10 @@ class Project:
                 name = os.path.join(path, entry.name)
                 if name in self.assets:
                     asset = self.assets[name]
-                    print "found asset", name
+                    asset.addVersion(obj.id)
                 else:
-                    asset = Asset(entry.id, uuid.uuid4(), name)
+                    asset = Asset(obj.id, uuid.uuid4(), name)
                     self.assets[name] = asset
-                    print "new asset", name
                 snapshot.add(obj.id, asset)
         
     def initSnapshots(self):
@@ -80,6 +91,7 @@ class Project:
                     xid, name = assets[id]
                     if name in self.assets:
                         asset = self.assets[name]
+                        asset.addVersion(id)
                     else:
                         print "Adding %s as %s" % (name, xid)
                         asset = Asset(id, xid, name)
@@ -120,10 +132,12 @@ class Project:
                     continue
                 xid, name = snapshot.xids[hash]
                 path, blobLink = createPath(xid, hash)
+                asset = self.assets[name]
                 if not os.path.isfile(path):
                     meta = {
                         'xid': str(xid),
                         'commit': commitLink,
+                        'prev': asset.prevLink(hash),
                         'type': '',
                         'link': blobLink,
                         'name': name,
@@ -138,7 +152,7 @@ class Project:
                     }
                     with open(path, 'w') as f:
                         f.write(toml.dumps({'xidb': meta}))
-                        print "wrote metadata for", name
+                        print "wrote metadata for", name, blobLink
 
 def createPath(xid, hash):
     xidRef = str(xid)[:8]
@@ -159,5 +173,8 @@ project.init()
 
 print len(project.snapshots)
 
+for name in project.assets:
+    asset = project.assets[name]
+    print name, asset.versions
 
 
