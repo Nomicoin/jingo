@@ -19,11 +19,6 @@ function initFiles() {
     });
 
     files.forEach(function(file) {
-//      Git.hashes(file.path, 1, function(err, hashes) {
-//	console.log(file.path, err, hashes);
-//	file.hash = hashes[0];
-//      });
-
       Git.log(file.path, 'HEAD', function(err, metadata) {
 	console.log(file.path, metadata);
 	file.hash = metadata.fullhash.slice(0,8);
@@ -39,7 +34,7 @@ router.get("/meta/:commit/:file", _getMetaPage);
 
 function _getMeta(req, res) {
 
-  console.log(files);
+  //console.log(files);
 
   res.render("meta", {
     title: "meta",
@@ -51,7 +46,7 @@ function _getMetaPage(req, res) {
 
   var commit = req.params.commit;
   var file = req.params.file;
-  var metadata = xidb.getMetadata('/home/david/dev/Meridion.wiki/.git/', commit, file);
+  var metadata = xidb.getMetadata(commit, file);
   var page = "# metadata display page stub\n";
 
   for(key in metadata) {
