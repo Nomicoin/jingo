@@ -1,5 +1,6 @@
 var router = require("express").Router();
 var renderer = require('../lib/renderer');
+var xidb = require('../lib/xidb');
 var fs = require("fs");
 
 var files = [];
@@ -25,7 +26,7 @@ function initFiles() {
 
       Git.log(file.path, 'HEAD', function(err, metadata) {
 	console.log(file.path, metadata);
-	file.hash = metadata.hash;
+	file.hash = metadata.fullhash.slice(0,8);
       });
     });
   });

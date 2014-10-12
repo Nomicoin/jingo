@@ -168,8 +168,8 @@ def createPath(xid, hash):
         os.makedirs(dirName)
     return path, pathId
 
-#project = Project('/home/david/dev/Meridion.wiki/.git')
-project = Project('/home/david/dev/jingo/.git')
+project = Project('/home/david/dev/Meridion.wiki/.git')
+#project = Project('/home/david/dev/jingo/.git')
 #project = Project('/home/david/dev/test/.git')
 project.open()
 project.init()
