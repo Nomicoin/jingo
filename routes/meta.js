@@ -30,7 +30,8 @@ function initFiles() {
 initFiles();
 
 router.get("/meta", _getMeta);
-router.get("/meta/:commit/:file", _getMetaPage);
+router.get("/meta/:xid/:oid", _getMetaPage);
+router.get("/meta/tree/:commit/:file", _getMetaPageTree);
 
 function _getMeta(req, res) {
 
@@ -42,21 +43,42 @@ function _getMeta(req, res) {
   });
 }
 
+function _makeWikiLink(text, link) {
+  return "[" + text + "](" + link +")";
+}
+
 function _getMetaPage(req, res) {
 
-  var commit = req.params.commit;
-  var file = req.params.file;
-  var metadata = xidb.getMetadata(commit, file);
+  var xid = req.params.xid;
+  var oid = req.params.oid;
+  var metadata = xidb.getMetadata2(xid, oid);
   var page = "# metadata display page stub\n";
 
   for(key in metadata) {
-    page += "* " + key + ": " + metadata[key] + "\n";
+    val = metadata[key];
+
+    if (/\w{8}\/\w{8}/.test(val)) {
+      var link = "/meta/" + val;
+      page += "* " + key + ": " + _makeWikiLink(val, link) +"\n";
+    }
+    else {
+      page += "* " + key + ": " + val + "\n";
+    }
   }
 
   res.render("minimal", {
     title: "meta",
     content: renderer.render(page)
   });
+}
+
+function _getMetaPageTree(req, res) {
+
+  var commit = req.params.commit;
+  var file = req.params.file;
+  var metalink = xidb.getMetalink(commit, file);
+
+  res.redirect("/meta/" + metalink);
 }
 
 module.exports = router;
