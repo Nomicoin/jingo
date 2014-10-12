@@ -13,8 +13,8 @@ class Snapshot:
         self.commit = commit
         self.xids = {}
 
-    def add(self, asset):
-        self.xids[asset.id] = [asset.xid, asset.name]
+    def add(self, id, asset):
+        self.xids[str(id)] = [asset.xid, asset.name]
 
 class Project:
     def __init__(self, repoDir):
@@ -60,14 +60,14 @@ class Project:
                 self.addTree(obj, os.path.join(path, entry.name), snapshot)
             elif obj.type == GIT_OBJ_BLOB:
                 name = os.path.join(path, entry.name)
-                print "adding", name
                 if name in self.assets:
                     asset = self.assets[name]
+                    print "found asset", name
                 else:
                     asset = Asset(entry.id, uuid.uuid4(), name)
                     self.assets[name] = asset
-                    print "Adding", name
-                snapshot.add(asset)
+                    print "new asset", name
+                snapshot.add(obj.id, asset)
         
     def initSnapshots(self):
         for commit in self.repo.walk(self.repo.head.target, GIT_SORT_TIME | GIT_SORT_REVERSE):
@@ -84,7 +84,7 @@ class Project:
                         print "Adding %s as %s" % (name, xid)
                         asset = Asset(id, xid, name)
                         self.assets[name] = asset
-                    snapshot.add(asset)
+                    snapshot.add(id, asset)
             else:
                 self.addTree(commit.tree, '', snapshot)
 
@@ -152,7 +152,8 @@ def createPath(xid, hash):
     return path, pathId
 
 #project = Project('/home/david/dev/Meridion.wiki/.git')
-project = Project('/home/david/dev/jingo/.git')
+#project = Project('/home/david/dev/jingo/.git')
+project = Project('/home/david/dev/test/.git')
 project.open()
 project.init()
 
