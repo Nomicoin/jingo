@@ -51,7 +51,7 @@ function _getMetaPage(req, res) {
 
   var xid = req.params.xid;
   var oid = req.params.oid;
-  var metadata = xidb.getMetadata2(xid, oid);
+  var metadata = xidb.getMetadata(xid, oid);
   var page = "# metadata display page stub\n";
 
   for(key in metadata) {
