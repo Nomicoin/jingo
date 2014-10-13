@@ -54,6 +54,13 @@ function _getMetaPage(req, res) {
   var metadata = xidb.getMetadata(xid, oid);
   var page = "# metadata display page stub\n";
 
+  if ('commit' in metadata) {
+    metadata = metadata.commit;
+  }
+  else {
+    metadata = metadata.xidb;
+  }
+
   for(key in metadata) {
     val = metadata[key];
 
