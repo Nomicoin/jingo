@@ -1,6 +1,11 @@
-import uuid, toml, os, shutil
+import uuid, toml, os, shutil, yaml
 from pygit2 import *
 from datetime import datetime
+
+def createLink(xid, hash):
+    xidRef = str(xid)[:8]
+    hashRef = str(hash)[:8]
+    return os.path.join(xidRef, hashRef)
 
 class Asset:
     def __init__(self, id, xid, name):
@@ -17,25 +22,47 @@ class Asset:
         i = self.versions.index(id)
         if i > 0:
             prev = self.versions[i-1]
-            return createPath(self.xid, prev)[1]
+            return createLink(self.xid, prev)
         else:
             return ''
 
 class Snapshot:
-    def __init__(self, commit):
+    def __init__(self, commit, link, path):
         self.commit = commit
+        self.link = link
+        self.path = path
+        self.timestamp = datetime.fromtimestamp(commit.commit_time).isoformat()
         self.xids = {}
 
     def add(self, id, asset):
         self.xids[str(id)] = [asset.xid, asset.name]
 
+    def __str__(self):
+        return "snapshot %s at %s" % (self.link, self.timestamp)
+
 class Project:
-    def __init__(self, repoDir):
-        self.repo = Repository(repoDir)
+    def __init__(self, config):
+        self.repoDir = config['application']['repository']
+        self.metaDir = config['application']['metadata']
+        self.repo = Repository(self.repoDir)
         self.snapshots = []
         self.assets = {}
-        self.path = os.path.join(".meta", "index.toml")
+        self.path = os.path.join(self.metaDir, "index.toml")
+        self.snapshotsLoaded = 0
+        self.snapshotsCreated = 0
+        self.assetsLoaded = 0
+        self.assetsCreated = 0
  
+    def init(self): 
+        self.open()
+        self.initSnapshots()
+        self.initMetadata()
+
+    def update(self):
+        self.open()
+        self.updateSnapshots()
+        self.initMetadata()
+
     def open(self):
         if os.path.exists(self.path):
             with open(self.path) as f:
@@ -57,11 +84,15 @@ class Project:
             with open(self.path, 'w') as f:
                 f.write(toml.dumps({'projects': projects}))
 
-    def init(self):
-        self.initSnapshots()
-        self.initMetadata()
+    def createPath(self, link):
+        path = os.path.join(self.metaDir, link) + ".toml"
+        dirName = os.path.dirname(path)
+        if not os.path.exists(dirName):
+            os.makedirs(dirName)
+        return path
 
     def addTree(self, tree, path, snapshot):
+        # todo: don't add metadir to assets
         for entry in tree:
             try:
                 obj = self.repo[entry.id]
@@ -80,13 +111,28 @@ class Project:
                     self.assets[name] = asset
                 snapshot.add(obj.id, asset)
         
+    def updateSnapshots(self):
+        for commit in self.repo.walk(self.repo.head.target, GIT_SORT_TIME):
+            link = createLink(self.xid, commit.id)
+            path = self.createPath(link)
+            snapshot = Snapshot(commit, link, path)
+            self.snapshots.insert(0, snapshot)
+            if os.path.exists(path):
+                break
+        self.loadSnapshots()
+
     def initSnapshots(self):
         for commit in self.repo.walk(self.repo.head.target, GIT_SORT_TIME | GIT_SORT_REVERSE):
-            snapshot = Snapshot(commit)
-            path, link = createPath(self.xid, commit.id)
-            print "Building snapshot", link
-            if os.path.exists(path):
-                with open(path) as f:
+            link = createLink(self.xid, commit.id)
+            path = self.createPath(link)
+            snapshot = Snapshot(commit, link, path)
+            self.snapshots.append(snapshot)
+        self.loadSnapshots()
+
+    def loadSnapshots(self):
+        for snapshot in self.snapshots:
+            if os.path.exists(snapshot.path):
+                with open(snapshot.path) as f:
                     assets = toml.loads(f.read())['assets']
                 for id in assets:
                     xid, name = assets[id]
@@ -94,34 +140,30 @@ class Project:
                         asset = self.assets[name]
                         asset.addVersion(id)
                     else:
-                        print "Adding %s as %s" % (name, xid)
+                        #print "Adding %s as %s" % (name, xid)
                         asset = Asset(id, xid, name)
                         self.assets[name] = asset
                     snapshot.add(id, asset)
+                self.snapshotsLoaded += 1
             else:
-                self.addTree(commit.tree, '', snapshot)
-
-                path, commitLink  = createPath(project.xid, snapshot.commit.id)
+                print "Building snapshot", snapshot.link
+                self.addTree(snapshot.commit.tree, '', snapshot)
                 dt = datetime.fromtimestamp(snapshot.commit.commit_time)
                 metaCommit = {
                     'project': str(project.xid),
                     'author': snapshot.commit.author.name,
                     'email': snapshot.commit.author.email,
-                    'time': dt.isoformat(),
+                    'time': snapshot.timestamp,
                     'message': snapshot.commit.message,
                     'commit': str(snapshot.commit.id)
                 }
 
-                with open(path, 'w') as f:
+                with open(snapshot.path, 'w') as f:
                     f.write(toml.dumps({'commit': metaCommit, 'assets': snapshot.xids}))
+                self.snapshotsCreated += 1
 
-            self.snapshots.append(snapshot)
-                        
     def initMetadata(self):
         for snapshot in self.snapshots:
-            path, commitLink  = createPath(self.xid, snapshot.commit.id)
-            dt = datetime.fromtimestamp(snapshot.commit.commit_time)
-
             for hash in snapshot.xids:
                 try:
                     blob = self.repo[hash]
@@ -132,21 +174,20 @@ class Project:
                 if blob.type != GIT_OBJ_BLOB:
                     continue
                 xid, name = snapshot.xids[hash]
-                path, blobLink = createPath(xid, hash)
+                blobLink = createLink(xid, hash)
+                path = self.createPath(blobLink)
                 asset = self.assets[name]
-                if os.path.isfile(path):
-                    print "found metadata for", name, blobLink
-                else:
+                if not os.path.isfile(path):
                     meta = {
                         'xid': str(xid),
-                        'commit': commitLink,
+                        'snapshot': snapshot.link,
                         'prev': asset.prevLink(hash),
                         'type': '',
                         'link': blobLink,
                         'name': name,
                         'description': '',
                         'authors': str([]),
-                        'timestamp': dt.isoformat(),
+                        'timestamp': snapshot.timestamp,
                         'asset': hash, 
                         'size': blob.size,
                         'encoding': 'binary' if blob.is_binary else 'text',
@@ -156,25 +197,16 @@ class Project:
                     with open(path, 'w') as f:
                         f.write(toml.dumps({'xidb': meta}))
                         print "wrote metadata for", name, blobLink
+                    self.assetsCreated += 1
 
-def createPath(xid, hash):
-    xidRef = str(xid)[:8]
-    hashRef = str(hash)[:8]
-    pathId = os.path.join(xidRef, hashRef)
-    dirName = os.path.join(".meta", xidRef)
-    metadata = hashRef + ".toml"
-    path = os.path.join(dirName, metadata)
-    if not os.path.exists(dirName):
-        os.makedirs(dirName)
-    return path, pathId
+if __name__ == "__main__": 
+    with open('../meridion.yaml') as f:
+        config = yaml.load(f.read())
+    project = Project(config)
+    project.update()
+    #project.init()
 
-project = Project('/home/david/dev/Meridion.wiki/.git')
-#project = Project('/home/david/dev/jingo/.git')
-#project = Project('/home/david/dev/test/.git')
-project.open()
-project.init()
-
-print len(project.snapshots)
-
-
-
+    print len(project.snapshots), "snapshots"
+    print project.snapshotsLoaded, "snapshots loaded"
+    print project.snapshotsCreated, "snapshots created"
+    print project.assetsCreated, "metadata created"
