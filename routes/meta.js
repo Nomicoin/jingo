@@ -27,10 +27,7 @@ function _getMetaPage(req, res) {
   var oid = req.params.oid;
   var metadata = xidb.getMetadata(xid, oid);
 
-  if ('commit' in metadata) {
-    metadata = metadata.commit;
-  }
-  else {
+  if ('xidb' in metadata) {
     metadata = metadata.xidb;
   }
 

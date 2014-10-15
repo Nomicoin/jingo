@@ -37,10 +37,10 @@ class Snapshot:
         self.link = link
         self.path = path
         self.timestamp = datetime.fromtimestamp(commit.commit_time).isoformat()
-        self.xids = {}
+        self.assets = {}
 
     def add(self, id, asset):
-        self.xids[str(id)] = [asset.xid, asset.name]
+        self.assets[str(id)] = {'xid': asset.xid, 'name': asset.name}
 
     def __str__(self):
         return "snapshot %s at %s" % (self.link, self.timestamp)
@@ -152,7 +152,7 @@ class Project:
             else:
                 print "Building snapshot", snapshot.link
                 self.addTree(snapshot.commit.tree, '', snapshot)
-                dt = datetime.fromtimestamp(snapshot.commit.commit_time)
+
                 metaCommit = {
                     'project': str(project.xid),
                     'author': snapshot.commit.author.name,
@@ -162,21 +162,24 @@ class Project:
                     'commit': str(snapshot.commit.id)
                 }
 
-                saveFile(snapshot.path, {'commit': metaCommit, 'assets': snapshot.xids})
+                saveFile(snapshot.path, {'xidb': metaCommit, 'assets': snapshot.assets})
                 self.snapshotsCreated += 1
 
     def initMetadata(self):
         for snapshot in self.snapshots:
-            for hash in snapshot.xids:
+            for hash in snapshot.assets:
                 try:
                     blob = self.repo[hash]
                 except:
-                    print "bad blob?", snapshot.xids[hash]
+                    print "bad blob?", snapshot.assets[hash]
                     continue
 
                 if blob.type != GIT_OBJ_BLOB:
                     continue
-                xid, name = snapshot.xids[hash]
+                
+                asset = snapshot.assets[hash]
+                xid = asset['xid']
+                name = asset['name']
                 blobLink = createLink(xid, hash)
                 path = self.createPath(blobLink)
                 asset = self.assets[name]
