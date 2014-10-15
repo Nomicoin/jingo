@@ -1,3 +1,3 @@
 # viki home
 
-(metadata index)[/meta]
+[metadata index](/meta)
