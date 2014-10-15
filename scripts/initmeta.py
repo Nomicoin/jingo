@@ -135,11 +135,14 @@ class Project:
 
     def loadSnapshots(self):
         for snapshot in self.snapshots:
+            print "loading snapshot", snapshot.path
             if os.path.exists(snapshot.path):
                 with open(snapshot.path) as f:
                     assets = json.loads(f.read())['assets']
                 for id in assets:
-                    xid, name = assets[id]
+                    asset = assets[id]
+                    xid = asset['xid']
+                    name = asset['name']
                     if name in self.assets:
                         asset = self.assets[name]
                         asset.addVersion(id)
@@ -180,16 +183,18 @@ class Project:
                 asset = snapshot.assets[hash]
                 xid = asset['xid']
                 name = asset['name']
-                blobLink = createLink(xid, hash)
-                path = self.createPath(blobLink)
+                link = createLink(xid, hash)
+                path = self.createPath(link)
                 asset = self.assets[name]
                 if not os.path.isfile(path):
+                    prevLink = asset.prevLink(hash)
                     meta = {
                         'xid': str(xid),
                         'snapshot': snapshot.link,
-                        'prev': asset.prevLink(hash),
+                        'prev': prevLink,
+                        'next': '',
                         'type': '',
-                        'link': blobLink,
+                        'link': link,
                         'name': name,
                         'description': '',
                         'authors': str([]),
@@ -201,8 +206,15 @@ class Project:
                         'votes': ''
                     }
                     saveFile(path, {'xidb': meta})
-                    print "wrote metadata for", name, blobLink
+                    print "wrote metadata for", name, link
                     self.assetsCreated += 1
+
+                    prevPath = self.createPath(prevLink)
+                    if os.path.isfile(prevPath):
+                        with open(prevPath) as f:
+                            meta = json.loads(f.read())['xidb']
+                        meta['next'] = link
+                        saveFile(prevPath, {'xidb': meta})
 
 if __name__ == "__main__": 
     with open('../meridion.yaml') as f:
