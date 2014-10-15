@@ -1,4 +1,4 @@
-import uuid, toml, os, shutil, yaml
+import uuid, os, shutil, yaml, json
 from pygit2 import *
 from datetime import datetime
 
@@ -6,6 +6,11 @@ def createLink(xid, hash):
     xidRef = str(xid)[:8]
     hashRef = str(hash)[:8]
     return os.path.join(xidRef, hashRef)
+
+def saveFile(path, obj):
+    with open(path, 'w') as f:
+        res = json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
+        f.write(res + "\n")
 
 class Asset:
     def __init__(self, id, xid, name):
@@ -47,7 +52,7 @@ class Project:
         self.repo = Repository(self.repoDir)
         self.snapshots = []
         self.assets = {}
-        self.path = os.path.join(self.metaDir, "index.toml")
+        self.path = os.path.join(self.metaDir, "index.json")
         self.snapshotsLoaded = 0
         self.snapshotsCreated = 0
         self.assetsLoaded = 0
@@ -66,7 +71,7 @@ class Project:
     def open(self):
         if os.path.exists(self.path):
             with open(self.path) as f:
-                projects = toml.loads(f.read())['projects']
+                projects = json.loads(f.read())['projects']
                 if self.repo.path in projects:
                     self.xid = projects[self.repo.path]
                 else:
@@ -81,11 +86,10 @@ class Project:
             metaDir = os.path.dirname(self.path)
             if not os.path.exists(metaDir):
                 os.makedirs(metaDir)
-            with open(self.path, 'w') as f:
-                f.write(toml.dumps({'projects': projects}))
+            saveFile(self.path, {'projects': projects})
 
     def createPath(self, link):
-        path = os.path.join(self.metaDir, link) + ".toml"
+        path = os.path.join(self.metaDir, link) + ".json"
         dirName = os.path.dirname(path)
         if not os.path.exists(dirName):
             os.makedirs(dirName)
@@ -133,7 +137,7 @@ class Project:
         for snapshot in self.snapshots:
             if os.path.exists(snapshot.path):
                 with open(snapshot.path) as f:
-                    assets = toml.loads(f.read())['assets']
+                    assets = json.loads(f.read())['assets']
                 for id in assets:
                     xid, name = assets[id]
                     if name in self.assets:
@@ -158,8 +162,7 @@ class Project:
                     'commit': str(snapshot.commit.id)
                 }
 
-                with open(snapshot.path, 'w') as f:
-                    f.write(toml.dumps({'commit': metaCommit, 'assets': snapshot.xids}))
+                saveFile(snapshot.path, {'commit': metaCommit, 'assets': snapshot.xids})
                 self.snapshotsCreated += 1
 
     def initMetadata(self):
@@ -194,9 +197,8 @@ class Project:
                         'comments': '',
                         'votes': ''
                     }
-                    with open(path, 'w') as f:
-                        f.write(toml.dumps({'xidb': meta}))
-                        print "wrote metadata for", name, blobLink
+                    saveFile(path, {'xidb': meta})
+                    print "wrote metadata for", name, blobLink
                     self.assetsCreated += 1
 
 if __name__ == "__main__": 
