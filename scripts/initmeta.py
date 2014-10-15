@@ -1,4 +1,4 @@
-import uuid, os, shutil, yaml, json
+import uuid, os, shutil, yaml, json, argparse
 from pygit2 import *
 from datetime import datetime
 
@@ -157,7 +157,7 @@ class Project:
                 self.addTree(snapshot.commit.tree, '', snapshot)
 
                 metaCommit = {
-                    'project': str(project.xid),
+                    'project': str(self.xid),
                     'author': snapshot.commit.author.name,
                     'email': snapshot.commit.author.email,
                     'time': snapshot.timestamp,
@@ -216,9 +216,7 @@ class Project:
                         meta['next'] = link
                         saveFile(prevPath, {'xidb': meta})
 
-if __name__ == "__main__": 
-    with open('../meridion.yaml') as f:
-        config = yaml.load(f.read())
+def initMetadata(config):
     project = Project(config)
     project.update()
     #project.init()
@@ -227,3 +225,14 @@ if __name__ == "__main__":
     print project.snapshotsLoaded, "snapshots loaded"
     print project.snapshotsCreated, "snapshots created"
     print project.assetsCreated, "metadata created"
+
+if __name__ == "__main__": 
+    parser = argparse.ArgumentParser(description="Initialize xidb metadata")
+    parser.add_argument('-c', '--config', dest='config', required=True)
+    args = parser.parse_args()
+    print args
+
+    with open(args.config) as f:
+        config = yaml.load(f.read())
+    initMetadata(config)
+    
