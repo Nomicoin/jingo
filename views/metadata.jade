@@ -1,0 +1,17 @@
+extends layout
+
+block content
+
+  h1 metadata
+
+  table.table-bordered.table-hover.table-condensed
+    each data in metadata
+      tr
+        td #{data.key}
+        if data.link
+          td 
+            a(href="/meta/#{data.link}") #{data.val}
+        else
+          td #{data.val}
+
+  a(href="/meta") metadata index

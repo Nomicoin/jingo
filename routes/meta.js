@@ -26,7 +26,6 @@ function _getMetaPage(req, res) {
   var xid = req.params.xid;
   var oid = req.params.oid;
   var metadata = xidb.getMetadata(xid, oid);
-  var page = "# metadata display page stub\n";
 
   if ('commit' in metadata) {
     metadata = metadata.commit;
@@ -35,21 +34,21 @@ function _getMetaPage(req, res) {
     metadata = metadata.xidb;
   }
 
+  md = []
+
   for(key in metadata) {
     val = metadata[key];
+    link = null;
 
     if (/\w{8}\/\w{8}/.test(val)) {
-      var link = "/meta/" + val;
-      page += "* " + key + ": " + _makeWikiLink(val, link) +"\n";
+      link = val
     }
-    else {
-      page += "* " + key + ": " + val + "\n";
-    }
+    md.push({'key':key, 'val':val, 'link':link});
   }
 
-  res.render("minimal", {
-    title: "meta",
-    content: renderer.render(page)
+  res.render("metadata", {
+    title: "metadata",
+    metadata: md
   });
 }
 
