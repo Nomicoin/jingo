@@ -38,8 +38,12 @@ function _getMetaPage(req, res) {
     link = null;
 
     if (/\w{8}\/\w{8}/.test(val)) {
-      link = val
+      link = "/meta/" + val;
     }
+    else if (key == 'asset' && metadata['encoding'] == 'text') {
+      link = "/meta/" + xid + "/" + oid + "/asset";
+    }
+
     md.push({'key':key, 'val':val, 'link':link});
   }
 
@@ -65,10 +69,24 @@ function _getMetaPageItem(req, res) {
   if (item in metadata) {
     var val = metadata[item];
 
-    console.log(">>>", item, val, metadata, rest);
-
     if (/\w{8}\/\w{8}/.test(val)) {
       res.redirect("/meta/" + val + rest);
+      return;
+    }
+
+    if (item == 'asset') {
+
+      Git.show(null, val, function(err, content) {
+
+	res.writeHead(200, {
+	  'Content-Type': 'text/plain',
+	  'Content-Length': content.length,
+	  'Expires': new Date().toUTCString()
+	});
+
+	res.end(content);
+      });
+
       return;
     }
 
