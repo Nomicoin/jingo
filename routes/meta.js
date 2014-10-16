@@ -5,8 +5,8 @@ var fs = require("fs");
 
 router.get("/meta", _getMeta);
 router.get("/meta/:xid/:oid", _getMetaPage);
+router.get("/meta/:xid/:oid/:item*", _getMetaPageItem);
 router.get("/meta/tree/:commit/:file", _getMetaPageTree);
-router.get("/meta/test/:commit/:path/:rest*?", _getMetaTest);
 
 function _getMeta(req, res) {
   var assets = xidb.getAssets();
@@ -49,6 +49,39 @@ function _getMetaPage(req, res) {
   });
 }
 
+function _getMetaPageItem(req, res) {
+
+  var xid = req.params.xid;
+  var oid = req.params.oid;
+  var item = req.params.item;
+  var rest = req.params['0'];
+
+  var metadata = xidb.getMetadata(xid, oid);
+
+  if ('xidb' in metadata) {
+    metadata = metadata.xidb;
+  }
+
+  if (item in metadata) {
+    var val = metadata[item];
+
+    console.log(">>>", item, val, metadata, rest);
+
+    if (/\w{8}\/\w{8}/.test(val)) {
+      res.redirect("/meta/" + val + rest);
+      return;
+    }
+
+    res.render("metadata", {
+      title: "metadata",
+      metadata: [{ 'key':item, 'val':metadata[item], 'link':null }]
+    });
+  }
+  else {
+    res.redirect("/meta");
+  }
+}
+
 function _getMetaPageTree(req, res) {
 
   var commit = req.params.commit;
@@ -60,11 +93,7 @@ function _getMetaPageTree(req, res) {
 
 function _getMetaTest(req, res) {
 
-  var commit = req.params.commit;
-  var path = req.params.path;
-  var rest = req.params.rest;
-
-  console.log(">>> _getMetaTest", commit, path, rest);
+  console.log(">>> _getMetaTest", req.url, req.params);
 
   res.redirect("/meta");
 }

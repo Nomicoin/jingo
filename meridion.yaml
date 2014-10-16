@@ -11,6 +11,7 @@ application:
   git: git
   skipGitCheck: false
   loggingMode: 1
+  staticWhitelist: "/\\.png$/i, /\\.jpg$/i, /\\.gif$/i, /\\.pdf$/, /\\.gliffy$/"
 authentication:
   google:
     enabled: false
@@ -22,9 +23,9 @@ authentication:
     clientSecret: ed8562ca1ab2fbe7f7561adae5e66b47aebc538a
   alone:
     enabled: true
-    username: "admin"
+    username: "macterra"
     passwordHash: "d033e22ae348aeb5660fc2140aec35850c4da997"
-    email: ""
+    email: "davidmc@gmail.com"
 features:
   markitup: false
   codemirror: true
