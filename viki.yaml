@@ -2,8 +2,8 @@
 # Configuration sample file for Jingo (YAML)
 application:
   title: Viki
-  repository: "/home/david/dev/jingo"
-  metadata: "/home/david/dev/jingo/meta"
+  repository: "/home/david/dev/viki"
+  metadata: "/home/david/dev/viki/meta"
   docSubdir: "viki"
   remote: ""
   pushInterval: 30
