@@ -1,0 +1,15 @@
+extends layout
+
+block content
+
+  h1 metadata versions
+
+  table.table-bordered.table-hover.table-condensed
+    each version in versions
+      tr
+        td #{version.timestamp}
+        td #{version.name}
+        td 
+          a(href="/meta/#{version.link}") #{version.link}
+
+  a(href="/meta") metadata index
