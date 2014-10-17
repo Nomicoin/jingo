@@ -90,14 +90,11 @@ function _getMetaPageItem(req, res) {
     if (item == 'asset') {
 
       Git.show(null, val, function(err, content) {
-
-	res.writeHead(200, {
-	  'Content-Type': 'text/plain',
-	  'Content-Length': content.length,
-	  'Expires': new Date().toUTCString()
+	var name = metadata['name'];
+	res.render("raw", {
+	  title: name,
+	  content: content
 	});
-
-	res.end(content);
       });
 
       return;
