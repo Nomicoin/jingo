@@ -1,6 +1,7 @@
 import uuid, os, shutil, yaml, json, argparse
 from pygit2 import *
 from datetime import datetime
+from genxid import genxid
 
 def createLink(xid, hash):
     xidRef = str(xid)[:8]
@@ -50,43 +51,45 @@ class Project:
         self.repoDir = config['application']['repository']
         self.metaDir = config['application']['metadata']
         self.repo = Repository(self.repoDir)
+        self.xid = self.genxid()
         self.snapshots = []
         self.assets = {}
-        self.path = os.path.join(self.metaDir, "index.json")
         self.snapshotsLoaded = 0
         self.snapshotsCreated = 0
         self.assetsLoaded = 0
         self.assetsCreated = 0
- 
+        self.saveIndex() # until javascript can generate xid
+
+    def genxid(self):
+        walker = self.repo.walk(self.repo.head.target, GIT_SORT_TIME | GIT_SORT_REVERSE)
+        commit = walker.next()
+        xid = genxid(commit.id, commit.tree.id)
+        return str(xid)
+
     def init(self): 
-        self.open()
         self.initSnapshots()
         self.initMetadata()
 
     def update(self):
-        self.open()
         self.updateSnapshots()
         self.initMetadata()
 
-    def open(self):
-        if os.path.exists(self.path):
-            with open(self.path) as f:
-                projects = json.loads(f.read())['projects']
-                if self.repo.path in projects:
-                    self.xid = projects[self.repo.path]
-                else:
-                    self.xid = str(uuid.uuid4())
-                    projects[self.repo.path] = self.xid
-                    self.save(projects)
-        else:
-            self.xid = str(uuid.uuid4())
-            self.save({ self.repo.path: self.xid })
+    def saveIndex(self):
+        if not os.path.exists(self.metaDir):
+            os.makedirs(self.metaDir)
 
-    def save(self, projects):
-            metaDir = os.path.dirname(self.path)
-            if not os.path.exists(metaDir):
-                os.makedirs(metaDir)
-            saveFile(self.path, {'projects': projects})
+        path = os.path.join(self.metaDir, "index.json")
+        if os.path.exists(path):
+            with open(path) as f:
+                try:
+                    projects = json.loads(f.read())['projects']
+                except:
+                    projects = {}
+        else:
+            projects = {}
+
+        projects[self.repo.path] = self.xid
+        saveFile(path, {'projects': projects})
 
     def createPath(self, link):
         path = os.path.join(self.metaDir, link) + ".json"
@@ -111,7 +114,8 @@ class Project:
                     asset = self.assets[name]
                     asset.addVersion(obj.id)
                 else:
-                    asset = Asset(obj.id, uuid.uuid4(), name)
+                    xid = genxid(snapshot.commit.id, obj.id)
+                    asset = Asset(obj.id, xid, name)
                     self.assets[name] = asset
                 snapshot.add(obj.id, asset)
         
@@ -135,8 +139,8 @@ class Project:
 
     def loadSnapshots(self):
         for snapshot in self.snapshots:
-            print "loading snapshot", snapshot.path
             if os.path.exists(snapshot.path):
+                print "Loading snapshot", snapshot.path
                 with open(snapshot.path) as f:
                     assets = json.loads(f.read())['assets']
                 for id in assets:
