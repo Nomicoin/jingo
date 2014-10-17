@@ -4,6 +4,7 @@ var xidb = require('../lib/xidb');
 var fs = require("fs");
 
 router.get("/meta", _getMeta);
+router.get("/meta/:xid", _getMetaIndex);
 router.get("/meta/:xid/:oid", _getMetaPage);
 router.get("/meta/:xid/:oid/:item*", _getMetaPageItem);
 router.get("/meta/tree/:commit/:file", _getMetaPageTree);
@@ -17,12 +18,21 @@ function _getMeta(req, res) {
   });
 }
 
+function _getMetaIndex(req, res) {
+  var xid = req.params.xid;
+  var index = xidb.getMetadataIndex(xid);
+
+  res.render("metaindex", {
+    title: "index",
+    versions: index
+  });
+}
+
 function _makeWikiLink(text, link) {
   return "[" + text + "](" + link +")";
 }
 
 function _getMetaPage(req, res) {
-
   var xid = req.params.xid;
   var oid = req.params.oid;
   var metadata = xidb.getMetadata(xid, oid);
@@ -42,6 +52,9 @@ function _getMetaPage(req, res) {
     }
     else if (key == 'asset' && metadata['encoding'] == 'text') {
       link = "/meta/" + xid + "/" + oid + "/asset";
+    }
+    else if (key == 'xid') {
+      link = "/meta/" + xid;
     }
 
     md.push({'key':key, 'val':val, 'link':link});
