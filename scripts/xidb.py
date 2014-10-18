@@ -22,7 +22,12 @@ otherTypes = {
 
 class Text:
     def addMetadata(self, asset, blob, metadata):
-        metadata['text'] = { 'lines': 55 }
+        if blob.is_binary:
+            lines = 0
+        else:
+            lines = blob.data.count('\n')
+
+        metadata['text'] = { 'lines': lines }
         return metadata
 
 class Markdown:
@@ -33,9 +38,52 @@ class Markdown:
         self.text.addMetadata(asset, blob, metadata)
         metadata['markdown'] = { 'asHtml5': 'xlink' }
         return metadata
+        
+class Image:
+    def addMetadata(self, asset, blob, metadata):
+        metadata['image'] = { 
+            'width': 0,
+            'height': 0,
+            'colorDepth': 0
+        }
+        return metadata
+
+class Png:
+    def __init__(self):
+        self.image = Image()
+
+    def addMetadata(self, asset, blob, metadata):
+        self.image.addMetadata(asset, blob, metadata)
+        metadata['png'] = {}
+        return metadata
+
+class Jpeg:
+    def __init__(self):
+        self.image = Image()
+
+    def addMetadata(self, asset, blob, metadata):
+        self.image.addMetadata(asset, blob, metadata)
+        metadata['jpeg'] = {}
+        return metadata
+
+class Gif:
+    def __init__(self):
+        self.image = Image()
+
+    def addMetadata(self, asset, blob, metadata):
+        self.image.addMetadata(asset, blob, metadata)
+        metadata['gif'] = {}
+        return metadata
 
 typeIndex = {}
+typeIndex['text/plain'] = Text()
+typeIndex['application/javascript'] = Text()
+typeIndex['text/plain'] = Text()
+typeIndex['text/x-python'] = Text()
 typeIndex['text/markdown'] = Markdown()
+typeIndex['image/png'] = Png()
+typeIndex['image/jpeg'] = Jpeg()
+typeIndex['image/gif'] = Gif()
 
 class Asset:
     def __init__(self, id, xid, name):
