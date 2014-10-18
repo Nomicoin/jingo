@@ -3,11 +3,29 @@ var renderer = require('../lib/renderer');
 var xidb = require('../lib/xidb');
 var fs = require("fs");
 
+router.get("/api/v1/:xid/:oid*", _apiv1GetAsset);
+
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getMetaIndex);
 router.get("/meta/:xid/:oid", _getMetaPage);
 router.get("/meta/:xid/:oid/:item*", _getMetaPageItem);
 router.get("/meta/tree/:commit/:file", _getMetaPageTree);
+
+
+function _apiv1GetAsset(req, res) {
+  var xid = req.params.xid;
+  var oid = req.params.oid;
+
+  var metadata = xidb.getMetadata(xid, oid);
+
+  console.log(">>> get asset", metadata.xidb.asset, metadata.xidb.type, metadata.xidb.size);
+
+  Git.getBlob(metadata.xidb.asset, function(err, content) {
+    res.writeHead(200, {'Content-Type': metadata.type });
+    res.end(content);
+    return;
+  });
+}
 
 function _getMeta(req, res) {
   var assets = xidb.getAssets();
@@ -55,6 +73,9 @@ function _getMetaPage(req, res) {
     }
     else if (key == 'xid') {
       link = "/meta/" + xid;
+    }
+    else if (key == 'name') {
+      link = "/api/v1/"+ metadata.link + "/" + metadata.name;
     }
 
     md.push({'key':key, 'val':val, 'link':link});
