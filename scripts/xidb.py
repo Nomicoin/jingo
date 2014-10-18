@@ -1,4 +1,4 @@
-import uuid, os, shutil, yaml, json, argparse
+import uuid, os, shutil, yaml, json, mimetypes
 from pygit2 import *
 from datetime import datetime
 from genxid import genxid
@@ -18,6 +18,12 @@ class Asset:
         self.xid = str(xid)
         self.name = name
         self.versions = [str(id)]
+
+        ext = os.path.splitext(name)[1]
+        if ext in mimetypes.types_map:
+            self.type = mimetypes.types_map[ext]
+        else:
+            self.type = ''
 
     def addVersion(self, id):
         latest = self.versions[-1]
@@ -68,7 +74,7 @@ class Project:
 
     def init(self): 
         self.initSnapshots()
-        self.initMetadata()
+        self.initMetadata(True)
 
     def update(self):
         self.updateSnapshots()
@@ -172,7 +178,7 @@ class Project:
                 saveFile(snapshot.path, {'xidb': metaCommit, 'assets': snapshot.assets})
                 self.snapshotsCreated += 1
 
-    def initMetadata(self):
+    def initMetadata(self, rewrite=False):
         for snapshot in self.snapshots:
             for hash in snapshot.assets:
                 try:
@@ -190,14 +196,14 @@ class Project:
                 link = createLink(xid, hash)
                 path = self.createPath(link)
                 asset = self.assets[name]
-                if not os.path.isfile(path):
+                if rewrite or not os.path.isfile(path):
                     prevLink = asset.prevLink(hash)
                     meta = {
                         'xid': str(xid),
                         'snapshot': snapshot.link,
                         'prev': prevLink,
                         'next': '',
-                        'type': '',
+                        'type': asset.type,
                         'link': link,
                         'name': name,
                         'description': '',
@@ -219,24 +225,3 @@ class Project:
                             meta = json.loads(f.read())['xidb']
                         meta['next'] = link
                         saveFile(prevPath, {'xidb': meta})
-
-def initMetadata(config):
-    project = Project(config)
-    project.update()
-    #project.init()
-
-    print len(project.snapshots), "snapshots"
-    print project.snapshotsLoaded, "snapshots loaded"
-    print project.snapshotsCreated, "snapshots created"
-    print project.assetsCreated, "metadata created"
-
-if __name__ == "__main__": 
-    parser = argparse.ArgumentParser(description="Initialize xidb metadata")
-    parser.add_argument('-c', '--config', dest='config', required=True)
-    args = parser.parse_args()
-    print args
-
-    with open(args.config) as f:
-        config = yaml.load(f.read())
-    initMetadata(config)
-    
