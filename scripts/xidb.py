@@ -81,6 +81,18 @@ class Snapshot:
     def __str__(self):
         return "snapshot %s at %s" % (self.link, self.timestamp)
 
+    def metadata(self):
+        data = {}
+        data['xidb'] = {
+            'author': self.commit.author.name,
+            'email': self.commit.author.email,
+            'timestamp': self.timestamp,
+            'message': self.commit.message,
+            'commit': str(self.commit.id)
+        }
+        data['assets'] = self.assets
+        return data
+
 class Project:
     def __init__(self, config):
         self.repoDir = config['application']['repository']
@@ -194,17 +206,9 @@ class Project:
             else:
                 print "Building snapshot", snapshot.link
                 self.addTree(snapshot.commit.tree, '', snapshot)
-
-                metaCommit = {
-                    'project': str(self.xid),
-                    'author': snapshot.commit.author.name,
-                    'email': snapshot.commit.author.email,
-                    'timestamp': snapshot.timestamp,
-                    'message': snapshot.commit.message,
-                    'commit': str(snapshot.commit.id)
-                }
-
-                saveFile(snapshot.path, {'xidb': metaCommit, 'assets': snapshot.assets})
+                metadata = snapshot.metadata()
+                metadata['xidb']['project'] = self.xid
+                saveFile(snapshot.path, metadata)
                 self.snapshotsCreated += 1
 
     def initMetadata(self, rewrite=False):
