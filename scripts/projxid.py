@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 from xidb import *
 
 parser = argparse.ArgumentParser(description="Generate project xid")

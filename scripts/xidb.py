@@ -13,6 +13,13 @@ def saveFile(path, obj):
         res = json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
         f.write(res + "\n")
 
+otherTypes = {
+    '.md': 'text/markdown',
+    '.jade': 'text/jade',
+    '.toml': 'text/toml',
+    '.yaml': 'text/yaml'
+}
+
 class Asset:
     def __init__(self, id, xid, name):
         self.xid = str(xid)
@@ -22,6 +29,8 @@ class Asset:
         ext = os.path.splitext(name)[1]
         if ext in mimetypes.types_map:
             self.type = mimetypes.types_map[ext]
+        elif ext in otherTypes:
+            self.type = otherTypes[ext]
         else:
             self.type = ''
 
@@ -31,12 +40,32 @@ class Asset:
             self.versions.append(str(id))
 
     def prevLink(self, id):
-        i = self.versions.index(id)
+        i = self.versions.index(str(id))
         if i > 0:
             prev = self.versions[i-1]
             return createLink(self.xid, prev)
         else:
             return ''
+
+    def metadata(self, blob):
+        data = {}
+        data['xidb'] = {
+            'xid': self.xid,
+            'snapshot': '',
+            'prev': self.prevLink(blob.id),
+            'next': '',
+            'type': self.type,
+            'link': createLink(self.xid, blob.id),
+            'name': self.name,
+            'description': '',
+            'authors': '',
+            'asset': str(blob.id), 
+            'size': blob.size,
+            'encoding': 'binary' if blob.is_binary else 'text',
+            'comments': '',
+            'votes': ''
+        }
+        return data
 
 class Snapshot:
     def __init__(self, commit, link, path):
@@ -141,11 +170,11 @@ class Project:
             path = self.createPath(link)
             snapshot = Snapshot(commit, link, path)
             self.snapshots.append(snapshot)
-        self.loadSnapshots()
+        self.loadSnapshots(True)
 
-    def loadSnapshots(self):
+    def loadSnapshots(self, rewrite=False):
         for snapshot in self.snapshots:
-            if os.path.exists(snapshot.path):
+            if not rewrite and os.path.exists(snapshot.path):
                 print "Loading snapshot", snapshot.path
                 with open(snapshot.path) as f:
                     assets = json.loads(f.read())['assets']
@@ -170,7 +199,7 @@ class Project:
                     'project': str(self.xid),
                     'author': snapshot.commit.author.name,
                     'email': snapshot.commit.author.email,
-                    'time': snapshot.timestamp,
+                    'timestamp': snapshot.timestamp,
                     'message': snapshot.commit.message,
                     'commit': str(snapshot.commit.id)
                 }
@@ -197,31 +226,17 @@ class Project:
                 path = self.createPath(link)
                 asset = self.assets[name]
                 if rewrite or not os.path.isfile(path):
-                    prevLink = asset.prevLink(hash)
-                    meta = {
-                        'xid': str(xid),
-                        'snapshot': snapshot.link,
-                        'prev': prevLink,
-                        'next': '',
-                        'type': asset.type,
-                        'link': link,
-                        'name': name,
-                        'description': '',
-                        'authors': str([]),
-                        'timestamp': snapshot.timestamp,
-                        'asset': hash, 
-                        'size': blob.size,
-                        'encoding': 'binary' if blob.is_binary else 'text',
-                        'comments': '',
-                        'votes': ''
-                    }
-                    saveFile(path, {'xidb': meta})
+                    metadata = asset.metadata(blob)
+                    metadata['xidb']['snapshot'] = snapshot.link
+                    metadata['xidb']['timestamp'] = snapshot.timestamp
+                    saveFile(path, metadata)
                     print "wrote metadata for", name, link
                     self.assetsCreated += 1
 
+                    prevLink = asset.prevLink(blob.id)
                     prevPath = self.createPath(prevLink)
                     if os.path.isfile(prevPath):
                         with open(prevPath) as f:
-                            meta = json.loads(f.read())['xidb']
-                        meta['next'] = link
-                        saveFile(prevPath, {'xidb': meta})
+                            meta = json.loads(f.read())
+                        meta['xidb']['next'] = link
+                        saveFile(prevPath, meta)
