@@ -18,7 +18,24 @@ otherTypes = {
     '.jade': 'text/jade',
     '.toml': 'text/toml',
     '.yaml': 'text/yaml'
-}
+} 
+
+class Text:
+    def addMetadata(self, asset, blob, metadata):
+        metadata['text'] = { 'lines': 55 }
+        return metadata
+
+class Markdown:
+    def __init__(self):
+        self.text = Text()
+
+    def addMetadata(self, asset, blob, metadata):
+        self.text.addMetadata(asset, blob, metadata)
+        metadata['markdown'] = { 'asHtml5': 'xlink' }
+        return metadata
+
+typeIndex = {}
+typeIndex['text/markdown'] = Markdown()
 
 class Asset:
     def __init__(self, id, xid, name):
@@ -65,6 +82,10 @@ class Asset:
             'comments': '',
             'votes': ''
         }
+
+        if self.type in typeIndex:
+            typeIndex[self.type].addMetadata(self, blob, data)
+
         return data
 
 class Snapshot:
@@ -234,7 +255,7 @@ class Project:
                     metadata['xidb']['snapshot'] = snapshot.link
                     metadata['xidb']['timestamp'] = snapshot.timestamp
                     saveFile(path, metadata)
-                    print "wrote metadata for", name, link
+                    print "wrote metadata for", link, name
                     self.assetsCreated += 1
 
                     prevLink = asset.prevLink(blob.id)
