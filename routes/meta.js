@@ -9,6 +9,7 @@ router.get("/api/v1/meta/:xid/:oid*", _apiv1GetMetadata);
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getMetaIndex);
 router.get("/meta/:xid/:oid", _getMetaPage);
+router.get("/meta/:xid/:oid/asset", _getAsset);
 router.get("/meta/:xid/:oid/:item*", _getMetaPageItem);
 router.get("/meta/tree/:commit/:file", _getMetaPageTree);
 
@@ -62,6 +63,27 @@ function _makeWikiLink(text, link) {
   return "[" + text + "](" + link +")";
 }
 
+function _getAsset(req, res) {
+  var xid = req.params.xid;
+  var oid = req.params.oid;
+  var metadata = xidb.getMetadata(xid, oid).xidb;
+
+  if (/image/.test(metadata.type)) {
+    res.render("image", {
+      'title': metadata.name,
+      'link': "/api/v1/asset/" + metadata.link + "/" + metadata.name
+    });
+  }
+  else {
+    Git.getBlob(metadata.asset, function(err, content) {
+      res.render("raw", {
+	'title': metadata.name,
+	'content': content
+      });
+    });
+  }
+}
+
 function _getMetaPage(req, res) {
   var xid = req.params.xid;
   var oid = req.params.oid;
@@ -85,7 +107,7 @@ function _getMetaPage(req, res) {
       case 'prev':
       case 'xid':
       case 'snapshot':
-	link = "/meta/" + xid;
+	link = "/meta/" + val;
 	break;
 
       case 'name':
@@ -116,48 +138,26 @@ function _getMetaPageItem(req, res) {
   var item = req.params.item;
   var rest = req.params['0'];
 
-  var metadata = xidb.getMetadata(xid, oid);
+  var metadata = xidb.getMetadata(xid, oid).xidb;
 
-  if ('xidb' in metadata) {
-    metadata = metadata.xidb;
-  }
-
-  if (item in metadata) {
-    var val = metadata[item];
-
-    if (/\w{8}\/\w{8}/.test(val)) {
-      res.redirect("/meta/" + val + rest);
-      return;
-    }
-
-    if (item == 'asset') {
-
-      if (/image/.test(metadata.type)) {
-	res.render("image", {
-	  'title': metadata.name,
-	  'link': "/api/v1/asset/" + metadata.link + "/" + metadata.name
-	});
-      }
-      else {
-	Git.getBlob(val, function(err, content) {
-	  res.render("raw", {
-	    'title': metadata.name,
-	    'content': content
-	  });
-	});
-      }
-
-      return;
-    }
-
-    res.render("metadata", {
-      title: "metadata",
-      metadata: [{ 'key':item, 'val':metadata[item], 'link':null }]
-    });
-  }
-  else {
+  if (!(item in metadata)) {
     res.redirect("/meta");
+    return;
   }
+
+  var val = metadata[item];
+
+  console.log(">>>", metadata, item, val, rest);
+
+  if (/\w{8}\/\w{8}/.test(val)) {
+    res.redirect("/meta/" + val + rest);
+    return;
+  }
+
+  res.render("metadata", {
+    title: "metadata",
+    metadata: {'metadatum': [{ 'key':item, 'val':val, 'link':null }]}
+  });
 }
 
 function _getMetaPageTree(req, res) {
