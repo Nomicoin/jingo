@@ -78,7 +78,10 @@ function _getAsset(req, res) {
     Git.getBlob(metadata.asset, function(err, content) {
       res.render("raw", {
 	'title': metadata.name,
-	'content': content
+	'content': content,
+	'back': metadata.link,
+	'next': metadata.next,
+	'prev': metadata.prev
       });
     });
   }

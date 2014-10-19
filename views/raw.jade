@@ -4,3 +4,8 @@ block content
   h1 #{title}
   pre #{content}
 
+  if prev
+    a(href="/meta/#{prev + '/asset'}") << 
+  a(href="/meta/#{back}") metadata
+  if next
+    a(href="/meta/#{next + '/asset'}") >>
