@@ -67,7 +67,7 @@ function _getMetaPage(req, res) {
       if (/\w{8}\/\w{8}/.test(val)) {
 	link = "/meta/" + val;
       }
-      else if (key == 'asset' && section.encoding == 'text') {
+      else if (key == 'asset') {
 	link = "/meta/" + xid + "/" + oid + "/asset";
       }
       else if (key == 'xid') {
@@ -112,13 +112,20 @@ function _getMetaPageItem(req, res) {
 
     if (item == 'asset') {
 
-      Git.show(null, val, function(err, content) {
-	var name = metadata['name'];
-	res.render("raw", {
-	  title: name,
-	  content: content
+      if (/image/.test(metadata.type)) {
+	res.render("image", {
+	  'title': metadata.name,
+	  'link': "/api/v1/" + metadata.link + "/" + metadata.name
 	});
-      });
+      }
+      else {
+	Git.getBlob(val, function(err, content) {
+	  res.render("raw", {
+	    'title': metadata.name,
+	    'content': content
+	  });
+	});
+      }
 
       return;
     }
