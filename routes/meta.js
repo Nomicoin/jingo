@@ -55,35 +55,37 @@ function _getMetaPage(req, res) {
   var oid = req.params.oid;
   var metadata = xidb.getMetadata(xid, oid);
 
-  if ('xidb' in metadata) {
-    metadata = metadata.xidb;
-  }
+  model = {}
+  for(type in metadata) {
+    md = [];
+    section = metadata[type];
+    
+    for (key in section) {
+      val = section[key];
+      link = null;
 
-  md = []
+      if (/\w{8}\/\w{8}/.test(val)) {
+	link = "/meta/" + val;
+      }
+      else if (key == 'asset' && section.encoding == 'text') {
+	link = "/meta/" + xid + "/" + oid + "/asset";
+      }
+      else if (key == 'xid') {
+	link = "/meta/" + xid;
+      }
+      else if (key == 'name') {
+	link = "/api/v1/"+ section.link + "/" + section.name;
+      }
 
-  for(key in metadata) {
-    val = metadata[key];
-    link = null;
-
-    if (/\w{8}\/\w{8}/.test(val)) {
-      link = "/meta/" + val;
-    }
-    else if (key == 'asset' && metadata['encoding'] == 'text') {
-      link = "/meta/" + xid + "/" + oid + "/asset";
-    }
-    else if (key == 'xid') {
-      link = "/meta/" + xid;
-    }
-    else if (key == 'name') {
-      link = "/api/v1/"+ metadata.link + "/" + metadata.name;
+      md.push({'key':key, 'val':val, 'link':link});
     }
 
-    md.push({'key':key, 'val':val, 'link':link});
+    model[type] = md;
   }
 
   res.render("metadata", {
     title: "metadata",
-    metadata: md
+    metadata: model
   });
 }
 

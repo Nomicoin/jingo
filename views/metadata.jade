@@ -5,13 +5,16 @@ block content
   h1 metadata
 
   table.table-bordered.table-hover.table-condensed
-    each data in metadata
-      tr
-        td #{data.key}
-        if data.link
-          td 
-            a(href="#{data.link}") #{data.val}
-        else
-          td #{data.val}
+    each type, section in metadata
+      tr 
+        td(colspan=2, style="text-align:center; font-weight:bold") #{section}
+      each data in type
+        tr
+          td #{data.key}
+          if data.link
+            td 
+              a(href="#{data.link}") #{data.val}
+          else
+            td #{data.val}
 
   a(href="/meta") metadata index
