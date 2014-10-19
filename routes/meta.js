@@ -3,7 +3,8 @@ var renderer = require('../lib/renderer');
 var xidb = require('../lib/xidb');
 var fs = require("fs");
 
-router.get("/api/v1/:xid/:oid*", _apiv1GetAsset);
+router.get("/api/v1/asset/:xid/:oid*", _apiv1GetAsset);
+router.get("/api/v1/meta/:xid/:oid*", _apiv1GetMetadata);
 
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getMetaIndex);
@@ -18,13 +19,24 @@ function _apiv1GetAsset(req, res) {
 
   var metadata = xidb.getMetadata(xid, oid);
 
-  console.log(">>> get asset", metadata.xidb.asset, metadata.xidb.type, metadata.xidb.size);
-
   Git.getBlob(metadata.xidb.asset, function(err, content) {
     res.writeHead(200, {'Content-Type': metadata.type });
     res.end(content);
     return;
   });
+}
+
+function _apiv1GetMetadata(req, res) {
+  var xid = req.params.xid;
+  var oid = req.params.oid;
+
+  var metadata = xidb.getMetadata(xid, oid);
+  var content = JSON.stringify(metadata, null, 4);
+
+  console.log(content);
+
+  res.writeHead(200, {'Content-Type': 'application/json' });
+  res.end(content);
 }
 
 function _getMeta(req, res) {
@@ -64,17 +76,25 @@ function _getMetaPage(req, res) {
       val = section[key];
       link = null;
 
-      if (/\w{8}\/\w{8}/.test(val)) {
-	link = "/meta/" + val;
-      }
-      else if (key == 'asset') {
-	link = "/meta/" + xid + "/" + oid + "/asset";
-      }
-      else if (key == 'xid') {
+      switch(key) {
+      case 'link':
+	link = "/api/v1/meta/" + val;
+	break;
+
+      case 'next':
+      case 'prev':
+      case 'xid':
+      case 'snapshot':
 	link = "/meta/" + xid;
-      }
-      else if (key == 'name') {
-	link = "/api/v1/"+ section.link + "/" + section.name;
+	break;
+
+      case 'name':
+	link = "/api/v1/asset/"+ section.link + "/" + section.name;
+	break;
+
+      case 'asset':
+	link = "/meta/" + xid + "/" + oid + "/asset";
+	break;	
       }
 
       md.push({'key':key, 'val':val, 'link':link});
@@ -115,7 +135,7 @@ function _getMetaPageItem(req, res) {
       if (/image/.test(metadata.type)) {
 	res.render("image", {
 	  'title': metadata.name,
-	  'link': "/api/v1/" + metadata.link + "/" + metadata.name
+	  'link': "/api/v1/asset/" + metadata.link + "/" + metadata.name
 	});
       }
       else {
