@@ -85,10 +85,11 @@ typeIndex['image/jpeg'] = Jpeg()
 typeIndex['image/gif'] = Gif()
 
 class Asset:
-    def __init__(self, id, xid, name):
+    def __init__(self, cid, oid, xid, name):
         self.xid = str(xid)
         self.name = name
-        self.versions = [str(id)]
+        self.cid = str(cid)
+        self.oid = str(oid)
 
         ext = os.path.splitext(name)[1]
         if ext in mimetypes.types_map:
@@ -98,10 +99,13 @@ class Asset:
         else:
             self.type = ''
 
-    def addVersion(self, id):
-        latest = self.versions[-1]
-        if (id != latest):
-            self.versions.append(str(id))
+    def addVersion(self, cid, oid):
+        oid = str(oid)
+        cid = str(cid)
+        if (self.oid != oid):
+            print "new version for", self.name, self.oid, oid
+            self.oid = oid
+            self.cid = cid
 
     def metadata(self, blob):
         data = {}
@@ -109,7 +113,6 @@ class Asset:
             'xid': self.xid,
             'snapshot': '',
             'type': self.type,
-            'link': createLink(self.xid, blob.id),
             'name': self.name,
             'description': '',
             'authors': '',
@@ -133,11 +136,11 @@ class Snapshot:
         self.timestamp = datetime.fromtimestamp(commit.commit_time).isoformat()
         self.assets = {}
 
-    def add(self, id, asset):
+    def add(self, asset):
         self.assets[asset.xid] = {
             'name': asset.name,
-            'commit': str(self.commit.id),
-            'oid': str(id)
+            'commit': asset.cid,
+            'oid': asset.oid
         }
 
     def __str__(self):
@@ -146,6 +149,7 @@ class Snapshot:
     def metadata(self):
         data = {}
         data['xidb'] = {
+            'link': self.link,
             'author': self.commit.author.name,
             'email': self.commit.author.email,
             'timestamp': self.timestamp,
@@ -167,7 +171,6 @@ class Project:
         self.snapshotsCreated = 0
         self.assetsLoaded = 0
         self.assetsCreated = 0
-        self.saveIndex() # until javascript can generate xid
 
     def genxid(self):
         walker = self.repo.walk(self.repo.head.target, GIT_SORT_TIME | GIT_SORT_REVERSE)
@@ -179,11 +182,13 @@ class Project:
         self.initSnapshots()
         self.initMetadata(True)
         self.saveSnapshots()
+        self.saveIndex() # until javascript can generate xid
 
     def update(self):
         self.updateSnapshots()
         self.initMetadata()
         self.saveSnapshots()
+        self.saveIndex() # until javascript can generate xid
 
     def saveIndex(self):
         if not os.path.exists(self.metaDir):
@@ -223,12 +228,12 @@ class Project:
                 name = os.path.join(path, entry.name)
                 if name in self.assets:
                     asset = self.assets[name]
-                    asset.addVersion(obj.id)
+                    asset.addVersion(snapshot.commit.id, obj.id)
                 else:
                     xid = genxid(snapshot.commit.id, obj.id)
-                    asset = Asset(obj.id, xid, name)
+                    asset = Asset(snapshot.commit.id, obj.id, xid, name)
                     self.assets[name] = asset
-                snapshot.add(obj.id, asset)
+                snapshot.add(asset)
         
     def updateSnapshots(self):
         for commit in self.repo.walk(self.repo.head.target, GIT_SORT_TIME):
@@ -261,12 +266,12 @@ class Project:
                     oid = info['oid']
                     if name in self.assets:
                         asset = self.assets[name]
-                        asset.addVersion(oid)
+                        asset.addVersion(snapshot.commit.id, oid)
                     else:
                         #print "Adding %s as %s" % (name, xid)
-                        asset = Asset(oid, xid, name)
+                        asset = Asset(commit, oid, xid, name)
                         self.assets[name] = asset
-                    snapshot.add(oid, asset)
+                    snapshot.add(asset)
                 self.snapshotsLoaded += 1
             else:
                 print "Building snapshot", snapshot.link
@@ -281,12 +286,12 @@ class Project:
             print "saved snapshot", snapshot.path
 
     def initMetadata(self, rewrite=False):
-        prevSnapshot = None
         for snapshot in self.snapshots:
             for xid in snapshot.assets:
                 info = snapshot.assets[xid]
                 name = info['name']
                 oid = info['oid']
+                cid = info['commit']
 
                 try:
                     blob = self.repo[oid]
@@ -297,21 +302,11 @@ class Project:
                 if blob.type != GIT_OBJ_BLOB:
                     continue
 
-                prev = None
-                if prevSnapshot:
-                    if xid in prevSnapshot.assets:
-                        prev = prevSnapshot.assets[xid]
-                        print ">>> found", xid, oid, prev['oid']
-                        if oid == prev['oid']:
-                            info['commit'] = prev['commit']
-                            print "same version! resetting commit"
-                            continue
-
-                link = createLink(xid, snapshot.commit.id)
+                link = createLink(xid, cid)
                 path = self.createPath(link)
                 asset = self.assets[name]
 
-                if rewrite or not os.path.isfile(path):
+                if not os.path.isfile(path):
                     metadata = asset.metadata(blob)
                     metadata['xidb']['link'] = link
                     metadata['xidb']['snapshot'] = snapshot.link

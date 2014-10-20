@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
-import argparse
+import argparse, shutil
 from xidb import *
 
-def initMetadata(config, init):
+def initMetadata(config, args):
     project = Project(config)
 
-    if init:
+    if args.rebuild:
+        shutil.rmtree(project.metaDir)
+
+    if args.init:
         project.init()
     else:
         project.update()
@@ -20,10 +23,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Initialize xidb metadata")
     parser.add_argument('-c', '--config', dest='config', required=True)
     parser.add_argument('-i', '--init', dest='init', required=False, action='store_true')
+    parser.add_argument('-r', '--rebuild', dest='rebuild', required=False, action='store_true')
     args = parser.parse_args()
     print args
 
     with open(args.config) as f:
         config = yaml.load(f.read())
-    initMetadata(config, args.init)
+    initMetadata(config, args)
     
