@@ -47,4 +47,7 @@ block content
     pre #{content}
 
   if link
-    img(src="#{link}")
+    table.table-bordered.table-hover.table-condensed
+      tr
+        td(style="background-color:white")
+          img(src="#{link}")
