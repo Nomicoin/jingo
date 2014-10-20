@@ -3,22 +3,22 @@ var renderer = require('../lib/renderer');
 var xidb = require('../lib/xidb');
 var fs = require("fs");
 
-router.get("/api/v1/asset/:xid/:oid*", _apiv1GetAsset);
-router.get("/api/v1/meta/:xid/:oid*", _apiv1GetMetadata);
+router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
+router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
 
 router.get("/meta", _getMeta);
-router.get("/meta/:xid", _getMetaIndex);
-router.get("/meta/:xid/:oid", _getMetaPage);
-router.get("/meta/:xid/:oid/asset", _getAsset);
-router.get("/meta/:xid/:oid/:item*", _getMetaPageItem);
+router.get("/meta/:xid", _getAssetVersions);
+router.get("/meta/:xid/:cid", _getMetaPage);
+router.get("/meta/:xid/:cid/asset", _getAsset);
+router.get("/meta/:xid/:cid/:item*", _getMetaPageItem);
 router.get("/meta/tree/:commit/:file", _getMetaPageTree);
 
 
 function _apiv1GetAsset(req, res) {
   var xid = req.params.xid;
-  var oid = req.params.oid;
+  var cid = req.params.cid;
 
-  var metadata = xidb.getMetadata(xid, oid);
+  var metadata = xidb.getMetadata(xid, cid);
 
   Git.getBlob(metadata.xidb.asset, function(err, content) {
     res.writeHead(200, {'Content-Type': metadata.type });
@@ -29,9 +29,9 @@ function _apiv1GetAsset(req, res) {
 
 function _apiv1GetMetadata(req, res) {
   var xid = req.params.xid;
-  var oid = req.params.oid;
+  var cid = req.params.cid;
 
-  var metadata = xidb.getMetadata(xid, oid);
+  var metadata = xidb.getMetadata(xid, cid);
   var content = JSON.stringify(metadata, null, 4);
 
   console.log(content);
@@ -49,13 +49,13 @@ function _getMeta(req, res) {
   });
 }
 
-function _getMetaIndex(req, res) {
+function _getAssetVersions(req, res) {
   var xid = req.params.xid;
-  var index = xidb.getMetadataIndex(xid);
+  var versions = xidb.getMetaVersions(xid);
 
   res.render("metaindex", {
     title: "index",
-    versions: index
+    versions: versions
   });
 }
 
@@ -65,8 +65,8 @@ function _makeWikiLink(text, link) {
 
 function _getAsset(req, res) {
   var xid = req.params.xid;
-  var oid = req.params.oid;
-  var metadata = xidb.getMetadata(xid, oid).xidb;
+  var cid = req.params.cid;
+  var metadata = xidb.getMetadata(xid, cid).xidb;
 
   if (/image/.test(metadata.type)) {
     res.render("image", {
@@ -89,8 +89,8 @@ function _getAsset(req, res) {
 
 function _getMetaPage(req, res) {
   var xid = req.params.xid;
-  var oid = req.params.oid;
-  var metadata = xidb.getMetadata(xid, oid);
+  var cid = req.params.cid;
+  var metadata = xidb.getMetadata(xid, cid);
 
   model = {}
   for(type in metadata) {
@@ -106,6 +106,8 @@ function _getMetaPage(req, res) {
 	link = "/api/v1/meta/" + val;
 	break;
 
+      case 'first':
+      case 'last':
       case 'next':
       case 'prev':
       case 'xid':
@@ -118,7 +120,7 @@ function _getMetaPage(req, res) {
 	break;
 
       case 'asset':
-	link = "/meta/" + xid + "/" + oid + "/asset";
+	link = "/meta/" + xid + "/" + cid + "/asset";
 	break;	
       }
 
@@ -137,11 +139,11 @@ function _getMetaPage(req, res) {
 function _getMetaPageItem(req, res) {
 
   var xid = req.params.xid;
-  var oid = req.params.oid;
+  var cid = req.params.cid;
   var item = req.params.item;
   var rest = req.params['0'];
 
-  var metadata = xidb.getMetadata(xid, oid).xidb;
+  var metadata = xidb.getMetadata(xid, cid).xidb;
 
   if (!(item in metadata)) {
     res.redirect("/meta");
