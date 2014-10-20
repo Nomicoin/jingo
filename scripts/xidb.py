@@ -78,7 +78,6 @@ class Gif:
 typeIndex = {}
 typeIndex['text/plain'] = Text()
 typeIndex['application/javascript'] = Text()
-typeIndex['text/plain'] = Text()
 typeIndex['text/x-python'] = Text()
 typeIndex['text/markdown'] = Markdown()
 typeIndex['image/png'] = Png()
@@ -145,7 +144,11 @@ class Snapshot:
         self.assets = {}
 
     def add(self, id, asset):
-        self.assets[str(id)] = {'xid': asset.xid, 'name': asset.name}
+        self.assets[asset.xid] = {
+            'name': asset.name,
+            'commit': str(self.commit.id),
+            'oid': str(id)
+        }
 
     def __str__(self):
         return "snapshot %s at %s" % (self.link, self.timestamp)
@@ -185,10 +188,12 @@ class Project:
     def init(self): 
         self.initSnapshots()
         self.initMetadata(True)
+        self.saveSnapshots()
 
     def update(self):
         self.updateSnapshots()
         self.initMetadata()
+        self.saveSnapshots()
 
     def saveIndex(self):
         if not os.path.exists(self.metaDir):
@@ -277,31 +282,55 @@ class Project:
                 self.addTree(snapshot.commit.tree, '', snapshot)
                 metadata = snapshot.metadata()
                 metadata['xidb']['project'] = self.xid
-                saveFile(snapshot.path, metadata)
                 self.snapshotsCreated += 1
 
-    def initMetadata(self, rewrite=False):
+    def saveSnapshots(self):
         for snapshot in self.snapshots:
-            for hash in snapshot.assets:
+            saveFile(snapshot.path, snapshot.metadata())
+            print "saved snapshot", snapshot.path
+
+    def initMetadata(self, rewrite=False):
+        prevSnapshot = None
+        for snapshot in self.snapshots:
+            for xid in snapshot.assets:
+                info = snapshot.assets[xid]
+                name = info['name']
+                oid = info['oid']
+
                 try:
-                    blob = self.repo[hash]
+                    blob = self.repo[oid]
                 except:
-                    print "bad blob?", snapshot.assets[hash]
+                    print "bad blob?", info
                     continue
 
                 if blob.type != GIT_OBJ_BLOB:
                     continue
-                
-                asset = snapshot.assets[hash]
-                xid = asset['xid']
-                name = asset['name']
-                link = createLink(xid, hash)
+
+                prev = None
+                if prevSnapshot:
+                    if xid in prevSnapshot.assets:
+                        prev = prevSnapshot.assets[xid]
+                        print ">>> found", xid, oid, prev['oid']
+                        if oid == prev['oid']:
+                            info['commit'] = prev['commit']
+                            print "same version! resetting commit"
+                            continue
+
+                link = createLink(xid, snapshot.commit.id)
                 path = self.createPath(link)
                 asset = self.assets[name]
+
                 if rewrite or not os.path.isfile(path):
                     metadata = asset.metadata(blob)
+                    metadata['xidb']['link'] = link
+                    if prev:
+                        metadata['xidb']['prev'] = createLink(xid, prev['commit'])
+                    else:
+                        metadata['xidb']['prev'] = ''
+
                     metadata['xidb']['snapshot'] = snapshot.link
                     metadata['xidb']['timestamp'] = snapshot.timestamp
+                        
                     saveFile(path, metadata)
                     print "wrote metadata for", link, name
                     self.assetsCreated += 1
@@ -313,3 +342,5 @@ class Project:
                             meta = json.loads(f.read())
                         meta['xidb']['next'] = link
                         saveFile(prevPath, meta)
+
+            prevSnapshot = snapshot
