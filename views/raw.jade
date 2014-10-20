@@ -2,10 +2,22 @@ extends layout
 
 block content
   h1 #{title}
+  //p snapshot metadata?
   pre #{content}
 
-  if prev
-    a(href="/meta/#{prev + '/asset'}") << 
-  a(href="/meta/#{back}") metadata
-  if next
-    a(href="/meta/#{next + '/asset'}") >>
+  p navigation:&nbsp;
+
+    if nav.first
+      a(href="/meta/#{nav.first + '/asset'}") first&nbsp;
+
+    if nav.prev
+      a(href="/meta/#{nav.prev + '/asset'}") prev&nbsp;
+
+    if nav.link
+      a(href="/meta/#{nav.link}") this
+
+    if nav.next
+      a(href="/meta/#{nav.next + '/asset'}") next&nbsp;
+
+    if nav.last
+      a(href="/meta/#{nav.last + '/asset'}") last&nbsp;

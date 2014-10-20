@@ -66,22 +66,21 @@ function _makeWikiLink(text, link) {
 function _getAsset(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
-  var metadata = xidb.getMetadata(xid, cid).xidb;
+  var metadata = xidb.getMetadata(xid, cid);
 
-  if (/image/.test(metadata.type)) {
+  if (/image/.test(metadata.xidb.type)) {
     res.render("image", {
-      'title': metadata.name,
-      'link': "/api/v1/asset/" + metadata.link + "/" + metadata.name
+      'title': metadata.xidb.name,
+      'link': "/api/v1/asset/" + metadata.xidb.link + "/" + metadata.xidb.name,
+      'nav': metadata.navigation
     });
   }
   else {
-    Git.getBlob(metadata.asset, function(err, content) {
+    Git.getBlob(metadata.xidb.asset, function(err, content) {
       res.render("raw", {
-	'title': metadata.name,
+	'title': metadata.xidb.name,
 	'content': content,
-	'back': metadata.link,
-	'next': metadata.next,
-	'prev': metadata.prev
+	'nav': metadata.navigation
       });
     });
   }
