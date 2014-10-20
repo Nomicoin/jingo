@@ -2,7 +2,20 @@ extends layout
 
 block content
   h1 #{title}
-  //p snapshot metadata?
+
+  table.table-bordered.table-hover.table-condensed
+    tr 
+      td author
+      td #{snapshot.author} (#{snapshot.email})
+    tr
+      td message
+      td #{snapshot.message}
+    tr
+      td timestamp
+      td #{snapshot.timestamp}
+
+  p
+
   pre #{content}
 
   p navigation:&nbsp;

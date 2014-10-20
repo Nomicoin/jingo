@@ -1,0 +1,46 @@
+extends layout
+
+block content
+  h1 #{title}
+
+  table.table-bordered.table-hover.table-condensed
+    tr 
+      td author
+      td #{snapshot.author} (#{snapshot.email})
+    tr
+      td message
+      td #{snapshot.message}
+    tr
+      td timestamp
+      td #{snapshot.timestamp}
+    tr
+      td navigation
+      td
+        if nav.first
+          a(href="/meta/#{nav.first + '/asset'}") first&nbsp;
+        else
+          span first&nbsp;
+
+        if nav.prev
+          a(href="/meta/#{nav.prev + '/asset'}") prev&nbsp;
+        else
+          span prev&nbsp;
+
+        if nav.link
+          a(href="/meta/#{nav.link}") this
+        else
+          span this&nbsp;
+
+        if nav.next
+          a(href="/meta/#{nav.next + '/asset'}") next&nbsp;
+        else
+          span next&nbsp;
+
+        if nav.last
+          a(href="/meta/#{nav.last + '/asset'}") last&nbsp;
+        else
+          span last&nbsp;
+
+  p
+  pre #{content}
+
