@@ -42,5 +42,9 @@ block content
           span last&nbsp;
 
   p
-  pre #{content}
 
+  if content
+    pre #{content}
+
+  if link
+    img(src="#{link}")
