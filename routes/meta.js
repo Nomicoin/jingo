@@ -128,6 +128,11 @@ function _getMetaPage(req, res) {
 	break;	
       }
 
+      if (type == 'assets') {
+        link = "/meta/" + xidb.createLink(key, val.commit);
+        val = val.name;
+      }
+
       md.push({'key':key, 'val':val, 'link':link});
     }
 

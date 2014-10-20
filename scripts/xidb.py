@@ -103,7 +103,7 @@ class Asset:
         oid = str(oid)
         cid = str(cid)
         if (self.oid != oid):
-            print "new version for", self.name, self.oid, oid
+            #print "new version for", self.name, self.oid, oid
             self.oid = oid
             self.cid = cid
 
