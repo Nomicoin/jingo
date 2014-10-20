@@ -103,21 +103,11 @@ class Asset:
         if (id != latest):
             self.versions.append(str(id))
 
-    def prevLink(self, id):
-        i = self.versions.index(str(id))
-        if i > 0:
-            prev = self.versions[i-1]
-            return createLink(self.xid, prev)
-        else:
-            return ''
-
     def metadata(self, blob):
         data = {}
         data['xidb'] = {
             'xid': self.xid,
             'snapshot': '',
-            'prev': self.prevLink(blob.id),
-            'next': '',
             'type': self.type,
             'link': createLink(self.xid, blob.id),
             'name': self.name,
@@ -324,24 +314,11 @@ class Project:
                 if rewrite or not os.path.isfile(path):
                     metadata = asset.metadata(blob)
                     metadata['xidb']['link'] = link
-                    if prev:
-                        metadata['xidb']['prev'] = createLink(xid, prev['commit'])
-                    else:
-                        metadata['xidb']['prev'] = ''
-
                     metadata['xidb']['snapshot'] = snapshot.link
                     metadata['xidb']['timestamp'] = snapshot.timestamp
                         
                     saveFile(path, metadata)
                     print "wrote metadata for", link, name
                     self.assetsCreated += 1
-
-                    prevLink = asset.prevLink(blob.id)
-                    prevPath = self.createPath(prevLink)
-                    if os.path.isfile(prevPath):
-                        with open(prevPath) as f:
-                            meta = json.loads(f.read())
-                        meta['xidb']['next'] = link
-                        saveFile(prevPath, meta)
 
             prevSnapshot = snapshot
