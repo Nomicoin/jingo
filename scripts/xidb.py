@@ -264,18 +264,19 @@ class Project:
                 print "Loading snapshot", snapshot.path
                 with open(snapshot.path) as f:
                     assets = json.loads(f.read())['assets']
-                for id in assets:
-                    asset = assets[id]
-                    xid = asset['xid']
-                    name = asset['name']
+                for xid in assets:
+                    info = assets[xid]
+                    name = info['name']
+                    commit = info['commit']
+                    oid = info['oid']
                     if name in self.assets:
                         asset = self.assets[name]
-                        asset.addVersion(id)
+                        asset.addVersion(oid)
                     else:
                         #print "Adding %s as %s" % (name, xid)
-                        asset = Asset(id, xid, name)
+                        asset = Asset(oid, xid, name)
                         self.assets[name] = asset
-                    snapshot.add(id, asset)
+                    snapshot.add(oid, asset)
                 self.snapshotsLoaded += 1
             else:
                 print "Building snapshot", snapshot.link
