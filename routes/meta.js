@@ -74,7 +74,7 @@ function _getAsset(req, res) {
   if (/image/.test(metadata.xidb.type)) {
     res.render("asset", {
       'title': metadata.xidb.name,
-      'link': "/api/v1/asset/" + metadata.xidb.link + "/" + metadata.xidb.name,
+      'imgsrc': "/api/v1/asset/" + metadata.xidb.link + "/" + metadata.xidb.name,
       'nav': metadata.navigation,
       'snapshot': snapshot.xidb
     });

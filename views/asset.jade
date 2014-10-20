@@ -27,7 +27,7 @@ block content
           span prev&nbsp;
 
         if nav.link
-          a(href="/meta/#{nav.link}") this
+          a(href="/meta/#{nav.link}") this&nbsp;
         else
           span this&nbsp;
 
@@ -46,8 +46,8 @@ block content
   if content
     pre #{content}
 
-  if link
+  if imgsrc
     table.table-bordered.table-hover.table-condensed
       tr
         td(style="background-color:white")
-          img(src="#{link}")
+          img(src="#{imgsrc}")
