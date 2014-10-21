@@ -2,6 +2,7 @@ import uuid, os, shutil, yaml, json, mimetypes
 from pygit2 import *
 from datetime import datetime
 from genxid import genxid
+from xitypes import *
 
 def createLink(xid, hash):
     xidRef = str(xid)[:8]
@@ -12,77 +13,6 @@ def saveFile(path, obj):
     with open(path, 'w') as f:
         res = json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
         f.write(res + "\n")
-
-otherTypes = {
-    '.md': 'text/markdown',
-    '.jade': 'text/jade',
-    '.toml': 'text/toml',
-    '.yaml': 'text/yaml'
-} 
-
-class Text:
-    def addMetadata(self, asset, blob, metadata):
-        if blob.is_binary:
-            lines = 0
-        else:
-            lines = blob.data.count('\n')
-
-        metadata['text'] = { 'lines': lines }
-        return metadata
-
-class Markdown:
-    def __init__(self):
-        self.text = Text()
-
-    def addMetadata(self, asset, blob, metadata):
-        self.text.addMetadata(asset, blob, metadata)
-        metadata['markdown'] = { 'asHtml5': 'xlink' }
-        return metadata
-        
-class Image:
-    def addMetadata(self, asset, blob, metadata):
-        metadata['image'] = { 
-            'width': 0,
-            'height': 0,
-            'colorDepth': 0
-        }
-        return metadata
-
-class Png:
-    def __init__(self):
-        self.image = Image()
-
-    def addMetadata(self, asset, blob, metadata):
-        self.image.addMetadata(asset, blob, metadata)
-        metadata['png'] = {}
-        return metadata
-
-class Jpeg:
-    def __init__(self):
-        self.image = Image()
-
-    def addMetadata(self, asset, blob, metadata):
-        self.image.addMetadata(asset, blob, metadata)
-        metadata['jpeg'] = {}
-        return metadata
-
-class Gif:
-    def __init__(self):
-        self.image = Image()
-
-    def addMetadata(self, asset, blob, metadata):
-        self.image.addMetadata(asset, blob, metadata)
-        metadata['gif'] = {}
-        return metadata
-
-typeIndex = {}
-typeIndex['text/plain'] = Text()
-typeIndex['application/javascript'] = Text()
-typeIndex['text/x-python'] = Text()
-typeIndex['text/markdown'] = Markdown()
-typeIndex['image/png'] = Png()
-typeIndex['image/jpeg'] = Jpeg()
-typeIndex['image/gif'] = Gif()
 
 class Asset:
     def __init__(self, cid, oid, xid, name):
