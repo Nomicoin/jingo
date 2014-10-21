@@ -7,6 +7,7 @@ block content
   table.table-bordered.table-hover.table-condensed
     each version in versions
       tr
+        td #{version.version}
         td #{version.timestamp}
         td #{version.name}
         td 
