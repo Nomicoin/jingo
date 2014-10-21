@@ -188,8 +188,6 @@ function _getMetaPageItem(req, res) {
 
   var val = metadata[item];
 
-  console.log(">>>", metadata, item, val, rest);
-
   if (/\w{8}\/\w{8}/.test(val)) {
     res.redirect("/meta/" + val + rest);
     return;
