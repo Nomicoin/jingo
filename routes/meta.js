@@ -91,6 +91,61 @@ function _getAsset(req, res) {
   }
 }
 
+function _addXidbLinks(section, xid, cid) {
+
+  var md = [];
+
+  for (key in section) {
+    val = section[key];
+    link = null;
+
+    switch(key) {
+    case 'link':
+      link = "/api/v1/meta/" + val;
+      break;
+
+    case 'first':
+    case 'last':
+    case 'next':
+    case 'prev':
+    case 'xid':
+    case 'snapshot':
+      link = "/meta/" + val;
+      break;
+
+    case 'name':
+      link = "/api/v1/asset/"+ section.link + "/" + section.name;
+      break;
+
+    case 'asset':
+      link = "/meta/" + xid + "/" + cid + "/asset";
+      break;
+    }
+
+    md.push({'key':key, 'val':val, 'link':link});
+  }
+
+  return md;
+}
+
+function _addAssetsLinks(section) {
+
+  var md = [];
+
+  for (key in section) {
+    val = section[key];
+    metaLink = xidb.createLink(key, val.commit);
+    link = "/meta/" + metaLink;
+    md.push({'key':val.name, 'val':metaLink, 'link':link});
+  }
+
+  md.sort(function(a,b) {
+    return a.key.localeCompare(b.key);
+  });
+
+  return md;
+}
+
 function _getMetaPage(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
@@ -98,45 +153,17 @@ function _getMetaPage(req, res) {
 
   model = {}
   for(type in metadata) {
-    md = [];
     section = metadata[type];
-    
-    for (key in section) {
-      val = section[key];
-      link = null;
 
-      switch(key) {
-      case 'link':
-	link = "/api/v1/meta/" + val;
-	break;
+    switch(type) {
+    case "assets":
+      model[type] = _addAssetsLinks(section);
+      break;
 
-      case 'first':
-      case 'last':
-      case 'next':
-      case 'prev':
-      case 'xid':
-      case 'snapshot':
-	link = "/meta/" + val;
-	break;
-
-      case 'name':
-	link = "/api/v1/asset/"+ section.link + "/" + section.name;
-	break;
-
-      case 'asset':
-	link = "/meta/" + xid + "/" + cid + "/asset";
-	break;	
-      }
-
-      if (type == 'assets') {
-        link = "/meta/" + xidb.createLink(key, val.commit);
-        val = val.name;
-      }
-
-      md.push({'key':key, 'val':val, 'link':link});
+    default:
+      model[type] = _addXidbLinks(section, xid, cid);
+      break;
     }
-
-    model[type] = md;
   }
 
   res.render("metadata", {
