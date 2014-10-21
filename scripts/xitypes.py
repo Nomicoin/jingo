@@ -1,4 +1,6 @@
 import png, array
+import PIL.Image, PIL.ExifTags
+from io import BytesIO
 
 otherTypes = {
     '.md': 'text/markdown',
@@ -40,7 +42,7 @@ class Png:
         self.image = Image()
 
     def addMetadata(self, asset, blob, metadata):
-        self.image.addMetadata(asset, blob, metadata)
+        #self.image.addMetadata(asset, blob, metadata)
         try:
             data = array.array('B', blob.data)
             r = png.Reader(data)
@@ -61,8 +63,26 @@ class Jpeg:
         self.image = Image()
 
     def addMetadata(self, asset, blob, metadata):
-        self.image.addMetadata(asset, blob, metadata)
-        metadata['jpeg'] = {}
+        #self.image.addMetadata(asset, blob, metadata)
+        try:
+            data = array.array('B', blob.data)
+            bio = BytesIO(blob.data)
+            print bio
+            bio.seek(0)
+            img = PIL.Image.open(bio)
+            exif = {
+                PIL.ExifTags.TAGS[k]: v
+                for k, v in img._getexif().items()
+                if k in PIL.ExifTags.TAGS
+            }
+            metadata['jpeg'] = exif
+            metadata['image'] = {
+                'width': exif['ExifImageWidth'],
+                'height': exif['ExifImageHeight']
+            }
+            print metadata
+        except:
+            print "error reading jpeg", asset.name
         return metadata
 
 class Gif:
