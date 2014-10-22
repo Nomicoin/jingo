@@ -65,6 +65,7 @@ function _getAssetVersions(req, res) {
   var xid = req.params.xid;
   var versions = xidb.getMetaVersions(xid);
 
+  versions = xidb.resolveSnapshotLinks(versions);
   console.log(versions);
 
   res.render("metaindex", {
