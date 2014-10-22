@@ -7,10 +7,11 @@ block content
   table.table-bordered.table-hover.table-condensed
     each version in versions
       tr
-        td #{version.version}
-        td #{version.timestamp}
-        td #{version.name}
         td 
-          a(href="/meta/#{version.link}") #{version.link}
+          a(href="/meta/#{version.snapshot.link}") #{version.snapshot.timestamp}
+        td
+          a(href="/meta/#{version.link}") #{version.name}
+        td #{version.snapshot.author}
+        td #{version.snapshot.message}
 
   a(href="/meta") metadata index

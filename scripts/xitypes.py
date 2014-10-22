@@ -65,7 +65,7 @@ class Jpeg:
     def addMetadata(self, asset, blob, metadata):
         #self.image.addMetadata(asset, blob, metadata)
         try:
-            data = array.array('B', blob.data)
+            #data = array.array('B', blob.data)
             bio = BytesIO(blob.data)
             print bio
             bio.seek(0)

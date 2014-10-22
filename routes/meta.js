@@ -5,6 +5,7 @@ var fs = require("fs");
 
 router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
+router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
@@ -40,6 +41,17 @@ function _apiv1GetMetadata(req, res) {
   res.end(content);
 }
 
+function _apiv1GetVersions(req, res) {
+  var xid = req.params.xid;
+  var versions = xidb.getMetaVersions(xid);
+  var content = JSON.stringify(versions, null, 4);
+
+  console.log(content);
+
+  res.writeHead(200, {'Content-Type': 'application/json' });
+  res.end(content);
+}
+
 function _getMeta(req, res) {
   var assets = xidb.getAssets();
 
@@ -53,8 +65,10 @@ function _getAssetVersions(req, res) {
   var xid = req.params.xid;
   var versions = xidb.getMetaVersions(xid);
 
+  console.log(versions);
+
   res.render("metaindex", {
-    title: "index",
+    title: "versions",
     versions: versions
   });
 }
