@@ -53,12 +53,9 @@ function _apiv1GetVersions(req, res) {
 }
 
 function _getMeta(req, res) {
-  var assets = xidb.getAssets();
+  var link = xidb.getLatestSnapshotLink();
 
-  res.render("meta", {
-    title: "meta",
-    files: assets
-  });
+  res.redirect("/meta/" + link);
 }
 
 function _getAssetVersions(req, res) {
