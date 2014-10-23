@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import argparse
-from xidb import *
+import argparse, yaml
+from xidb import Project
 
 parser = argparse.ArgumentParser(description="Generate project xid")
 parser.add_argument('-c', '--config', dest='config', required=True)
