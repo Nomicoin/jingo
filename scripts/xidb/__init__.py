@@ -46,6 +46,7 @@ class Asset:
             'xid': self.xid,
             'commit': str(snapshot.commit.id),
             'xlink': createLink(self.xid, snapshot.commit.id),
+            'branch': snapshot.xlink,
             'timestamp': snapshot.timestamp,
             'ref': '',
             'type': ''
@@ -104,8 +105,8 @@ class Snapshot:
         data['base'] = {
             'xid': self.xid,
             'xlink': self.xlink,
+            'branch': self.xlink,
             'commit': str(self.commit.id),
-            'type': '81dbe0de/7d97b2dd',
             'ref': '',
         }
 
@@ -244,8 +245,11 @@ class Project:
                 self.snapshotsCreated += 1
 
     def saveSnapshots(self):
+        schema = self.assets['types/xidb/branch']
         for snapshot in self.snapshots:
-            saveFile(snapshot.path, snapshot.metadata())
+            data = snapshot.metadata()
+            data['base']['type'] = schema.xlink if schema else ''
+            saveFile(snapshot.path, data)
             print "saved snapshot", snapshot.path
 
     def getType(self, name):

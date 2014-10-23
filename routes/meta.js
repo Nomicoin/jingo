@@ -124,11 +124,12 @@ function _addXidbLinks(section, xid, cid) {
     case 'snapshot':
     case 'type':
     case 'xlink':
+    case 'branch':
       link = "/meta/" + val;
       break;
 
     case 'name':
-      link = "/api/v1/asset/"+ section.link + "/" + section.name;
+      link = "/api/v1/asset/"+ section.xlink + "/" + section.name;
       break;
 
     case 'asset':
