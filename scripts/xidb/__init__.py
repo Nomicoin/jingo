@@ -1,4 +1,4 @@
-import uuid, os, shutil, yaml, json, mimetypes
+import uuid, os, shutil, yaml, json, mimetypes, re
 from pygit2 import *
 from datetime import datetime
 from genxid import genxid
@@ -20,6 +20,7 @@ class Asset:
         self.name = name
         self.cid = str(cid)
         self.oid = str(oid)
+        self.xlink = createLink(self.xid, self.cid)
 
         ext = os.path.splitext(name)[1]
         if ext in mimetypes.types_map:
@@ -36,9 +37,29 @@ class Asset:
             #print "new version for", self.name, self.oid, oid
             self.oid = oid
             self.cid = cid
+            self.xlink = createLink(self.xid, self.cid)
 
-    def metadata(self, blob):
+    def metadata(self, blob, snapshot):
         data = {}
+
+        data['base'] = {
+            'xid': self.xid,
+            'commit': str(snapshot.commit.id),
+            'xlink': createLink(self.xid, snapshot.commit.id),
+            'timestamp': snapshot.timestamp,
+            'ref': '',
+            'type': ''
+        }
+
+        data['asset'] = {
+            'name': self.name,
+            'title': '',
+            'description': '',
+            'sha': str(blob.id), 
+            'size': blob.size,
+            'encoding': 'binary' if blob.is_binary else 'text',
+        }
+
         data['xidb'] = {
             'xid': self.xid,
             'snapshot': '',
@@ -59,9 +80,10 @@ class Asset:
         return data
 
 class Snapshot:
-    def __init__(self, commit, link, path):
+    def __init__(self, xid, commit, link, path):
+        self.xid = xid
         self.commit = commit
-        self.link = link
+        self.xlink = link
         self.path = path
         self.timestamp = datetime.fromtimestamp(commit.commit_time).isoformat()
         self.assets = {}
@@ -74,19 +96,30 @@ class Snapshot:
         }
 
     def __str__(self):
-        return "snapshot %s at %s" % (self.link, self.timestamp)
+        return "snapshot %s at %s" % (self.xlink, self.timestamp)
 
     def metadata(self):
         data = {}
+
+        data['base'] = {
+            'xid': self.xid,
+            'xlink': self.xlink,
+            'commit': str(self.commit.id),
+            'type': '81dbe0de/7d97b2dd',
+            'ref': '',
+        }
+
         data['xidb'] = {
-            'link': self.link,
+            'link': self.xlink,
             'author': self.commit.author.name,
             'email': self.commit.author.email,
             'timestamp': self.timestamp,
             'message': self.commit.message,
             'commit': str(self.commit.id)
         }
+
         data['assets'] = self.assets
+
         return data
 
 class Project:
@@ -169,7 +202,7 @@ class Project:
         for commit in self.repo.walk(self.repo.head.target, GIT_SORT_TIME):
             link = createLink(self.xid, commit.id)
             path = self.createPath(link)
-            snapshot = Snapshot(commit, link, path)
+            snapshot = Snapshot(self.xid, commit, link, path)
             self.snapshots.insert(0, snapshot)
             if os.path.exists(path):
                 break
@@ -179,7 +212,7 @@ class Project:
         for commit in self.repo.walk(self.repo.head.target, GIT_SORT_TIME | GIT_SORT_REVERSE):
             link = createLink(self.xid, commit.id)
             path = self.createPath(link)
-            snapshot = Snapshot(commit, link, path)
+            snapshot = Snapshot(self.xid, commit, link, path)
             self.snapshots.append(snapshot)
         self.loadSnapshots(True)
 
@@ -204,7 +237,7 @@ class Project:
                     snapshot.add(asset)
                 self.snapshotsLoaded += 1
             else:
-                print "Building snapshot", snapshot.link
+                print "Building snapshot", snapshot.xlink
                 self.addTree(snapshot.commit.tree, '', snapshot)
                 metadata = snapshot.metadata()
                 metadata['xidb']['project'] = self.xid
@@ -214,6 +247,16 @@ class Project:
         for snapshot in self.snapshots:
             saveFile(snapshot.path, snapshot.metadata())
             print "saved snapshot", snapshot.path
+
+    def getType(self, name):
+        schema = self.assets['types/xidb/asset']
+
+        if re.match('types', name):
+            schema = self.assets['types/xidb/schema']
+        elif re.search('\.png$', name):
+            schema = self.assets['types/xidb/png']
+
+        return schema.xlink if schema else '?'
 
     def initMetadata(self, rewrite=False):
         for snapshot in self.snapshots:
@@ -237,13 +280,15 @@ class Project:
                 asset = self.assets[name]
 
                 if not os.path.isfile(path):
-                    metadata = asset.metadata(blob)
+                    metadata = asset.metadata(blob, snapshot)
+
+                    metadata['base']['type'] = self.getType(asset.name)
+
                     metadata['xidb']['link'] = link
-                    metadata['xidb']['snapshot'] = snapshot.link
+                    metadata['xidb']['snapshot'] = snapshot.xlink
+                    metadata['xidb']['branch'] = snapshot.xlink
                     metadata['xidb']['timestamp'] = snapshot.timestamp
                         
                     saveFile(path, metadata)
                     print "wrote metadata for", link, name
                     self.assetsCreated += 1
-
-            prevSnapshot = snapshot

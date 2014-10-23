@@ -122,6 +122,8 @@ function _addXidbLinks(section, xid, cid) {
     case 'prev':
     case 'xid':
     case 'snapshot':
+    case 'type':
+    case 'xlink':
       link = "/meta/" + val;
       break;
 
