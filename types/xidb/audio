@@ -1,0 +1,12 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#",
+    "description": "An audio file abstract schema",
+    "type": "object",
+    "properties": {
+        "length": { "$ref": "time-span" },
+        "lossy": { "type": "boolean" },
+        "format": { "type": "string" },
+        "sampleRate_kHz": { "type": "number" },
+        "bitDepth": { "type": "integer" },
+    }
+}

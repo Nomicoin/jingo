@@ -1,0 +1,6 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#",
+    "description": "An XIDB short identifier",
+    "type": "string",
+    "pattern": "^[a-f0-9]{8}/[a-f0-9]{8}$"
+}

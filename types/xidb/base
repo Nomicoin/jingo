@@ -1,0 +1,13 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#",
+    "description": "An XIDB object",
+    "type": "object",
+    "properties": {
+        "xid": { "$ref": "xid" },
+        "commit": { "$ref": "sha" },
+        "xlink": { "$ref": "xlink" },
+        "type": { "$ref": "xlink" },
+        "timestamp": { "type": "date-time" },
+        "ref": { "$ref": "xlink" },
+    }
+}

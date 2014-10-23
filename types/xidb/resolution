@@ -1,0 +1,10 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#",
+    "description": "Image resolution",
+    "type": "object",
+    "properties": {
+        "width": { "type": "integer" },
+        "height": { "type": "integer" },
+        "colorDepth": { "type": "integer" },
+    }
+}

@@ -1,0 +1,8 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#",
+    "description": "A 2D image asset",
+    "type": "object",
+    "properties": {
+        "resolution": { "$ref": "resolution" },
+    }
+}

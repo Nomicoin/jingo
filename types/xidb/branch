@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#",
+    "description": "An XIDB branch",
+    "type": "object",
+    "properties": {
+        "base": { "$ref": "base" },
+        "commit": { 
+            "type": "object",
+            "properties": {
+                "sha": { "$ref": "sha" },
+                "author": { "type": "string" },
+                "email": { "type": "email" },
+                "message": { "type": "string" }, 
+                "timestamp": { "type": "date-time" },
+            }
+        },
+	"assets": { 
+            "type": "array",
+            "items": { 
+            "type", "object",
+            "properties": {
+                "commit": { "type": "sha" },
+                "name": { "type": "string" }, 
+                "oid": { "type": "sha" },
+            }
+        }
+    }
+}

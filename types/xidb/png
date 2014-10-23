@@ -1,0 +1,10 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#",
+    "description": "A PNG image",
+    "type": "object",
+    "properties": {
+        "base": { "$ref": "base" },
+        "image": { "$ref": "image" },
+        "png": { "type": "object" },
+    }
+}

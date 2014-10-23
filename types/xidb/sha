@@ -1,0 +1,6 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#",
+    "description": "A git SHA1 identifier",
+    "type": "string",
+    "pattern": "^[a-f0-9]{32}$"
+}

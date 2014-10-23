@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#",
+    "description": "An XIDB asset represents a file in the Project",
+    "type": "object",
+    "properties": {
+       "sha": { "$ref": "sha" },
+       "size": { "type": "integer" },
+       "encoding": { "type": "string" },
+       "content-type": { "type": "string" },
+       "authors": { "type": "array" },
+       "name": { "type": "string" }, 
+       "title": { "type": "string" }, 
+       "description": { "type": "string" }, 
+       "branch": { "$ref": "xlink" },
+    }
+}

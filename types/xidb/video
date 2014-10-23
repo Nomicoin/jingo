@@ -1,0 +1,13 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#",
+    "description": "A video file abstract schema",
+    "type": "object",
+    "properties": {
+        "resolution": { "$ref": "resolution" },
+        "length": { "$ref": "time-span" },
+        "lossy": { "type": "boolean" },
+        "format": { "type": "string" },
+        "audio": { "$ref": "audio" },
+        "subtitles": { "$ref": "xlink" },
+    }
+}
