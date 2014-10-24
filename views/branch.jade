@@ -1,0 +1,59 @@
+extends layout
+
+block content
+
+  h1 branch
+
+  table.table-bordered.table-hover.table-condensed
+    tr 
+      td author
+      td #{commit.author} (#{commit.email})
+    tr
+      td message
+      td #{commit.message}
+    tr
+      td timestamp
+      td #{commit.timestamp}
+    tr
+      td navigation
+      td
+        if nav.first
+          a(href="/meta/#{nav.first + '/branch'}") first&nbsp;
+        else
+          span first&nbsp;
+
+        if nav.prev
+          a(href="/meta/#{nav.prev + '/branch'}") prev&nbsp;
+        else
+          span prev&nbsp;
+
+        if nav.link
+          a(href="/meta/#{nav.link}") this&nbsp;
+        else
+          span this&nbsp;
+
+        if nav.next
+          a(href="/meta/#{nav.next + '/branch'}") next&nbsp;
+        else
+          span next&nbsp;
+
+        if nav.last
+          a(href="/meta/#{nav.last + '/branch'}") last&nbsp;
+        else
+          span last&nbsp;
+
+    tr
+      td version
+      td
+        span #{nav.version}
+
+  hr
+  h3 assets
+
+  table.table-bordered.table-hover.table-condensed
+    each asset in assets
+      tr
+        td 
+           a(href="/meta/#{asset.xlink}") #{asset.name}
+
+  a(href="/meta") metadata index
