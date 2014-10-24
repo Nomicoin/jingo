@@ -11,6 +11,7 @@ router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
 router.get("/meta/:xid/:cid", _getMetaPage);
 router.get("/meta/:xid/:cid/asset", _getAsset);
+router.get("/meta/:xid/:cid/branch", _getBranch);
 router.get("/meta/:xid/:cid/:item*", _getMetaPageItem);
 router.get("/meta/tree/:commit/:file", _getMetaPageTree);
 
@@ -124,12 +125,15 @@ function _addXidbLinks(section, xlink) {
     case 'snapshot':
     case 'type':
     case 'xlink':
-    case 'branch':
       link = "/meta/" + val;
       break;
 
     case 'name':
       link = "/api/v1/asset/"+ xlink + "/" + val;
+      break;
+
+    case 'branch':
+      link = "/meta/" + val + "/branch";
       break;
 
     case 'asset':
@@ -160,6 +164,20 @@ function _addAssetsLinks(section) {
   });
 
   return md;
+}
+
+function _getBranch(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
+  var metadata = xidb.getMetadata(xid, cid);
+
+  console.log(metadata);
+
+  res.render("branch", {
+    title: "branch",
+    commit: metadata.xidb,
+    nav: metadata.navigation
+  });
 }
 
 function _getMetaPage(req, res) {
