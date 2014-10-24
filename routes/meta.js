@@ -80,25 +80,23 @@ function _getAsset(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
   var metadata = xidb.getMetadata(xid, cid);
-  var snapshot = xidb.getMetadataFromLink(metadata.xidb.snapshot);
+  var snapshot = xidb.getMetadataFromLink(metadata.base.branch);
 
-  console.log(snapshot.xidb);
-
-  if (/image/.test(metadata.xidb.type)) {
+  if ('image' in metadata) {
     res.render("asset", {
-      'title': metadata.xidb.name,
-      'imgsrc': "/api/v1/asset/" + metadata.xidb.link + "/" + metadata.xidb.name,
+      'title': metadata.asset.name,
+      'imgsrc': "/api/v1/asset/" + metadata.base.xlink + "/" + metadata.asset.name,
       'nav': metadata.navigation,
-      'snapshot': snapshot.xidb
+      'snapshot': snapshot.commit
     });
   }
   else {
-    Git.getBlob(metadata.xidb.asset, function(err, content) {
+    Git.getBlob(metadata.asset.sha, function(err, content) {
       res.render("asset", {
-	'title': metadata.xidb.name,
+	'title': metadata.asset.name,
 	'content': content,
 	'nav': metadata.navigation,
-	'snapshot': snapshot.xidb
+	'snapshot': snapshot.commit
       });
     });
   }
