@@ -103,7 +103,7 @@ function _getAsset(req, res) {
   }
 }
 
-function _addXidbLinks(section, xid, cid) {
+function _addXidbLinks(section, xlink) {
 
   var md = [];
 
@@ -112,7 +112,7 @@ function _addXidbLinks(section, xid, cid) {
     link = null;
 
     switch(key) {
-    case 'link':
+    case 'xlink':
       link = "/api/v1/meta/" + val;
       break;
 
@@ -129,11 +129,12 @@ function _addXidbLinks(section, xid, cid) {
       break;
 
     case 'name':
-      link = "/api/v1/asset/"+ section.xlink + "/" + section.name;
+      link = "/api/v1/asset/"+ xlink + "/" + val;
       break;
 
     case 'asset':
-      link = "/meta/" + xid + "/" + cid + "/asset";
+    case 'sha':
+      link = "/meta/" + xlink + "/asset";
       break;
     }
 
@@ -176,7 +177,7 @@ function _getMetaPage(req, res) {
       break;
 
     default:
-      model[type] = _addXidbLinks(section, xid, cid);
+      model[type] = _addXidbLinks(section, metadata.base.xlink);
       break;
     }
   }
