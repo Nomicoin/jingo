@@ -171,11 +171,24 @@ function _getBranch(req, res) {
   var cid = req.params.cid;
   var metadata = xidb.getMetadata(xid, cid);
 
-  console.log(metadata);
+  var assets = [];
+
+  for(xid in metadata.assets) {
+    var asset = metadata.assets[xid];
+    assets.push({
+      'name': asset.name,
+      'xlink': xidb.createLink(xid, asset.commit)
+    });
+  }
+
+  assets.sort(function(a,b) {
+    return a.name.localeCompare(b.name);
+  });
 
   res.render("branch", {
     title: "branch",
     commit: metadata.xidb,
+    assets: assets,
     nav: metadata.navigation
   });
 }

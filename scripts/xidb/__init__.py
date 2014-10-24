@@ -15,11 +15,11 @@ def saveFile(path, obj):
         f.write(res + "\n")
 
 class Asset:
-    def __init__(self, cid, oid, xid, name):
+    def __init__(self, cid, sha, xid, name):
         self.xid = str(xid)
         self.name = name
         self.cid = str(cid)
-        self.oid = str(oid)
+        self.sha = str(sha)
         self.xlink = createLink(self.xid, self.cid)
 
         ext = os.path.splitext(name)[1]
@@ -30,12 +30,12 @@ class Asset:
         else:
             self.type = ''
 
-    def addVersion(self, cid, oid):
-        oid = str(oid)
+    def addVersion(self, cid, sha):
+        sha = str(sha)
         cid = str(cid)
-        if (self.oid != oid):
-            #print "new version for", self.name, self.oid, oid
-            self.oid = oid
+        if (self.sha != sha):
+            #print "new version for", self.name, self.sha, sha
+            self.sha = sha
             self.cid = cid
             self.xlink = createLink(self.xid, self.cid)
 
@@ -93,7 +93,7 @@ class Snapshot:
         self.assets[asset.xid] = {
             'name': asset.name,
             'commit': asset.cid,
-            'oid': asset.oid
+            'sha': asset.sha
         }
 
     def __str__(self):
@@ -227,13 +227,13 @@ class Project:
                     info = assets[xid]
                     name = info['name']
                     commit = info['commit']
-                    oid = info['oid']
+                    sha = info['sha']
                     if name in self.assets:
                         asset = self.assets[name]
-                        asset.addVersion(snapshot.commit.id, oid)
+                        asset.addVersion(snapshot.commit.id, sha)
                     else:
                         #print "Adding %s as %s" % (name, xid)
-                        asset = Asset(commit, oid, xid, name)
+                        asset = Asset(commit, sha, xid, name)
                         self.assets[name] = asset
                     snapshot.add(asset)
                 self.snapshotsLoaded += 1
@@ -267,11 +267,11 @@ class Project:
             for xid in snapshot.assets:
                 info = snapshot.assets[xid]
                 name = info['name']
-                oid = info['oid']
+                sha = info['sha']
                 cid = info['commit']
 
                 try:
-                    blob = self.repo[oid]
+                    blob = self.repo[sha]
                 except:
                     print "bad blob?", info
                     continue
