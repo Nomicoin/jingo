@@ -107,16 +107,16 @@ class Snapshot:
             'xlink': self.xlink,
             'branch': self.xlink,
             'commit': str(self.commit.id),
+            'timestamp': self.timestamp,
             'ref': '',
         }
 
-        data['xidb'] = {
-            'link': self.xlink,
+        data['commit'] = {
+            'commit': str(self.commit.id),
             'author': self.commit.author.name,
             'email': self.commit.author.email,
             'timestamp': self.timestamp,
             'message': self.commit.message,
-            'commit': str(self.commit.id)
         }
 
         data['assets'] = self.assets
@@ -240,8 +240,8 @@ class Project:
             else:
                 print "Building snapshot", snapshot.xlink
                 self.addTree(snapshot.commit.tree, '', snapshot)
-                metadata = snapshot.metadata()
-                metadata['xidb']['project'] = self.xid
+                #metadata = snapshot.metadata()
+                #metadata['xidb']['project'] = self.xid
                 self.snapshotsCreated += 1
 
     def saveSnapshots(self):

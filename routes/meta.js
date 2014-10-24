@@ -56,7 +56,7 @@ function _apiv1GetVersions(req, res) {
 function _getMeta(req, res) {
   var link = xidb.getLatestSnapshotLink();
 
-  res.redirect("/meta/" + link);
+  res.redirect("/meta/" + link + "/branch");
 }
 
 function _getAssetVersions(req, res) {
@@ -171,6 +171,8 @@ function _getBranch(req, res) {
   var cid = req.params.cid;
   var metadata = xidb.getMetadata(xid, cid);
 
+  console.log(metadata.commit);
+
   var assets = [];
 
   for(xid in metadata.assets) {
@@ -187,7 +189,7 @@ function _getBranch(req, res) {
 
   res.render("branch", {
     title: "branch",
-    commit: metadata.xidb,
+    commit: metadata.commit,
     assets: assets,
     nav: metadata.navigation
   });
