@@ -61,20 +61,6 @@ class Asset:
             'encoding': 'binary' if blob.is_binary else 'text',
         }
 
-        data['xxidb'] = {
-            'xid': self.xid,
-            'snapshot': '',
-            'type': self.type,
-            'name': self.name,
-            'description': '',
-            'authors': '',
-            'asset': str(blob.id), 
-            'size': blob.size,
-            'encoding': 'binary' if blob.is_binary else 'text',
-            'comments': '',
-            'votes': ''
-        }
-
         if self.type in typeIndex:
             typeIndex[self.type].addMetadata(self, blob, data)
 
@@ -285,14 +271,7 @@ class Project:
 
                 if not os.path.isfile(path):
                     metadata = asset.metadata(blob, snapshot)
-
                     metadata['base']['type'] = self.getType(asset.name)
-
-                    #metadata['xidb']['link'] = link
-                    #metadata['xidb']['snapshot'] = snapshot.xlink
-                    #metadata['xidb']['branch'] = snapshot.xlink
-                    #metadata['xidb']['timestamp'] = snapshot.timestamp
-                        
                     saveFile(path, metadata)
                     print "wrote metadata for", link, name
                     self.assetsCreated += 1
