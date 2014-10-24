@@ -2,16 +2,16 @@ extends layout
 
 block content
 
-  h1 metadata versions
+  h1 versions of #{name}
 
   table.table-bordered.table-hover.table-condensed
     each version in versions
       tr
         td 
-          a(href="/meta/#{version.snapshot.link}") #{version.snapshot.timestamp}
+          a(href="/meta/#{version.branch.base.xlink}/branch") #{version.branch.commit.timestamp}
         td
-          a(href="/meta/#{version.link}") #{version.name}
-        td #{version.snapshot.author}
-        td #{version.snapshot.message}
+          a(href="/meta/#{version.xlink}") #{version.xlink}
+        td #{version.branch.commit.author}
+        td #{version.branch.commit.message}
 
   a(href="/meta") metadata index

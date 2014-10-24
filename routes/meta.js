@@ -22,7 +22,7 @@ function _apiv1GetAsset(req, res) {
 
   var metadata = xidb.getMetadata(xid, cid);
 
-  Git.getBlob(metadata.xidb.asset, function(err, content) {
+  Git.getBlob(metadata.asset.sha, function(err, content) {
     res.writeHead(200, {'Content-Type': metadata.type });
     res.end(content);
     return;
@@ -62,13 +62,13 @@ function _getMeta(req, res) {
 function _getAssetVersions(req, res) {
   var xid = req.params.xid;
   var versions = xidb.getMetaVersions(xid);
-
-  versions = xidb.resolveSnapshotLinks(versions);
-  console.log(versions);
+  var latest = versions[versions.length-1];
+  var metadata = xidb.getMetadataFromLink(latest.xlink);
 
   res.render("metaindex", {
-    title: "versions",
-    versions: versions
+    'title': "versions",
+    'name': metadata.asset.name,
+    'versions': xidb.resolveBranchLinks(versions)
   });
 }
 

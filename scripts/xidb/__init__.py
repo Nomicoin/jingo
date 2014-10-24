@@ -61,7 +61,7 @@ class Asset:
             'encoding': 'binary' if blob.is_binary else 'text',
         }
 
-        data['xidb'] = {
+        data['xxidb'] = {
             'xid': self.xid,
             'snapshot': '',
             'type': self.type,
@@ -288,10 +288,10 @@ class Project:
 
                     metadata['base']['type'] = self.getType(asset.name)
 
-                    metadata['xidb']['link'] = link
-                    metadata['xidb']['snapshot'] = snapshot.xlink
-                    metadata['xidb']['branch'] = snapshot.xlink
-                    metadata['xidb']['timestamp'] = snapshot.timestamp
+                    #metadata['xidb']['link'] = link
+                    #metadata['xidb']['snapshot'] = snapshot.xlink
+                    #metadata['xidb']['branch'] = snapshot.xlink
+                    #metadata['xidb']['timestamp'] = snapshot.timestamp
                         
                     saveFile(path, metadata)
                     print "wrote metadata for", link, name
