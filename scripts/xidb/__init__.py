@@ -231,7 +231,7 @@ class Project:
                 self.snapshotsCreated += 1
 
     def saveSnapshots(self):
-        schema = self.assets['types/xidb/branch']
+        schema = self.assets['xidb/types/branch']
         for snapshot in self.snapshots:
             data = snapshot.metadata()
             data['base']['type'] = schema.xlink if schema else ''
