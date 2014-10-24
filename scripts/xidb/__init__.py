@@ -239,12 +239,12 @@ class Project:
             print "saved snapshot", snapshot.path
 
     def getType(self, name):
-        schema = self.assets['types/xidb/asset']
+        schema = self.assets['xidb/types/asset']
 
-        if re.match('types', name):
-            schema = self.assets['types/xidb/schema']
+        if re.match('xidb\/types\/.*', name):
+            schema = self.assets['xidb/types/schema']
         elif re.search('\.png$', name):
-            schema = self.assets['types/xidb/png']
+            schema = self.assets['xidb/types/png']
 
         return schema.xlink if schema else '?'
 
