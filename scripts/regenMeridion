@@ -1,0 +1,5 @@
+#!/bin/sh
+
+python initmeta.py -c ../meridion.yaml -i -r
+
+

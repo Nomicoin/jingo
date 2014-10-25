@@ -1,0 +1,5 @@
+#!/bin/sh
+
+python initmeta.py -c ../viki.yaml -i -r
+
+
