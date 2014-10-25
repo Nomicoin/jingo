@@ -92,9 +92,15 @@ function _getAsset(req, res) {
   }
   else {
     Git.getBlob(metadata.asset.sha, function(err, content) {
+
+      // TODO: figure out how to get jade to preserve spaces
+      //var text = content.toString().replace(new RegExp(' ', 'g'), '&sp;');
+      //var lines = text.split('\n');
+
       res.render("asset", {
 	'title': metadata.asset.name,
 	'content': content,
+	//'lines': lines, 
 	'nav': metadata.navigation,
 	'snapshot': snapshot.commit
       });
@@ -214,7 +220,7 @@ function _getMetaPage(req, res) {
   }
 
   res.render("metadata", {
-    title: "metadata",
+    title: metadata.base.xlink,
     metadata: model
   });
 }
