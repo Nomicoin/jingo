@@ -17,12 +17,13 @@
 	"assets": { 
             "type": "array",
             "items": { 
-            "type", "object",
-            "properties": {
-                "commit": { "type": "sha" },
-                "name": { "type": "string" }, 
-                "oid": { "type": "sha" },
-            }
+                "type", "object",
+                "properties": {
+                  "commit": { "type": "sha" },
+                  "name": { "type": "string" },
+                  "oid": { "type": "sha" },
+                }
+	    }
         }
     }
 }
