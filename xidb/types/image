@@ -4,5 +4,6 @@
     "type": "object",
     "properties": {
         "resolution": { "$ref": "resolution" },
+        "format": { "$ref": "#/asset/content-type" },
     }
 }

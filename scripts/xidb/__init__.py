@@ -4,10 +4,10 @@ from datetime import datetime
 from genxid import genxid
 from xitypes import *
 
-def createLink(xid, hash):
+def createLink(xid, cid):
     xidRef = str(xid)[:8]
-    hashRef = str(hash)[:8]
-    return os.path.join(xidRef, hashRef)
+    cidRef = str(cid)[:8]
+    return os.path.join(xidRef, cidRef)
 
 def saveFile(path, obj):
     with open(path, 'w') as f:
@@ -75,15 +75,15 @@ class Snapshot:
         self.timestamp = datetime.fromtimestamp(commit.commit_time).isoformat()
         self.assets = {}
 
+    def __str__(self):
+        return "snapshot %s at %s" % (self.xlink, self.timestamp)
+
     def add(self, asset):
         self.assets[asset.xid] = {
             'name': asset.name,
             'commit': asset.cid,
             'sha': asset.sha
         }
-
-    def __str__(self):
-        return "snapshot %s at %s" % (self.xlink, self.timestamp)
 
     def metadata(self):
         data = {}
@@ -123,24 +123,36 @@ class Project:
         self.assetsCreated = 0
 
     def genxid(self):
+        """ 
+        The project xid is generated from the first commit and tree sha's
+        """
         walker = self.repo.walk(self.repo.head.target, GIT_SORT_TIME | GIT_SORT_REVERSE)
         commit = walker.next()
         xid = genxid(commit.id, commit.tree.id)
         return str(xid)
 
     def init(self): 
+        """ 
+        Generates metadata for all commits. Overwrites existing metadata.
+        """
         self.initSnapshots()
         self.initMetadata(True)
         self.saveSnapshots()
         self.saveIndex() # until javascript can generate xid
 
     def update(self):
+        """ 
+        Generates metadata for all commits since the last update 
+        """
         self.updateSnapshots()
         self.initMetadata()
         self.saveSnapshots()
         self.saveIndex() # until javascript can generate xid
 
     def saveIndex(self):
+        """
+        Saves this project's xid to an index file.
+        """
         if not os.path.exists(self.metaDir):
             os.makedirs(self.metaDir)
 
@@ -157,14 +169,20 @@ class Project:
         projects[self.repo.path] = self.xid
         saveFile(path, {'projects': projects})
 
-    def createPath(self, link):
-        path = os.path.join(self.metaDir, link) + ".json"
+    def createPath(self, xlink):
+        """ 
+        Returns file path to metadata at given xlink. Will create folders as a side effect.
+        """
+        path = os.path.join(self.metaDir, xlink) + ".json"
         dirName = os.path.dirname(path)
         if not os.path.exists(dirName):
             os.makedirs(dirName)
         return path
 
     def addTree(self, tree, path, snapshot):
+        """
+        Recursively traverses the git tree
+        """
         # todo: don't add metadir to assets
         for entry in tree:
             try:
