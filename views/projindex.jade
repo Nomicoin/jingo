@@ -5,8 +5,8 @@ block content
   h1 Projects
 
   table.table-bordered.table-hover.table-condensed
-    each project in versions
+    each project in index
       tr
         td 
-          a(href="/meta/#{project.xlink}") #{project.name}
+          a(href="/meta/#{project.xlink}/branch") #{project.name}
 

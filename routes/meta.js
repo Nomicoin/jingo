@@ -22,7 +22,7 @@ function _apiv1GetAsset(req, res) {
 
   var metadata = xidb.getMetadata(xid, cid);
 
-  Git.getBlob(metadata.asset.sha, function(err, content) {
+  xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, content) {
     res.writeHead(200, {'Content-Type': metadata.type });
     res.end(content);
     return;
@@ -36,8 +36,6 @@ function _apiv1GetMetadata(req, res) {
   var metadata = xidb.getMetadata(xid, cid);
   var content = JSON.stringify(metadata, null, 4);
 
-  console.log(content);
-
   res.writeHead(200, {'Content-Type': 'application/json' });
   res.end(content);
 }
@@ -47,20 +45,14 @@ function _apiv1GetVersions(req, res) {
   var versions = xidb.getMetaVersions(xid);
   var content = JSON.stringify(versions, null, 4);
 
-  console.log(content);
-
   res.writeHead(200, {'Content-Type': 'application/json' });
   res.end(content);
 }
 
 function _getMeta(req, res) {
-  var index = xidb.getProjectIndex();
-
-  console.log("\n\n>>>", index);
-
   res.render("projindex", {
     'title': "projects",
-    'versions': index
+    'index': xidb.getProjectIndex()
   });
 }
 
@@ -96,7 +88,7 @@ function _getAsset(req, res) {
     });
   }
   else {
-    Git.getBlob(metadata.asset.sha, function(err, content) {
+    xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, content) {
 
       // TODO: figure out how to get jade to preserve spaces
       //var text = content.toString().replace(new RegExp(' ', 'g'), '&sp;');
@@ -179,9 +171,6 @@ function _getBranch(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
   var metadata = xidb.getMetadata(xid, cid);
-
-  console.log(metadata.commit);
-
   var assets = [];
 
   for(xid in metadata.assets) {
