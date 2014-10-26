@@ -54,9 +54,14 @@ function _apiv1GetVersions(req, res) {
 }
 
 function _getMeta(req, res) {
-  var link = xidb.getLatestSnapshotLink();
+  var index = xidb.getProjectIndex();
 
-  res.redirect("/meta/" + link + "/branch");
+  console.log("\n\n>>>", index);
+
+  res.render("projindex", {
+    'title': "projects",
+    'versions': index
+  });
 }
 
 function _getAssetVersions(req, res) {

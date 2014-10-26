@@ -3,7 +3,7 @@
 application:
   title: Viki
   repository: "/home/david/dev/viki"
-  metadata: "/home/david/dev/viki/meta"
+  metadata: "/home/david/dev/meta"
   docSubdir: "viki"
   remote: ""
   pushInterval: 30

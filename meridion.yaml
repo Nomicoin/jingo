@@ -3,7 +3,7 @@
 application:
   title: Meridion
   repository: "/home/david/dev/Meridion.wiki"
-  metadata: "/home/david/dev/Meridion.wiki/meta"
+  metadata: "/home/david/dev/meta"
   docSubdir: ""
   remote: ""
   pushInterval: 30

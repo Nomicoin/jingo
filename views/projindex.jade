@@ -1,0 +1,12 @@
+extends layout
+
+block content
+
+  h1 Projects
+
+  table.table-bordered.table-hover.table-condensed
+    each project in versions
+      tr
+        td 
+          a(href="/meta/#{project.xlink}") #{project.name}
+
