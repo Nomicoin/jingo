@@ -111,6 +111,7 @@ class Snapshot:
 
 class Project:
     def __init__(self, config):
+        self.name = config['application']['title']
         self.repoDir = config['application']['repository']
         self.metaDir = config['application']['metadata']
         self.repo = Repository(self.repoDir)
@@ -138,7 +139,7 @@ class Project:
         self.initSnapshots()
         self.initMetadata(True)
         self.saveSnapshots()
-        self.saveIndex() # until javascript can generate xid
+        self.saveIndex()
 
     def update(self):
         """ 
@@ -147,11 +148,11 @@ class Project:
         self.updateSnapshots()
         self.initMetadata()
         self.saveSnapshots()
-        self.saveIndex() # until javascript can generate xid
+        self.saveIndex()
 
     def saveIndex(self):
         """
-        Saves this project's xid to an index file.
+        Saves this project's info to an index file.
         """
         if not os.path.exists(self.metaDir):
             os.makedirs(self.metaDir)
@@ -166,7 +167,11 @@ class Project:
         else:
             projects = {}
 
-        projects[self.repo.path] = self.xid
+        projects[self.name] = {
+            'xid': self.xid,
+            'repo': self.repo.path,
+        };
+
         saveFile(path, {'projects': projects})
 
     def createPath(self, xlink):
