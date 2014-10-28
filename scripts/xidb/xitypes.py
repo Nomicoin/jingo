@@ -14,31 +14,44 @@ class Markdown:
         if ext == '.md':
             metadata['markdown'] = { 'asHtml5': 'xlink' }
         
-def addImageMetadata(metadata, width, height, colorDepth, format):
-    metadata['image'] = { 
-        'width': width,
-        'height': height,
-        'colorDepth': colorDepth,
-        'format': format
-    }
-    metadata['asset']['content-type'] = format
+class Image(object):
+    def __init__(self, format):
+        self.format = format
+        self.width = 0
+        self.height = 0
+        self.colorDepth = 0
 
-class Png:
+    def addImageMetadata(self, metadata):
+        metadata['image'] = { 
+            'width': self.width,
+            'height': self.height,
+            'colorDepth': self.colorDepth,
+            'format': self.format
+        }
+        metadata['asset']['content-type'] = self.format
+
+class Png(Image):
+    def __init__(self):
+        super(Png, self).__init__("image/png")
+
     def addMetadata(self, blob, metadata):
         ext = metadata['asset']['ext']
         if ext != '.png':
             return
+
         try:
             data = array.array('B', blob.data)
             r = png.Reader(data)
-            width, height, pixels, meta = r.read()
+            self.width, self.height, pixels, meta = r.read()
             metadata['png'] = meta
-            addImageMetadata(metadata, width, height, 0, "image/png")
-
+            self.addImageMetadata(metadata)
         except:
             print "error reading png", metadata['asset']['name']
 
-class Jpeg:
+class Jpeg(Image):
+    def __init__(self):
+        super(Jpeg, self).__init__("image/jpeg")
+
     def addMetadata(self, blob, metadata):
         ext = metadata['asset']['ext']
         if not ext in ['.jpg', '.jpeg']:
@@ -55,19 +68,22 @@ class Jpeg:
                 if k in PIL.ExifTags.TAGS
             }
             metadata['jpeg'] = exif
-            width = exif['ExifImageWidth']
-            height = exif['ExifImageHeight']
-            addImageMetadata(metadata, width, height, 0, "image/jpeg")
+            self.width = exif['ExifImageWidth']
+            self.height = exif['ExifImageHeight']
+            self.addImageMetadata(metadata)
         except:
             print "error reading jpeg", metadata['asset']['name']
 
-class Gif:
+class Gif(Image):
+    def __init__(self):
+        super(Gif, self).__init__("image/gif")
+
     def addMetadata(self, blob, metadata):
         ext = metadata['asset']['ext']
         if ext != '.gif':
             return
         metadata['gif'] = {}
-        addImageMetadata(metadata, 0, 0, 0, "image/gif")
+        self.addImageMetadata(metadata)
 
 allTypes = [
     Text(),
