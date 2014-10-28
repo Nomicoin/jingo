@@ -1,4 +1,4 @@
-import png, array
+import png, array, os
 import PIL.Image, PIL.ExifTags
 from io import BytesIO
 
@@ -8,6 +8,7 @@ class Asset(object):
         self.metadata = metadata
         self.name = metadata['asset']['name']
         self.contentType = ''
+        self.title = ''
 
     def isValid(self):
         return False
@@ -18,6 +19,7 @@ class Asset(object):
 
     def addMetadata(self):
         self.metadata['asset']['content-type'] = self.contentType
+        self.metadata['asset']['title'] = self.title
 
 class Text(Asset):
     def __init__(self, blob, metadata):
@@ -41,7 +43,12 @@ class Markdown(Text):
         return self.checkExtension(['.md']) and super(Markdown, self).isValid()
 
     def addMetadata(self):
-        self.metadata['markdown'] = { 'asHtml5': 'xlink' }
+        self.metadata['markdown'] = { 'asHtml5': 'TBD' }
+
+        title = os.path.basename(self.name)
+        title = os.path.splitext(title)[0]
+        self.title = title.replace("-", " ")
+
         super(Markdown, self).addMetadata()
 
 class Image(Asset):
