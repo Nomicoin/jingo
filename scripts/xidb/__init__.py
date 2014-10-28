@@ -18,17 +18,10 @@ class Asset:
     def __init__(self, cid, sha, xid, name):
         self.xid = str(xid)
         self.name = name
+        self.ext = os.path.splitext(name)[1]
         self.cid = str(cid)
         self.sha = str(sha)
         self.xlink = createLink(self.xid, self.cid)
-
-        ext = os.path.splitext(name)[1]
-        if ext in mimetypes.types_map:
-            self.type = mimetypes.types_map[ext]
-        elif ext in otherTypes:
-            self.type = otherTypes[ext]
-        else:
-            self.type = ''
 
     def addVersion(self, cid, sha):
         sha = str(sha)
@@ -39,7 +32,7 @@ class Asset:
             self.cid = cid
             self.xlink = createLink(self.xid, self.cid)
 
-    def metadata(self, blob, snapshot):
+    def metadata(self, blob, snapshot, type):
         data = {}
 
         data['base'] = {
@@ -49,11 +42,12 @@ class Asset:
             'branch': snapshot.xlink,
             'timestamp': snapshot.timestamp,
             'ref': '',
-            'type': ''
+            'type': type
         }
 
         data['asset'] = {
             'name': self.name,
+            'ext': self.ext,
             'title': '',
             'description': '',
             'sha': str(blob.id), 
@@ -61,8 +55,8 @@ class Asset:
             'encoding': 'binary' if blob.is_binary else 'text',
         }
 
-        if self.type in typeIndex:
-            typeIndex[self.type].addMetadata(self, blob, data)
+        for type in allTypes:
+            type.addMetadata(blob, data)
 
         return data
 
@@ -268,6 +262,8 @@ class Project:
             schema = self.assets['xidb/types/schema']
         elif re.search('\.png$', name):
             schema = self.assets['xidb/types/png']
+        elif re.search('\.md$', name):
+            schema = self.assets['xidb/types/markdown']
 
         return schema.xlink if schema else '?'
 
@@ -293,8 +289,8 @@ class Project:
                 asset = self.assets[name]
 
                 if not os.path.isfile(path):
-                    metadata = asset.metadata(blob, snapshot)
-                    metadata['base']['type'] = self.getType(asset.name)
+                    type = self.getType(asset.name)
+                    metadata = asset.metadata(blob, snapshot, type)
                     saveFile(path, metadata)
                     print "wrote metadata for", link, name
                     self.assetsCreated += 1

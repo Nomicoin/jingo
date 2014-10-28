@@ -2,70 +2,49 @@ import png, array
 import PIL.Image, PIL.ExifTags
 from io import BytesIO
 
-otherTypes = {
-    '.md': 'text/markdown',
-    '.jade': 'text/jade',
-    '.toml': 'text/toml',
-    '.yaml': 'text/yaml'
-} 
-
 class Text:
-    def addMetadata(self, asset, blob, metadata):
-        if blob.is_binary:
-            lines = 0
-        else:
+    def addMetadata(self, blob, metadata):
+        if not blob.is_binary:
             lines = blob.data.count('\n')
-
-        metadata['text'] = { 'lines': lines }
-        return metadata
+            metadata['text'] = { 'lines': lines }
 
 class Markdown:
-    def __init__(self):
-        self.text = Text()
-
-    def addMetadata(self, asset, blob, metadata):
-        self.text.addMetadata(asset, blob, metadata)
-        metadata['markdown'] = { 'asHtml5': 'xlink' }
-        return metadata
+    def addMetadata(self, blob, metadata):
+        ext = metadata['asset']['ext']
+        if ext == '.md':
+            metadata['markdown'] = { 'asHtml5': 'xlink' }
         
-class Image:
-    def addMetadata(self, asset, blob, metadata):
-        metadata['image'] = { 
-            'width': 0,
-            'height': 0,
-            'colorDepth': 0
-        }
-        return metadata
+def addImageMetadata(metadata, width, height, colorDepth, format):
+    metadata['image'] = { 
+        'width': width,
+        'height': height,
+        'colorDepth': colorDepth,
+        'format': format
+    }
+    metadata['asset']['content-type'] = format
 
 class Png:
-    def __init__(self):
-        self.image = Image()
-
-    def addMetadata(self, asset, blob, metadata):
-        #self.image.addMetadata(asset, blob, metadata)
+    def addMetadata(self, blob, metadata):
+        ext = metadata['asset']['ext']
+        if ext != '.png':
+            return
         try:
             data = array.array('B', blob.data)
             r = png.Reader(data)
             width, height, pixels, meta = r.read()
-            metadata['image'] = {
-                'width': width,
-                'height': height
-            }
             metadata['png'] = meta
-            print metadata
-        except:
-            print "error reading png", asset.name
+            addImageMetadata(metadata, width, height, 0, "image/png")
 
-        return metadata
+        except:
+            print "error reading png", metadata['asset']['name']
 
 class Jpeg:
-    def __init__(self):
-        self.image = Image()
+    def addMetadata(self, blob, metadata):
+        ext = metadata['asset']['ext']
+        if not ext in ['.jpg', '.jpeg']:
+            return
 
-    def addMetadata(self, asset, blob, metadata):
-        #self.image.addMetadata(asset, blob, metadata)
         try:
-            #data = array.array('B', blob.data)
             bio = BytesIO(blob.data)
             print bio
             bio.seek(0)
@@ -76,29 +55,27 @@ class Jpeg:
                 if k in PIL.ExifTags.TAGS
             }
             metadata['jpeg'] = exif
-            metadata['image'] = {
-                'width': exif['ExifImageWidth'],
-                'height': exif['ExifImageHeight']
-            }
-            print metadata
+            width = exif['ExifImageWidth']
+            height = exif['ExifImageHeight']
+            addImageMetadata(metadata, width, height, 0, "image/jpeg")
         except:
-            print "error reading jpeg", asset.name
-        return metadata
+            print "error reading jpeg", metadata['asset']['name']
 
 class Gif:
-    def __init__(self):
-        self.image = Image()
-
-    def addMetadata(self, asset, blob, metadata):
-        self.image.addMetadata(asset, blob, metadata)
+    def addMetadata(self, blob, metadata):
+        ext = metadata['asset']['ext']
+        if ext != '.gif':
+            return
         metadata['gif'] = {}
-        return metadata
+        addImageMetadata(metadata, 0, 0, 0, "image/gif")
 
-typeIndex = {}
-typeIndex['text/plain'] = Text()
-typeIndex['application/javascript'] = Text()
-typeIndex['text/x-python'] = Text()
-typeIndex['text/markdown'] = Markdown()
-typeIndex['image/png'] = Png()
-typeIndex['image/jpeg'] = Jpeg()
-typeIndex['image/gif'] = Gif()
+allTypes = [
+    Text(),
+    Markdown(),
+    Png(),
+    Jpeg(),
+    Gif()
+]
+
+
+    
