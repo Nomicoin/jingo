@@ -1,0 +1,8 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#",
+    "description": "A text document formatted in Markdown syntax <http://en.wikipedia.org/wiki/Markdown>",
+    "type": "object",
+    "properties": {
+        "asHtml5": { "$ref": "xlink" },
+    }
+}
