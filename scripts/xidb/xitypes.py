@@ -2,63 +2,98 @@ import png, array
 import PIL.Image, PIL.ExifTags
 from io import BytesIO
 
-class Text:
-    def addMetadata(self, blob, metadata):
-        if not blob.is_binary:
-            lines = blob.data.count('\n')
-            metadata['text'] = { 'lines': lines }
+class Asset(object):
+    def __init__(self, blob, metadata):
+        self.blob = blob
+        self.metadata = metadata
+        self.name = metadata['asset']['name']
+        self.contentType = ''
 
-class Markdown:
-    def addMetadata(self, blob, metadata):
-        ext = metadata['asset']['ext']
-        if ext == '.md':
-            metadata['markdown'] = { 'asHtml5': 'xlink' }
-        
-class Image(object):
-    def __init__(self, format):
-        self.format = format
+    def isValid(self):
+        return False
+
+    def checkExtension(self, extensions):
+        ext = self.metadata['asset']['ext']
+        return ext in extensions
+
+    def addMetadata(self):
+        self.metadata['asset']['content-type'] = self.contentType
+
+class Text(Asset):
+    def __init__(self, blob, metadata):
+        super(Text, self).__init__(blob, metadata)
+
+    def isValid(self):
+        return not self.blob.is_binary
+
+    def addMetadata(self):
+        lines = self.blob.data.count('\n')
+        self.metadata['text'] = { 'lines': lines }
+
+        self.contentType = "text/plain"
+        super(Text, self).addMetadata()
+
+class Markdown(Text):
+    def __init__(self, blob, metadata):
+        super(Text, self).__init__(blob, metadata)
+
+    def isValid(self):
+        return self.checkExtension(['.md']) and super(Markdown, self).isValid()
+
+    def addMetadata(self):
+        self.metadata['markdown'] = { 'asHtml5': 'xlink' }
+        super(Markdown, self).addMetadata()
+
+class Image(Asset):
+    def __init__(self, blob, metadata):
+        super(Image, self).__init__(blob, metadata)
+        self.format = ''
         self.width = 0
         self.height = 0
         self.colorDepth = 0
 
-    def addImageMetadata(self, metadata):
-        metadata['image'] = { 
+    def isValid(self):
+        return self.blob.is_binary
+
+    def addMetadata(self):
+        self.metadata['image'] = { 
             'width': self.width,
             'height': self.height,
             'colorDepth': self.colorDepth,
             'format': self.format
         }
-        metadata['asset']['content-type'] = self.format
+        self.contentType = self.format
+        super(Image, self).addMetadata()
 
 class Png(Image):
-    def __init__(self):
-        super(Png, self).__init__("image/png")
+    def __init__(self, blob, metadata):
+        super(Png, self).__init__(blob, metadata)
+        self.format = "image/png"
 
-    def addMetadata(self, blob, metadata):
-        ext = metadata['asset']['ext']
-        if ext != '.png':
-            return
+    def isValid(self):
+        return self.checkExtension(['.png']) and super(Png, self).isValid()
 
+    def addMetadata(self):
         try:
-            data = array.array('B', blob.data)
+            data = array.array('B', self.blob.data)
             r = png.Reader(data)
             self.width, self.height, pixels, meta = r.read()
-            metadata['png'] = meta
-            self.addImageMetadata(metadata)
+            self.metadata['png'] = meta
+            super(Png, self).addMetadata()
         except:
-            print "error reading png", metadata['asset']['name']
+            print "error reading png", self.name
 
 class Jpeg(Image):
-    def __init__(self):
-        super(Jpeg, self).__init__("image/jpeg")
+    def __init__(self, blob, metadata):
+        super(Jpeg, self).__init__(blob, metadata)
+        self.format = "image/jpeg"
 
-    def addMetadata(self, blob, metadata):
-        ext = metadata['asset']['ext']
-        if not ext in ['.jpg', '.jpeg']:
-            return
+    def isValid(self):
+        return self.checkExtension(['.jpg', '.jpeg']) and super(Jpeg, self).isValid()
 
+    def addMetadata(self):
         try:
-            bio = BytesIO(blob.data)
+            bio = BytesIO(self.blob.data)
             print bio
             bio.seek(0)
             img = PIL.Image.open(bio)
@@ -67,31 +102,29 @@ class Jpeg(Image):
                 for k, v in img._getexif().items()
                 if k in PIL.ExifTags.TAGS
             }
-            metadata['jpeg'] = exif
+            self.metadata['jpeg'] = exif
             self.width = exif['ExifImageWidth']
             self.height = exif['ExifImageHeight']
-            self.addImageMetadata(metadata)
+            super(Jpeg, self).addMetadata()
         except:
-            print "error reading jpeg", metadata['asset']['name']
+            print "error reading jpeg", self.name
 
 class Gif(Image):
-    def __init__(self):
-        super(Gif, self).__init__("image/gif")
+    def __init__(self, blob, metadata):
+        super(Gif, self).__init__(blob, metadata)
+        self.format = "image/gif"
 
-    def addMetadata(self, blob, metadata):
-        ext = metadata['asset']['ext']
-        if ext != '.gif':
-            return
-        metadata['gif'] = {}
-        self.addImageMetadata(metadata)
+    def isValid(self):
+        return self.checkExtension(['.gif']) and super(Gif, self).isValid()
+
+    def addMetadata(self):
+        self.metadata['gif'] = {}
+        super(Gif, self).addMetadata()
 
 allTypes = [
-    Text(),
-    Markdown(),
-    Png(),
-    Jpeg(),
-    Gif()
+    lambda blob, meta: Text(blob, meta),
+    lambda blob, meta: Markdown(blob, meta),
+    lambda blob, meta: Png(blob, meta),
+    lambda blob, meta: Jpeg(blob, meta),
+    lambda blob, meta: Gif(blob, meta),
 ]
-
-
-    

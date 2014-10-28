@@ -2,7 +2,7 @@ import uuid, os, shutil, yaml, json, mimetypes, re
 from pygit2 import *
 from datetime import datetime
 from genxid import genxid
-from xitypes import *
+import xitypes
 
 def createLink(xid, cid):
     xidRef = str(xid)[:8]
@@ -55,8 +55,10 @@ class Asset:
             'encoding': 'binary' if blob.is_binary else 'text',
         }
 
-        for type in allTypes:
-            type.addMetadata(blob, data)
+        for factory in xitypes.allTypes:
+            obj = factory(blob, data)
+            if obj.isValid():
+                obj.addMetadata()
 
         return data
 
