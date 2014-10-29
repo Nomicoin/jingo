@@ -1,3 +1,26 @@
+Version 1.2.5, October 28st, 2014
+=================================
+
+- Fixes a z-index bug
+
+Version 1.2.4, October 28st, 2014
+=================================
+
+- Fixes #56 (unrecognized git version)
+
+Version 1.2.3, October 27st, 2014
+=================================
+
+- Fixes #55 (footer links not clickable)
+
+Version 1.2.2, October 21st, 2014
+=================================
+
+- Fixes #54 (broken customizations)
+- Adds the jingo version to the meta generator
+- Better README
+- Fixes a potential crash
+- Adds missing page titles (regression bug)
 
 Version 1.2.1, October 13, 2014
 =================================
