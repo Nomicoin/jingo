@@ -1,12 +1,16 @@
 import png, array, os
 import PIL.Image, PIL.ExifTags
+import markdown, pygit2
+import genxid
 from io import BytesIO
+from markdown.extensions.wikilinks import WikiLinkExtension
 
 class Asset(object):
     def __init__(self, blob, metadata):
         self.blob = blob
         self.metadata = metadata
         self.name = metadata['asset']['name']
+        self.xlink = metadata['base']['xlink']
         self.contentType = ''
         self.title = ''
 
@@ -35,6 +39,7 @@ class Text(Asset):
         self.contentType = "text/plain"
         super(Text, self).addMetadata()
 
+
 class Markdown(Text):
     def __init__(self, blob, metadata):
         super(Text, self).__init__(blob, metadata)
@@ -43,13 +48,17 @@ class Markdown(Text):
         return self.checkExtension(['.md']) and super(Markdown, self).isValid()
 
     def addMetadata(self):
-        self.metadata['markdown'] = { 'asHtml5': 'TBD' }
+        html = markdown.markdown(self.blob.data, 
+                                 extensions=[WikiLinkExtension(base_url='/wiki/', end_url='.html')])
+        self.metadata['markdown'] = { 'asHtml': self.xlink }
+        self.metadata['as'] = { 'html': html }
 
         title = os.path.basename(self.name)
         title = os.path.splitext(title)[0]
         self.title = title.replace("-", " ")
 
         super(Markdown, self).addMetadata()
+
 
 class Image(Asset):
     def __init__(self, blob, metadata):

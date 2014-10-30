@@ -11,6 +11,7 @@ router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
 router.get("/meta/:xid/:cid", _getMetaPage);
 router.get("/meta/:xid/:cid/asset", _getAsset);
+router.get("/meta/:xid/:cid/as/:format", _getAsFormat);
 router.get("/meta/:xid/:cid/branch", _getBranch);
 router.get("/meta/:xid/:cid/:item*", _getMetaPageItem);
 router.get("/meta/tree/:commit/:file", _getMetaPageTree);
@@ -71,6 +72,21 @@ function _getAssetVersions(req, res) {
 
 function _makeWikiLink(text, link) {
   return "[" + text + "](" + link +")";
+}
+
+function _getAsFormat(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
+  var format = req.params.format;
+  var metadata = xidb.getMetadata(xid, cid);
+  var content = metadata.as[format];
+
+  console.log(content);
+
+  res.render("page", {
+    'title': metadata.asset.title,
+    'content': content,
+  });
 }
 
 function _getAsset(req, res) {
@@ -140,6 +156,10 @@ function _addXidbLinks(section, xlink) {
     case 'asset':
     case 'sha':
       link = "/meta/" + xlink + "/asset";
+      break;
+
+    case 'asHtml':
+      link = "/meta/"+ xlink + "/as/html";
       break;
     }
 
