@@ -11,6 +11,7 @@ class Asset(object):
         self.metadata = metadata
         self.name = metadata['asset']['name']
         self.xlink = metadata['base']['xlink']
+        self.vlink = metadata['base']['commit'][:8]
         self.contentType = ''
         self.title = ''
 
@@ -40,6 +41,11 @@ class Text(Asset):
         super(Text, self).addMetadata()
 
 
+def urlBuilder(label, base, end):
+    url = base + label.replace(" ", "-") + '/' + end
+    print ">>> urlBuilder", label, base, end, url
+    return url
+
 class Markdown(Text):
     def __init__(self, blob, metadata):
         super(Text, self).__init__(blob, metadata)
@@ -48,10 +54,18 @@ class Markdown(Text):
         return self.checkExtension(['.md']) and super(Markdown, self).isValid()
 
     def addMetadata(self):
-        html = markdown.markdown(self.blob.data, 
-                                 extensions=[WikiLinkExtension(base_url='/wiki/', end_url='.html')])
-        self.metadata['markdown'] = { 'asHtml': self.xlink }
-        self.metadata['as'] = { 'html': html }
+        try:
+            extensions=[WikiLinkExtension(html_class='internal',
+                                          base_url='/viki/',
+                                          end_url=self.vlink,
+                                          build_url=urlBuilder)]
+            source = self.blob.data.decode('utf-8')
+            html = markdown.markdown(source, extensions=extensions)
+
+            self.metadata['markdown'] = { 'asHtml': self.xlink }
+            self.metadata['as'] = { 'html': html }
+        except Exception, e:
+            print "markdown processing failed on", self.name, str(e)
 
         title = os.path.basename(self.name)
         title = os.path.splitext(title)[0]

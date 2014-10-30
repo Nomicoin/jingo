@@ -4,3 +4,10 @@ block content
   h1 #{title}
 
   !=content
+
+  p.footer Updated by&nbsp;
+    if commit.email
+      img(src=gravatar().url("#{commit.email}", {s:16}))
+    b  #{commit.author}
+    |,&nbsp;
+    | #{commit.timestamp} &ndash; #{metadata.base.xlink}

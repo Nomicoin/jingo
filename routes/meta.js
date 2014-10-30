@@ -7,6 +7,9 @@ router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
 router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
+router.get("/viki/:page", _getVikiPage);
+router.get("/viki/:page/:version", _getVikiPage);
+
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
 router.get("/meta/:xid/:cid", _getMetaPage);
@@ -74,17 +77,55 @@ function _makeWikiLink(text, link) {
   return "[" + text + "](" + link +")";
 }
 
+function _getHeadCommit(project) {
+  var projects = xidb.getProjectList();
+
+  for(var name in projects) {
+    if (name == project) {
+      return xidb.getHeadCommit(projects[name].repo);
+    }
+  }
+
+  return null;
+}
+
+function _getVikiPage(req, res) {
+  var page = req.params.page;
+  var cid = req.params.version || _getHeadCommit('Meridion');
+  var file = page + '.md';
+  var xlink = xidb.getMetalink(cid, file, true);
+
+  if (xlink == null) {
+    res.locals.title = "404 - Not found";
+    res.statusCode = 404;
+    res.render('404.jade');
+    return;
+  }
+
+  var metadata = xidb.getMetadataFromLink(xlink);
+  var branch = xidb.getMetadataFromLink(metadata.base.branch);
+  var content = metadata.as.html;
+
+  res.render("page", {
+    'title': metadata.asset.title,
+    'metadata': metadata,
+    'commit': branch.commit,
+    'content': content,
+  });
+}
+
 function _getAsFormat(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
   var format = req.params.format;
   var metadata = xidb.getMetadata(xid, cid);
+  var branch = xidb.getMetadataFromLink(metadata.base.branch);
   var content = metadata.as[format];
-
-  console.log(content);
 
   res.render("page", {
     'title': metadata.asset.title,
+    'metadata': metadata,
+    'commit': branch.commit,
     'content': content,
   });
 }
