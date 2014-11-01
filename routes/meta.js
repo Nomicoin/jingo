@@ -96,8 +96,6 @@ function _getVikiPage(req, res) {
   var file = page + '.md';
   var xlink = xidb.getMetalink(cid, file, true);
 
-  console.log(">>> xlink", xlink, cid);
-
   if (xlink == null) {
     res.locals.title = "404 - Not found";
     res.statusCode = 404;
@@ -110,13 +108,8 @@ function _getVikiPage(req, res) {
   var content = metadata.as.html;
 
   if (ver) {
-    content = content.replace(/\$ver/gm, ver.slice(0,8));
+    content = content.replace(/\/viki\/([^\"]*)/gm, "/viki/$1/" + ver.slice(0,8));
   }
-  else {
-    content = content.replace(/\/\$ver/gm, "");
-  }
-
-  console.log(content);
 
   res.render("page", {
     'title': metadata.asset.title,

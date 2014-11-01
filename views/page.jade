@@ -1,5 +1,10 @@
 extends layout
 
+include mixins/form
+
+block tools
+  mixin tools('show', metadata.base.xlink)
+
 block content
   h1 #{title}
 
