@@ -4,6 +4,7 @@ import markdown, pygit2
 import genxid
 from io import BytesIO
 from markdown.extensions.wikilinks import WikiLinkExtension
+from markdown.extensions.tables import TableExtension
 
 class Asset(object):
     def __init__(self, blob, metadata):
@@ -42,7 +43,7 @@ class Text(Asset):
 
 
 def urlBuilder(label, base, end):
-    url = base + label.replace(" ", "-") + '/' + end
+    url = base + label.replace(" ", "-") # + '/$ver' # + end
     print ">>> urlBuilder", label, base, end, url
     return url
 
@@ -55,7 +56,8 @@ class Markdown(Text):
 
     def addMetadata(self):
         try:
-            extensions=[WikiLinkExtension(html_class='internal',
+            extensions=[TableExtension(),
+                        WikiLinkExtension(html_class='internal',
                                           base_url='/viki/',
                                           end_url=self.vlink,
                                           build_url=urlBuilder)]

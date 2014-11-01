@@ -91,9 +91,12 @@ function _getHeadCommit(project) {
 
 function _getVikiPage(req, res) {
   var page = req.params.page;
-  var cid = req.params.version || _getHeadCommit('Meridion');
+  var ver = req.params.version;
+  var cid = ver || _getHeadCommit('Meridion');
   var file = page + '.md';
   var xlink = xidb.getMetalink(cid, file, true);
+
+  console.log(">>> xlink", xlink, cid);
 
   if (xlink == null) {
     res.locals.title = "404 - Not found";
@@ -105,6 +108,15 @@ function _getVikiPage(req, res) {
   var metadata = xidb.getMetadataFromLink(xlink);
   var branch = xidb.getMetadataFromLink(metadata.base.branch);
   var content = metadata.as.html;
+
+  if (ver) {
+    content = content.replace(/\$ver/gm, ver.slice(0,8));
+  }
+  else {
+    content = content.replace(/\/\$ver/gm, "");
+  }
+
+  console.log(content);
 
   res.render("page", {
     'title': metadata.asset.title,
