@@ -2,6 +2,7 @@ var router = require("express").Router();
 var renderer = require('../lib/renderer');
 var xidb = require('../lib/xidb');
 var fs = require("fs");
+var moment = require("moment");
 
 router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
@@ -106,15 +107,18 @@ function _getVikiPage(req, res) {
   var metadata = xidb.getMetadataFromLink(xlink);
   var branch = xidb.getMetadataFromLink(metadata.base.branch);
   var content = metadata.as.html;
+  var age = 'current';
 
   if (ver) {
     content = content.replace(/\/viki\/([^\"]*)/gm, "/viki/$1/" + ver.slice(0,8));
+    age = moment(branch.commit.timestamp).fromNow();
   }
 
   res.render("page", {
     'title': metadata.asset.title,
     'metadata': metadata,
     'commit': branch.commit,
+    'age': age,
     'content': content,
   });
 }
