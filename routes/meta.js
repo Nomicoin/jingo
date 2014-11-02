@@ -11,6 +11,10 @@ router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 router.get("/viki/:page", _getVikiPage);
 router.get("/viki/:page/:version", _getVikiPage);
 
+router.get("/retro/:page", _getPage);
+router.get("/retro/:version/:page", _getVersionPage);
+router.get("/retro/:version/:page/:cid", _getPinnedPage);
+
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
 router.get("/meta/:xid/:cid", _getMetaPage);
@@ -66,11 +70,16 @@ function _getAssetVersions(req, res) {
   var versions = xidb.getMetaVersions(xid);
   var latest = versions[versions.length-1];
   var metadata = xidb.getMetadataFromLink(latest.xlink);
+  var versions = xidb.resolveBranchLinks(versions);
 
-  res.render("metaindex", {
-    'title': "versions",
+  console.log(versions);
+  console.log(metadata.asset);
+
+  res.render("versions", {
+    'title': metadata.asset.title,
+    'asset': metadata.asset,
     'name': metadata.asset.name,
-    'versions': xidb.resolveBranchLinks(versions)
+    'versions': versions
   });
 }
 
@@ -88,6 +97,53 @@ function _getHeadCommit(project) {
   }
 
   return null;
+}
+
+function _getPage(req, res) {
+  var page = req.params.page;
+  var cid = _getHeadCommit('Meridion');
+
+  _servePage(res, page, cid);
+}
+
+function _getVersionPage(req, res) {
+  var cid = req.params.version;
+  var page = req.params.page;
+
+  _servePage(res, page, cid);
+}
+
+function _getPinnedPage(req, res) {
+  var ver = req.params.version;
+  var page = req.params.page;
+  var cid = req.params.cid.slice(0,8);
+
+  res.redirect("/retro/" + cid + "/" + page);
+}
+
+function _servePage(res, page, cid) {
+  var file = page + '.md';
+  var xlink = xidb.getMetalink(cid, file, true);
+
+  if (xlink == null) {
+    res.locals.title = "404 - Not found";
+    res.statusCode = 404;
+    res.render('404.jade');
+    return;
+  }
+
+  var metadata = xidb.getMetadataFromLink(xlink);
+  var branch = xidb.getMetadataFromLink(metadata.base.branch);
+  var content = metadata.as.html;
+  var age = moment(branch.commit.timestamp).fromNow();
+
+  res.render("page", {
+    'title': metadata.asset.title,
+    'metadata': metadata,
+    'commit': branch.commit,
+    'age': age,
+    'content': content,
+  });
 }
 
 function _getVikiPage(req, res) {

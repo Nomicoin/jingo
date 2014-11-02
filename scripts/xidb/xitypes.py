@@ -43,7 +43,7 @@ class Text(Asset):
 
 
 def urlBuilder(label, base, end):
-    url = base + label.replace(" ", "-")
+    url = label.replace(" ", "-")
     #print ">>> urlBuilder", label, base, end, url
     return url
 
@@ -58,7 +58,7 @@ class Markdown(Text):
         try:
             extensions=[TableExtension(),
                         WikiLinkExtension(html_class='internal',
-                                          base_url='/viki/',
+                                          #base_url='/viki/',
                                           build_url=urlBuilder)]
             source = self.blob.data.decode('utf-8')
             html = markdown.markdown(source, extensions=extensions)

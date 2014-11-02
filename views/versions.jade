@@ -1,0 +1,17 @@
+extends layout
+
+block content
+
+  h1 versions of #{name}
+
+  table.table-bordered.table-hover.table-condensed
+    each version in versions
+      tr
+        td 
+          a(href="/retro/#{version.commit.slice(0,8)}/#{asset.title}") #{version.timestamp}
+        td
+          a(href="/meta/#{version.xlink}") #{version.xlink}
+        td #{version.branch.commit.author}
+        td #{version.branch.commit.message}
+
+  a(href="/meta") metadata index
