@@ -103,7 +103,11 @@ function _getPage(req, res) {
   var page = req.params.page;
   var cid = _getHeadCommit('Meridion');
 
-  _servePage(res, page, cid);
+  console.log(req.params);
+  console.log(req.query);
+
+  //_servePage(res, page, cid);
+  res.redirect("/viki/" + cid.slice(0,8) + "/" + page);
 }
 
 function _getVersionPage(req, res) {
@@ -122,7 +126,7 @@ function _getPinnedPage(req, res) {
 }
 
 function _servePage(res, page, cid) {
-  var file = page + '.md';
+  var file = page.replace(/ /g, "-") + '.md';
   var xlink = xidb.getMetalink(cid, file, true);
 
   if (xlink == null) {
@@ -135,7 +139,9 @@ function _servePage(res, page, cid) {
   var metadata = xidb.getMetadataFromLink(xlink);
   var branch = xidb.getMetadataFromLink(metadata.base.branch);
   var content = metadata.as.html;
-  var age = moment(branch.commit.timestamp).fromNow();
+
+  var snapshot = xidb.getSnapshot(cid);
+  var age = moment(snapshot.commit.timestamp).fromNow();
 
   res.render("page", {
     'title': metadata.asset.title,

@@ -6,11 +6,13 @@ block tools
   mixin tools('show', metadata.base.xlink)
 
 block content
-  span(style="float:right")
-    a(href="/meta/#{metadata.base.xid}") #{age}
-  h1 #{title}
 
-  !=content
+  #content.show
+    span(style="float:right")
+      a(href="/meta/#{metadata.base.xid}") #{age}
+    h1 #{title}
+
+    !=content
 
   p.footer Updated by&nbsp;
     if commit.email
