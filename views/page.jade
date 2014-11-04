@@ -6,7 +6,8 @@ block tools
   mixin tools('show', metadata.base.xlink)
 
 block content
-  span(style="float:right") #{age}
+  span(style="float:right")
+    a(href="/meta/#{metadata.base.xid}") #{age}
   h1 #{title}
 
   !=content

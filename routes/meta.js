@@ -8,12 +8,12 @@ router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
 router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
-router.get("/viki/:page", _getVikiPage);
-router.get("/viki/:page/:version", _getVikiPage);
+//router.get("/viki/:page", _getVikiPage);
+//router.get("/viki/:page/:version", _getVikiPage);
 
-router.get("/retro/:page", _getPage);
-router.get("/retro/:version/:page", _getVersionPage);
-router.get("/retro/:version/:page/:cid", _getPinnedPage);
+router.get("/viki/:page", _getPage);
+router.get("/viki/:version/:page", _getVersionPage);
+router.get("/viki/:version/:page/:cid", _getPinnedPage);
 
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
@@ -118,7 +118,7 @@ function _getPinnedPage(req, res) {
   var page = req.params.page;
   var cid = req.params.cid.slice(0,8);
 
-  res.redirect("/retro/" + cid + "/" + page);
+  res.redirect("/viki/" + cid + "/" + page);
 }
 
 function _servePage(res, page, cid) {
