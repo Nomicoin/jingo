@@ -14,7 +14,27 @@ def saveFile(path, obj):
         res = json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
         f.write(res + "\n")
 
+class Agent:
+    def __init__(self, email):
+        self.email = email
+
+    def addComment(self, asset, comment):
+        print "addComment", asset.name, asset.xlink
+        return "yolo"
+
 class Asset:
+    @staticmethod
+    def fromMetadata(meta):
+        base = meta['base']
+        cid = base['commit']
+        xid = base['xid']
+
+        asset = meta['asset']
+        sha = asset['sha']
+        name = asset['name']
+
+        return Asset(cid, sha, xid, name)
+
     def __init__(self, cid, sha, xid, name):
         self.xid = str(xid)
         self.name = name
@@ -296,3 +316,12 @@ class Project:
                     saveFile(path, metadata)
                     print "wrote metadata for", link, name
                     self.assetsCreated += 1
+
+    def getAgent(self, email):
+        return Agent(email)
+
+    def getAsset(self, xlink):
+        path = self.createPath(xlink)
+        with open(path) as f:
+            meta = json.loads(f.read())
+        return Asset.fromMetadata(meta)

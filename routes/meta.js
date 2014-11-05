@@ -390,16 +390,17 @@ function _getMetaTest(req, res) {
 
 
 function _newComment(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
 
   console.log("\n\n\n\n");
   console.log("_newComment");
   console.log(req.params);
   console.log(req.body);
-  console.log(req.body);
   console.log(req.user);
   console.log("\n\n\n\n");
 
-  res.redirect("/meta");
+  res.redirect("/meta/" + xid + "/" + cid);
 }
 
 module.exports = router;
