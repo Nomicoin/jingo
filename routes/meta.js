@@ -24,6 +24,7 @@ router.get("/meta/:xid/:cid/branch", _getBranch);
 router.get("/meta/:xid/:cid/:item*", _getMetaPageItem);
 router.get("/meta/tree/:commit/:file", _getMetaPageTree);
 
+router.post("/comment/:xid/:cid", _newComment);
 
 function _apiv1GetAsset(req, res) {
   var xid = req.params.xid;
@@ -103,18 +104,7 @@ function _getPage(req, res) {
   var page = req.params.page;
   var cid = _getHeadCommit('Meridion');
 
-  console.log(req.params);
-  console.log(req.query);
-
-  //_servePage(res, page, cid);
   res.redirect("/viki/" + cid.slice(0,8) + "/" + page);
-}
-
-function _getVersionPage(req, res) {
-  var cid = req.params.version;
-  var page = req.params.page;
-
-  _servePage(res, page, cid);
 }
 
 function _getPinnedPage(req, res) {
@@ -125,7 +115,9 @@ function _getPinnedPage(req, res) {
   res.redirect("/viki/" + cid + "/" + page);
 }
 
-function _servePage(res, page, cid) {
+function _getVersionPage(req, res) {
+  var cid = req.params.version;
+  var page = req.params.page;
   var file = page.replace(/ /g, "-") + '.md';
   var xlink = xidb.getMetalink(cid, file, true);
 
@@ -142,6 +134,7 @@ function _servePage(res, page, cid) {
 
   var snapshot = xidb.getSnapshot(cid);
   var age = moment(snapshot.commit.timestamp).fromNow();
+  var addComment = "/comment/" + xlink;
 
   res.render("page", {
     'title': metadata.asset.title,
@@ -149,6 +142,7 @@ function _servePage(res, page, cid) {
     'commit': branch.commit,
     'age': age,
     'content': content,
+    'addCommentLink': addComment,
   });
 }
 
@@ -394,5 +388,18 @@ function _getMetaTest(req, res) {
   res.redirect("/meta");
 }
 
+
+function _newComment(req, res) {
+
+  console.log("\n\n\n\n");
+  console.log("_newComment");
+  console.log(req.params);
+  console.log(req.body);
+  console.log(req.body);
+  console.log(req.user);
+  console.log("\n\n\n\n");
+
+  res.redirect("/meta");
+}
 
 module.exports = router;

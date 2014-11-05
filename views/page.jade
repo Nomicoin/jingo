@@ -20,3 +20,15 @@ block content
     b  #{commit.author}
     |,&nbsp;
     | #{commit.timestamp} &ndash; #{metadata.base.xlink}
+
+  #content.discuss
+
+    h2 Discussion
+
+    h3 Add Comment
+
+    form(action='#{addCommentLink}', method='post', class='edit')
+      .form-group
+        textarea.form-control(name="comment", data-widearea="enable", rows=2)#editor
+
+      mixin saveAndCancel()
