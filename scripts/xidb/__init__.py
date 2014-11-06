@@ -129,7 +129,12 @@ class Project:
     def __init__(self, config):
         self.name = config['application']['title']
         self.repoDir = config['application']['repository']
-        self.metaDir = config['application']['metadata']
+        self.guildDir = config['application']['guild']
+        self.metaDir = os.path.join(self.guildDir, "meta")
+        self.agentsDir = os.path.join(self.guildDir, "agents")
+        self.agents = self.loadAgents()
+        self.typesDir = os.path.join(self.guildDir, "types")
+        self.types = self.loadTypes()
         self.repo = Repository(self.repoDir)
         self.xid = self.genxid()
         self.snapshots = []
@@ -147,6 +152,14 @@ class Project:
         commit = walker.next()
         xid = genxid(commit.id, commit.tree.id)
         return str(xid)
+
+    def loadAgents(self):
+        agents = {}
+        return agents
+
+    def loadTypes(self):
+        types = {}
+        return types
 
     def init(self): 
         """ 

@@ -3,7 +3,7 @@
 application:
   title: Meridion
   repository: "/home/david/dev/Meridion.wiki"
-  metadata: "/home/david/dev/meta"
+  guild: "/home/david/dev/guilds/Archetech"
   docSubdir: ""
   remote: ""
   pushInterval: 30

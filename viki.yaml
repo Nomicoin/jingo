@@ -3,7 +3,7 @@
 application:
   title: Viki
   repository: "/home/david/dev/viki"
-  metadata: "/home/david/dev/meta"
+  guild: "/home/david/dev/guilds/Archetech"
   docSubdir: "viki"
   remote: ""
   pushInterval: 30
