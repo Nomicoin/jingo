@@ -2,8 +2,9 @@
 # Configuration sample file for Jingo (YAML)
 application:
   title: Meridion
-  repository: "/home/david/dev/Meridion.wiki"
   guild: "/home/david/dev/guilds/Archetech"
+  repository: "/home/david/dev/Meridion.wiki"
+  project: "/home/david/dev/viki"
   docSubdir: ""
   remote: ""
   pushInterval: 30

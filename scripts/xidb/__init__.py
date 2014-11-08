@@ -322,13 +322,18 @@ class Project:
 
 class Guild:
     def __init__(self, config):
-        self.name = config['application']['title']
-        self.repoDir = config['application']['repository']
+        self.wiki = config['application']['title']
         self.guildDir = config['application']['guild']
         self.metaDir = os.path.join(self.guildDir, "meta")
+        self.repoDir = config['application']['repository']
+        self.projDir = config['application']['project']
 
-        self.guildProject = Project("Archetech", self.guildDir, self.metaDir)
-        self.repoProject = Project(self.name, self.repoDir, self.metaDir)
+        self.name = os.path.basename(self.guildDir)
+        self.project = os.path.basename(self.projDir)
+
+        self.guildProject = Project(self.name, self.guildDir, self.metaDir)
+        self.repoProject = Project(self.wiki, self.repoDir, self.metaDir)
+        self.projProject = Project(self.project, self.projDir, self.metaDir)
 
         self.assets = {}
         self.agents = {}
@@ -337,12 +342,13 @@ class Guild:
     def init(self):
         self.guildProject.init(self.assets)
         self.repoProject.init(self.assets)
+        self.projProject.init(self.assets)
         self.saveIndex()
-        print self.assets
 
     def update(self):
         self.guildProject.update(self.assets)
         self.repoProject.update(self.assets)
+        self.projProject.update(self.assets)
         self.saveIndex()
 
     def getAgent(self, email):
@@ -373,7 +379,7 @@ class Guild:
         path = os.path.join(self.metaDir, "index.json")
 
         projects = {}
-        for project in [self.guildProject, self.repoProject]:
+        for project in [self.guildProject, self.repoProject, self.projProject]:
             projects[project.name] = {
                 "xid": project.xid,
                 "repo": project.repo.path,
@@ -384,7 +390,7 @@ class Guild:
 
         for name in self.guildProject.assets:
             asset = self.guildProject.assets[name]
-            print name, asset.xlink
+            #print name, asset.xlink
             if name.find("xidb/types") == 0:
                 types[name] = asset.xlink
             if name.find("agents") == 0:
