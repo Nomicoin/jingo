@@ -1,26 +1,52 @@
 import uuid, os, shutil, yaml, json, mimetypes, re
 from pygit2 import *
+from glob import glob
 from datetime import datetime
 from genxid import genxid
 import xitypes
+
 
 def createLink(xid, cid):
     xidRef = str(xid)[:8]
     cidRef = str(cid)[:8]
     return os.path.join(xidRef, cidRef)
 
+
 def saveFile(path, obj):
     with open(path, 'w') as f:
         res = json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
         f.write(res + "\n")
 
+
 class Agent:
     def __init__(self, email):
         self.email = email
+        self.xid = '?'
+        self.name = 'nemo'
 
     def addComment(self, asset, comment):
         print "addComment", asset.name, asset.xlink
         return "yolo"
+
+    def metadata(self, snapshot, type):
+        data = {
+            'base': {
+                'xid': self.xid,
+                'commit': str(snapshot.commit.id),
+                'xlink': createLink(self.xid, snapshot.commit.id),
+                'branch': snapshot.xlink,
+                'timestamp': snapshot.timestamp,
+                'ref': '',
+                'type': type
+            },
+            'agent': {
+                'name': self.name,
+                'email': self.email,
+            }
+        }
+
+        return data
+
 
 class Asset:
     @staticmethod
@@ -47,7 +73,7 @@ class Asset:
         sha = str(sha)
         cid = str(cid)
         if (self.sha != sha):
-            #print "new version for", self.name, self.sha, sha
+            # print "new version for", self.name, self.sha, sha
             self.sha = sha
             self.cid = cid
             self.xlink = createLink(self.xid, self.cid)
@@ -70,7 +96,7 @@ class Asset:
             'ext': self.ext,
             'title': '',
             'description': '',
-            'sha': str(blob.id), 
+            'sha': str(blob.id),
             'size': blob.size,
             'encoding': 'binary' if blob.is_binary else 'text',
         }
@@ -81,6 +107,7 @@ class Asset:
                 obj.addMetadata()
 
         return data
+
 
 class Snapshot:
     def __init__(self, xid, commit, link, path):
@@ -125,16 +152,12 @@ class Snapshot:
 
         return data
 
+
 class Project:
-    def __init__(self, config):
-        self.name = config['application']['title']
-        self.repoDir = config['application']['repository']
-        self.guildDir = config['application']['guild']
-        self.metaDir = os.path.join(self.guildDir, "meta")
-        self.agentsDir = os.path.join(self.guildDir, "agents")
-        self.agents = self.loadAgents()
-        self.typesDir = os.path.join(self.guildDir, "types")
-        self.types = self.loadTypes()
+    def __init__(self, name, repoDir, metaDir):
+        self.name = name
+        self.repoDir = repoDir
+        self.metaDir = metaDir
         self.repo = Repository(self.repoDir)
         self.xid = self.genxid()
         self.snapshots = []
@@ -145,7 +168,7 @@ class Project:
         self.assetsCreated = 0
 
     def genxid(self):
-        """ 
+        """
         The project xid is generated from the first commit and tree sha's
         """
         walker = self.repo.walk(self.repo.head.target, GIT_SORT_TIME | GIT_SORT_REVERSE)
@@ -153,58 +176,26 @@ class Project:
         xid = genxid(commit.id, commit.tree.id)
         return str(xid)
 
-    def loadAgents(self):
-        agents = {}
-        return agents
-
-    def loadTypes(self):
-        types = {}
-        return types
-
-    def init(self): 
-        """ 
+    def init(self, assets):
+        """
         Generates metadata for all commits. Overwrites existing metadata.
         """
+        self.assets = assets
         self.initSnapshots()
         self.initMetadata(True)
         self.saveSnapshots()
-        self.saveIndex()
 
-    def update(self):
-        """ 
-        Generates metadata for all commits since the last update 
+    def update(self, assets):
         """
+        Generates metadata for all commits since the last update
+        """
+        self.assets = assets
         self.updateSnapshots()
         self.initMetadata()
         self.saveSnapshots()
-        self.saveIndex()
-
-    def saveIndex(self):
-        """
-        Saves this project's info to an index file.
-        """
-        if not os.path.exists(self.metaDir):
-            os.makedirs(self.metaDir)
-
-        path = os.path.join(self.metaDir, "index.json")
-        if os.path.exists(path):
-            with open(path) as f:
-                try:
-                    projects = json.loads(f.read())['projects']
-                except:
-                    projects = {}
-        else:
-            projects = {}
-
-        projects[self.name] = {
-            'xid': self.xid,
-            'repo': self.repo.path,
-        };
-
-        saveFile(path, {'projects': projects})
 
     def createPath(self, xlink):
-        """ 
+        """
         Returns file path to metadata at given xlink. Will create folders as a side effect.
         """
         path = os.path.join(self.metaDir, xlink) + ".json"
@@ -236,7 +227,7 @@ class Project:
                     asset = Asset(snapshot.commit.id, obj.id, xid, name)
                     self.assets[name] = asset
                 snapshot.add(asset)
-        
+
     def updateSnapshots(self):
         for commit in self.repo.walk(self.repo.head.target, GIT_SORT_TIME):
             link = createLink(self.xid, commit.id)
@@ -270,7 +261,7 @@ class Project:
                         asset = self.assets[name]
                         asset.addVersion(snapshot.commit.id, sha)
                     else:
-                        #print "Adding %s as %s" % (name, xid)
+                        # print "Adding %s as %s" % (name, xid)
                         asset = Asset(commit, sha, xid, name)
                         self.assets[name] = asset
                     snapshot.add(asset)
@@ -278,8 +269,6 @@ class Project:
             else:
                 print "Building snapshot", snapshot.xlink
                 self.addTree(snapshot.commit.tree, '', snapshot)
-                #metadata = snapshot.metadata()
-                #metadata['xidb']['project'] = self.xid
                 self.snapshotsCreated += 1
 
     def saveSnapshots(self):
@@ -330,11 +319,75 @@ class Project:
                     print "wrote metadata for", link, name
                     self.assetsCreated += 1
 
+
+class Guild:
+    def __init__(self, config):
+        self.name = config['application']['title']
+        self.repoDir = config['application']['repository']
+        self.guildDir = config['application']['guild']
+        self.metaDir = os.path.join(self.guildDir, "meta")
+
+        self.guildProject = Project("Archetech", self.guildDir, self.metaDir)
+        self.repoProject = Project(self.name, self.repoDir, self.metaDir)
+
+        self.assets = {}
+        self.agents = {}
+        self.types = {}
+
+    def init(self):
+        self.guildProject.init(self.assets)
+        self.repoProject.init(self.assets)
+        self.saveIndex()
+        print self.assets
+
+    def update(self):
+        self.guildProject.update(self.assets)
+        self.repoProject.update(self.assets)
+        self.saveIndex()
+
     def getAgent(self, email):
-        return Agent(email)
+        if email in self.agents:
+            return self.agents[email]
+
+        agent = Agent(email)
+        self.agents[email] = agent
+        return agent
 
     def getAsset(self, xlink):
-        path = self.createPath(xlink)
+        path = self.repoProject.createPath(xlink)
         with open(path) as f:
             meta = json.loads(f.read())
         return Asset.fromMetadata(meta)
+
+    def loadTypes(self):
+        types = {}
+        return types
+
+    def saveIndex(self):
+        """
+        Saves this project's info to an index file.
+        """
+        if not os.path.exists(self.metaDir):
+            os.makedirs(self.metaDir)
+
+        path = os.path.join(self.metaDir, "index.json")
+
+        projects = {}
+        for project in [self.guildProject, self.repoProject]:
+            projects[project.name] = {
+                "xid": project.xid,
+                "repo": project.repo.path,
+            }
+
+        types = {}
+        agents = {}
+
+        for name in self.guildProject.assets:
+            asset = self.guildProject.assets[name]
+            print name, asset.xlink
+            if name.find("xidb/types") == 0:
+                types[name] = asset.xlink
+            if name.find("agents") == 0:
+                agents[name] = asset.xlink
+
+        saveFile(path, {"projects": projects, "types": types, "agents": agents})
