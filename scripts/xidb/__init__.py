@@ -19,6 +19,21 @@ def saveFile(path, obj):
 
 
 class Agent:
+    @staticmethod
+    def fromMetadata(meta):
+        base = meta['base']
+        xid = base['xid']
+
+        asset = meta['asset']
+        name = asset['name']
+        email = os.path.basename(name)
+
+        agent = Agent(email)
+        agent.xid = xid
+        agent.name = name
+
+        return agent
+
     def __init__(self, email):
         self.email = email
         self.xid = '?'
@@ -336,9 +351,43 @@ class Guild:
         self.projProject = Project(self.project, self.projDir, self.metaDir)
 
         self.assets = {}
-        self.agents = {}
-        self.types = {}
 
+        if not os.path.exists(self.metaDir):
+            os.makedirs(self.metaDir)
+
+        self.indexPath = os.path.join(self.metaDir, "index.json")
+        
+        if os.path.exists(self.indexPath):
+            with open(self.indexPath) as f:
+                self.index = json.loads(f.read())
+
+        self.agents = self.loadAgents()
+        self.types = self.loadTypes()
+
+    def getMetadata(self, xlink):
+        path = self.repoProject.createPath(xlink)
+        with open(path) as f:
+            meta = json.loads(f.read())
+        return meta
+
+    def loadAgents(self):
+        if not "agents" in self.index:
+            return
+
+        agents = {}
+        index = self.index["agents"]
+        for name in index:
+            xlink = index[name]
+            metadata = self.getMetadata(xlink)
+            agent = Agent.fromMetadata(metadata)
+            email = os.path.basename(name)
+            agents[email] = agent
+        return agents
+
+    def loadTypes(self):
+        types = {}
+        return types
+        
     def init(self):
         self.guildProject.init(self.assets)
         self.repoProject.init(self.assets)
@@ -352,12 +401,8 @@ class Guild:
         self.saveIndex()
 
     def getAgent(self, email):
-        if email in self.agents:
+        if email in agents:
             return self.agents[email]
-
-        agent = Agent(email)
-        self.agents[email] = agent
-        return agent
 
     def getAsset(self, xlink):
         path = self.repoProject.createPath(xlink)
@@ -373,11 +418,6 @@ class Guild:
         """
         Saves this project's info to an index file.
         """
-        if not os.path.exists(self.metaDir):
-            os.makedirs(self.metaDir)
-
-        path = os.path.join(self.metaDir, "index.json")
-
         projects = {}
         for project in [self.guildProject, self.repoProject, self.projProject]:
             projects[project.name] = {
@@ -396,4 +436,4 @@ class Guild:
             if name.find("agents") == 0:
                 agents[name] = asset.xlink
 
-        saveFile(path, {"projects": projects, "types": types, "agents": agents})
+        saveFile(self.indexPath, {"projects": projects, "types": types, "agents": agents})
