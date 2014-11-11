@@ -264,8 +264,9 @@ function _addXidbLinks(section, xlink) {
       link = "/meta/" + xlink + "/asset";
       break;
 
-    case 'asHtml':
-      link = "/meta/"+ xlink + "/as/html";
+    case 'page':
+    case 'plink':
+      link = "/viki/"+ val;
       break;
     }
 

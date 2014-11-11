@@ -35,7 +35,8 @@ class Text(Asset):
         return not self.blob.is_binary
 
     def addMetadata(self):
-        lines = self.blob.data.count('\n')
+        text = self.blob.data.decode('utf-8')
+        lines = text.count('\n')
         self.metadata['text'] = { 'lines': lines }
 
         self.contentType = "text/plain"
@@ -63,13 +64,17 @@ class Markdown(Text):
             source = self.blob.data.decode('utf-8')
             html = markdown.markdown(source, extensions=extensions)
 
-            self.metadata['markdown'] = { 'asHtml': self.xlink }
             self.metadata['as'] = { 'html': html }
         except Exception, e:
             print "markdown processing failed on", self.name, str(e)
 
         title = os.path.basename(self.name)
         title = os.path.splitext(title)[0]
+        self.metadata['markdown'] = { 
+            'page': title,
+            'plink': self.vlink + "/" + title,
+        }
+
         self.title = title.replace("-", " ")
 
         super(Markdown, self).addMetadata()
