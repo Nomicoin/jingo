@@ -360,6 +360,8 @@ class Guild:
         if os.path.exists(self.indexPath):
             with open(self.indexPath) as f:
                 self.index = json.loads(f.read())
+        else:
+            self.index = {}
 
         self.agents = self.loadAgents()
         self.types = self.loadTypes()
