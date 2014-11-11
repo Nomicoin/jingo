@@ -10,6 +10,8 @@ block content
   #content.show
     mixin notice()
     mixin warning()
+    span(style="float:right")
+      a(href="/viki/#{page.wikiname}") viki
     !=content
 
   p.footer Updated by&nbsp;
