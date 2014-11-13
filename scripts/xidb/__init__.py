@@ -11,12 +11,19 @@ def createLink(xid, cid):
     cidRef = str(cid)[:8]
     return os.path.join(xidRef, cidRef)
 
+def makeDirs(path):
+    dirName = os.path.dirname(path)
+    if not os.path.exists(dirName):
+        os.makedirs(dirName)
 
-def saveFile(path, obj):
+def saveFile(path, data):
+    makeDirs(path)
     with open(path, 'w') as f:
-        res = json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
-        f.write(res + "\n")
+        f.write(data)
 
+def saveJSON(path, obj):
+    res = json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
+    saveFile(path, res + "\n")
 
 class Agent:
     @staticmethod
@@ -38,10 +45,6 @@ class Agent:
         self.email = email
         self.xid = '?'
         self.name = 'nemo'
-
-    def addComment(self, asset, comment):
-        print "addComment", asset.name, asset.xlink
-        return "yolo"
 
     def metadata(self, snapshot, type):
         data = {
@@ -214,9 +217,7 @@ class Project:
         Returns file path to metadata at given xlink. Will create folders as a side effect.
         """
         path = os.path.join(self.metaDir, xlink) + ".json"
-        dirName = os.path.dirname(path)
-        if not os.path.exists(dirName):
-            os.makedirs(dirName)
+        makeDirs(path)
         return path
 
     def addTree(self, tree, path, snapshot):
@@ -291,7 +292,7 @@ class Project:
         for snapshot in self.snapshots:
             data = snapshot.metadata()
             data['base']['type'] = schema.xlink if schema else ''
-            saveFile(snapshot.path, data)
+            saveJSON(snapshot.path, data)
             print "saved snapshot", snapshot.path
 
     def getType(self, name):
@@ -330,7 +331,7 @@ class Project:
                 if not os.path.isfile(path):
                     type = self.getType(asset.name)
                     metadata = asset.metadata(blob, snapshot, type)
-                    saveFile(path, metadata)
+                    saveJSON(path, metadata)
                     print "wrote metadata for", link, name
                     self.assetsCreated += 1
 
@@ -403,7 +404,7 @@ class Guild:
         self.saveIndex()
 
     def getAgent(self, email):
-        if email in agents:
+        if email in self.agents:
             return self.agents[email]
 
     def getAsset(self, xlink):
@@ -415,6 +416,38 @@ class Guild:
     def loadTypes(self):
         types = {}
         return types
+
+    def addComment(self, email, xlink, comment):
+        agent = self.getAgent(email)
+        asset = self.getAsset(xlink)
+        print "addComment", asset.name, asset.xlink
+        print "agent:", agent.xid
+
+        fileName = datetime.now().isoformat()
+        xidRef = agent.xid[:8]
+        commentPath = os.path.join("agents", "data", xidRef, "comments", fileName) 
+        fullPath = os.path.join(self.guildDir, commentPath)
+
+        saveFile(fullPath, comment)
+
+        repo = self.guildProject.repo
+        index = repo.index
+
+        index.read()
+        index.add(commentPath)
+        index.write()
+
+        tree = index.write_tree()
+        branch = 'refs/heads/test1'
+        author = Signature(agent.name, agent.email)
+        committer = author
+        message = "%s added a comment to %s" % (agent.email, asset.name)
+        cid = repo.create_commit(branch, author, committer, message, tree, [repo.head.target])
+
+        self.update()
+        asset = self.assets[commentPath]
+
+        return asset.xlink
 
     def saveIndex(self):
         """
@@ -438,4 +471,4 @@ class Guild:
             if name.find("agents") == 0:
                 agents[name] = asset.xlink
 
-        saveFile(self.indexPath, {"projects": projects, "types": types, "agents": agents})
+        saveJSON(self.indexPath, {"projects": projects, "types": types, "agents": agents})
