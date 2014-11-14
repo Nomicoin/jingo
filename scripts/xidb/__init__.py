@@ -30,6 +30,7 @@ class Agent:
     def fromMetadata(meta):
         base = meta['base']
         xid = base['xid']
+        xlink = base['xlink']
 
         asset = meta['asset']
         name = asset['name']
@@ -37,6 +38,7 @@ class Agent:
 
         agent = Agent(email)
         agent.xid = xid
+        agent.xlink = xlink
         agent.name = name
 
         return agent
@@ -44,6 +46,7 @@ class Agent:
     def __init__(self, email):
         self.email = email
         self.xid = '?'
+        self.xlink = '?'
         self.name = 'nemo'
 
     def metadata(self, snapshot, type):
@@ -64,7 +67,6 @@ class Agent:
         }
 
         return data
-
 
 class Asset:
     @staticmethod
@@ -335,6 +337,13 @@ class Project:
                     print "wrote metadata for", link, name
                     self.assetsCreated += 1
 
+    def writeMetadata(self, meta):
+        base = meta['base']
+        xlink = base['xlink']
+        path = self.createPath(xlink)
+        saveJSON(path, meta)
+        print "writeMetadata", path, meta
+
 
 class Guild:
     def __init__(self, config):
@@ -417,13 +426,22 @@ class Guild:
         types = {}
         return types
 
+    def addRef(self, meta, refType, xlink):
+        base = meta['base']
+        ref = base.get('ref') or {}
+        section = ref.get(refType) or []
+        section.append(xlink)
+        ref[refType] = section
+        base['ref'] = ref
+        meta['base'] = base
+
     def addComment(self, email, xlink, comment):
         agent = self.getAgent(email)
         asset = self.getAsset(xlink)
         print "addComment", asset.name, asset.xlink
         print "agent:", agent.xid
 
-        fileName = datetime.now().isoformat()
+        fileName = datetime.now().isoformat() + ".md"
         xidRef = agent.xid[:8]
         commentPath = os.path.join("agents", "data", xidRef, "comments", fileName) 
         fullPath = os.path.join(self.guildDir, commentPath)
@@ -445,9 +463,14 @@ class Guild:
         cid = repo.create_commit(branch, author, committer, message, tree, [repo.head.target])
 
         self.update()
-        asset = self.assets[commentPath]
+        commentAsset = self.assets[commentPath]
 
-        return asset.xlink
+        print "agent xlink", agent.xlink
+        agentMeta = self.getMetadata(agent.xlink)
+        self.addRef(agentMeta, "comment", commentAsset.xlink)
+        self.guildProject.writeMetadata(agentMeta)
+
+        return commentAsset.xlink
 
     def saveIndex(self):
         """
