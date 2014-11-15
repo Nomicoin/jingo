@@ -20,7 +20,6 @@ class Asset(object):
         base = self.metadata['base']
         self.xlink = base['xlink']
         self.vlink = base['commit'][:8]
-        print ">>> Asset init", self.name, self.xlink, "<<<<"
 
     def isValid(self):
         return False
@@ -53,7 +52,6 @@ class Text(Asset):
 
 def urlBuilder(label, base, end):
     url = label.replace(" ", "-")
-    #print ">>> urlBuilder", label, base, end, url
     return url
 
 class Markdown(Text):
@@ -102,7 +100,6 @@ class Comment(Markdown):
             self.xaction = json.loads(self.snapshot.commit.message)
         except:
             self.xaction = False
-        print ">>> Comment init", self.xaction, "<<<<"
 
     def isComment(self):
         return (self.xaction and 
@@ -118,7 +115,7 @@ class Comment(Markdown):
         self.metadata['comment'] = dict(
             ref=self.xaction['ref'], 
             author=self.xaction['author'],
-            email=self.xaction['author'],
+            email=self.snapshot.commit.author.email,
         )
         super(Comment, self).addMetadata()
 

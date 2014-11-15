@@ -461,8 +461,8 @@ class Guild:
         tree = index.write_tree()
         branch = 'refs/heads/test7'
         author = Signature(agent.name, agent.email)
-        committer = author
-        xaction = dict(author=agent.email, ref=asset.xlink, type="comment")
+        committer = author #todo: should be this script agent
+        xaction = dict(author=agent.xlink, ref=asset.xlink, type="comment")
         message = json.dumps(xaction)
         cid = repo.create_commit(branch, author, committer, message, tree, [repo.head.target])
 
