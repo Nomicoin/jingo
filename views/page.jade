@@ -3,13 +3,13 @@ extends layout
 include mixins/form
 
 block tools
-  mixin tools('show', metadata.base.xlink)
+  mixin tools('show', page.base.xlink)
 
 block content
 
   #content.show
     span(style="float:right")
-      a(href="/meta/#{metadata.base.xid}") #{age}
+      a(href="/meta/#{page.base.xid}") #{age}
     h1 #{title}
 
     !=content
@@ -19,7 +19,7 @@ block content
       img(src=gravatar().url("#{commit.email}", {s:16}))
     b  #{commit.author}
     |,&nbsp;
-    | #{commit.timestamp} &ndash; #{metadata.base.xlink}
+    | #{commit.timestamp} &ndash; #{page.base.xlink}
 
   #content.discuss
 
@@ -32,7 +32,7 @@ block content
             img(src=gravatar().url("#{commit.email}", {s:16}))
           b  #{commit.author}
           |,&nbsp;
-          | #{comment.base.timestamp} &ndash; #{comment.base.xlink}
+          | #{comment.base.timestamp} (#{comment.comment.age}) &ndash; #{comment.base.xlink}
           hr
           !=comment.as.html
 

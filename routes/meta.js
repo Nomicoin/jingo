@@ -131,29 +131,14 @@ function _getVersionPage(req, res) {
   var metadata = xidb.getMetadataFromLink(xlink);
   var branch = xidb.getMetadataFromLink(metadata.base.branch);
   var content = metadata.as.html;
-
   var snapshot = xidb.getSnapshot(cid);
   var age = moment(snapshot.commit.timestamp).fromNow();
   var addComment = "/comment/" + xlink;
-
-  var comments = metadata.base.ref.comment;
-
-  console.log(">>>>>");
-  console.log(metadata.base);
-  console.log(metadata.base.ref);
-  console.log(metadata.base.ref.comment);
-
-  if (comments) {
-    for(var i =0; i < comments.length; i++) {
-      comments[i] = xidb.getMetadataFromLink(comments[i]);
-    }
-  }
-  console.log(comments);
-  console.log(">>>>>");
+  var comments = xidb.getComments(snapshot, xlink);
 
   res.render("page", {
     'title': metadata.asset.title,
-    'metadata': metadata,
+    'page': metadata,
     'commit': branch.commit,
     'age': age,
     'content': content,
