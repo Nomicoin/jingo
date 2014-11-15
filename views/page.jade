@@ -29,7 +29,8 @@ block content
       each comment in comments
         if comment.comment.email
           img(src=gravatar().url("#{comment.comment.email}", {s:60}))
-        b  #{comment.comment.author}
+          | &nbsp;
+        a(href="#{comment.comment.authorLink}") #{comment.comment.authorName}
         | &nbsp; &ndash; 
         | #{comment.base.timestamp} (#{comment.comment.age})
         | &nbsp; &ndash; 
