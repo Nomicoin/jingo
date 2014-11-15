@@ -28,7 +28,12 @@ block content
     if comments
       each comment in comments
         .well
-          p #{comment.base.timestamp}
+          if commit.email
+            img(src=gravatar().url("#{commit.email}", {s:16}))
+          b  #{commit.author}
+          |,&nbsp;
+          | #{comment.base.timestamp} &ndash; #{comment.base.xlink}
+          hr
           !=comment.as.html
 
     h3 Add Comment

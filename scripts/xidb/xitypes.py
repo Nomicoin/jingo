@@ -42,7 +42,6 @@ class Text(Asset):
         self.contentType = "text/plain"
         super(Text, self).addMetadata()
 
-
 def urlBuilder(label, base, end):
     url = label.replace(" ", "-")
     #print ">>> urlBuilder", label, base, end, url
@@ -89,6 +88,10 @@ class Comment(Markdown):
         return re.match("comments", self.name) and super(Comment, self).isValid()
 
     def addMetadata(self):
+        print "\n\n\n>>> Comment"
+        print self.snapshot
+        print self.snapshot.commit.message
+        print "<<<\n\n\n"
         self.metadata['comment'] = dict(foo="bar")
         super(Comment, self).addMetadata()
 
