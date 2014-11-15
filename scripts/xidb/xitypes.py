@@ -1,4 +1,4 @@
-import png, array, os, re
+import png, array, os, re, json
 import PIL.Image, PIL.ExifTags
 import markdown, pygit2
 import genxid
@@ -7,7 +7,7 @@ from markdown.extensions.wikilinks import WikiLinkExtension
 from markdown.extensions.tables import TableExtension
 
 class Asset(object):
-    def __init__(self, blob, metadata):
+    def __init__(self):
         self.name = ''
         self.contentType = ''
         self.title = ''
@@ -34,8 +34,8 @@ class Asset(object):
         self.metadata['asset']['title'] = self.title
 
 class Text(Asset):
-    def __init__(self, blob, metadata):
-        super(Text, self).__init__(blob, metadata)
+    def __init__(self):
+        super(Text, self).__init__()
 
     def init(self):
         super(Text, self).init()
@@ -57,8 +57,8 @@ def urlBuilder(label, base, end):
     return url
 
 class Markdown(Text):
-    def __init__(self, blob, metadata):
-        super(Markdown, self).__init__(blob, metadata)
+    def __init__(self):
+        super(Markdown, self).__init__()
 
     def init(self):
         super(Markdown, self).init()
@@ -93,31 +93,45 @@ class Markdown(Text):
         super(Markdown, self).addMetadata()
 
 class Comment(Markdown):
-    def __init__(self, blob, metadata):
-        super(Comment, self).__init__(blob, metadata)
+    def __init__(self):
+        super(Comment, self).__init__()
 
     def init(self):
         super(Comment, self).init()
-        print ">>> Comment init", self.name, self.xlink, "<<<<"
+        try:
+            self.xaction = json.loads(self.snapshot.commit.message)
+        except:
+            self.xaction = False
+        print ">>> Comment init", self.xaction, "<<<<"
+
+    def isComment(self):
+        return (self.xaction and 
+                'type' in self.xaction and 
+                self.xaction['type'] == 'comment' and 
+                'ref' in self.xaction and 
+                'author' in self.xaction)
 
     def isValid(self):
-        return re.match("comments", self.name) and super(Comment, self).isValid()
+        return self.isComment() and super(Comment, self).isValid()
 
     def addMetadata(self):
-        print "\n\n\n>>> Comment"
-        print self.snapshot
-        print self.snapshot.commit.message
-        print "<<<\n\n\n"
-        self.metadata['comment'] = dict(foo="bar")
+        self.metadata['comment'] = dict(
+            ref=self.xaction['ref'], 
+            author=self.xaction['author'],
+            email=self.xaction['author'],
+        )
         super(Comment, self).addMetadata()
 
 class Image(Asset):
-    def __init__(self, blob, metadata):
-        super(Image, self).__init__(blob, metadata)
+    def __init__(self):
+        super(Image, self).__init__()
         self.format = ''
         self.width = 0
         self.height = 0
         self.colorDepth = 0
+
+    def init(self):
+        super(Image, self).init()
 
     def isValid(self):
         return self.blob.is_binary
@@ -133,8 +147,11 @@ class Image(Asset):
         super(Image, self).addMetadata()
 
 class Png(Image):
-    def __init__(self, blob, metadata):
-        super(Png, self).__init__(blob, metadata)
+    def __init__(self):
+        super(Png, self).__init__()
+
+    def init(self):
+        super(Png, self).init()
         self.format = "image/png"
 
     def isValid(self):
@@ -151,8 +168,11 @@ class Png(Image):
             print "error reading png", self.name
 
 class Jpeg(Image):
-    def __init__(self, blob, metadata):
-        super(Jpeg, self).__init__(blob, metadata)
+    def __init__(self):
+        super(Jpeg, self).__init__()
+
+    def init(self):
+        super(Jpeg, self).init()
         self.format = "image/jpeg"
 
     def isValid(self):
@@ -177,8 +197,11 @@ class Jpeg(Image):
             print "error reading jpeg", self.name
 
 class Gif(Image):
-    def __init__(self, blob, metadata):
-        super(Gif, self).__init__(blob, metadata)
+    def __init__(self):
+        super(Gif, self).__init__()
+
+    def init(self):
+        super(Gif, self).init()
         self.format = "image/gif"
 
     def isValid(self):
@@ -188,11 +211,12 @@ class Gif(Image):
         self.metadata['gif'] = {}
         super(Gif, self).addMetadata()
 
+# put leaf classes first because only first valid type will be used to generate metadata
 allTypes = [
-    lambda blob, meta: Text(blob, meta),
-    lambda blob, meta: Comment(blob, meta),
-    lambda blob, meta: Markdown(blob, meta),
-    lambda blob, meta: Png(blob, meta),
-    lambda blob, meta: Jpeg(blob, meta),
-    lambda blob, meta: Gif(blob, meta),
+    lambda : Comment(),
+    lambda : Markdown(),
+    lambda : Text(),
+    lambda : Png(),
+    lambda : Jpeg(),
+    lambda : Gif(),
 ]

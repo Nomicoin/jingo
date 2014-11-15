@@ -122,14 +122,14 @@ class Asset:
         }
 
         for factory in xitypes.allTypes:
-            obj = factory(blob, data)
+            obj = factory()
             obj.blob = blob
             obj.metadata = data
             obj.snapshot = snapshot
             obj.init()
             if obj.isValid():
                 obj.addMetadata()
-
+                break # use only first valid xitype
         return data
 
 class Snapshot:
