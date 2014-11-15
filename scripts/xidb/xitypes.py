@@ -1,4 +1,4 @@
-import png, array, os
+import png, array, os, re
 import PIL.Image, PIL.ExifTags
 import markdown, pygit2
 import genxid
@@ -50,16 +50,15 @@ def urlBuilder(label, base, end):
 
 class Markdown(Text):
     def __init__(self, blob, metadata):
-        super(Text, self).__init__(blob, metadata)
+        super(Markdown, self).__init__(blob, metadata)
 
     def isValid(self):
         return self.checkExtension(['.md']) and super(Markdown, self).isValid()
 
-    def addMetadata(self):
+    def addHtml(self):
         try:
             extensions=[TableExtension(),
                         WikiLinkExtension(html_class='internal',
-                                          #base_url='/viki/',
                                           build_url=urlBuilder)]
             source = self.blob.data.decode('utf-8')
             html = markdown.markdown(source, extensions=extensions)
@@ -67,6 +66,9 @@ class Markdown(Text):
             self.metadata['as'] = { 'html': html }
         except Exception, e:
             print "markdown processing failed on", self.name, str(e)
+
+    def addMetadata(self):
+        self.addHtml()
 
         title = os.path.basename(self.name)
         title = os.path.splitext(title)[0]
@@ -79,6 +81,16 @@ class Markdown(Text):
 
         super(Markdown, self).addMetadata()
 
+class Comment(Markdown):
+    def __init__(self, blob, metadata):
+        super(Comment, self).__init__(blob, metadata)
+
+    def isValid(self):
+        return re.match("comments", self.name) and super(Comment, self).isValid()
+
+    def addMetadata(self):
+        self.metadata['comment'] = dict(foo="bar")
+        super(Comment, self).addMetadata()
 
 class Image(Asset):
     def __init__(self, blob, metadata):
@@ -159,6 +171,7 @@ class Gif(Image):
 
 allTypes = [
     lambda blob, meta: Text(blob, meta),
+    lambda blob, meta: Comment(blob, meta),
     lambda blob, meta: Markdown(blob, meta),
     lambda blob, meta: Png(blob, meta),
     lambda blob, meta: Jpeg(blob, meta),

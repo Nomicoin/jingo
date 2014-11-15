@@ -123,11 +123,13 @@ class Asset:
 
         for factory in xitypes.allTypes:
             obj = factory(blob, data)
+            obj.blob = blob
+            obj.metadata = data
+            obj.snapshot = snapshot
             if obj.isValid():
                 obj.addMetadata()
 
         return data
-
 
 class Snapshot:
     def __init__(self, xid, commit, link, path):
@@ -443,12 +445,12 @@ class Guild:
 
         fileName = datetime.now().isoformat() + ".md"
         xidRef = agent.xid[:8]
-        commentPath = os.path.join("agents", "data", xidRef, "comments", fileName) 
-        fullPath = os.path.join(self.guildDir, commentPath)
+        commentPath = os.path.join("comments", fileName) 
+        fullPath = os.path.join(self.repoDir, commentPath)
 
         saveFile(fullPath, comment)
 
-        repo = self.guildProject.repo
+        repo = self.repoProject.repo
         index = repo.index
 
         index.read()
@@ -456,10 +458,11 @@ class Guild:
         index.write()
 
         tree = index.write_tree()
-        branch = 'refs/heads/test1'
+        branch = 'refs/heads/test7'
         author = Signature(agent.name, agent.email)
         committer = author
-        message = "%s added a comment to %s" % (agent.email, asset.name)
+        xaction = dict(author=agent.email, ref=asset.xlink, type="comment")
+        message = json.dumps(xaction)
         cid = repo.create_commit(branch, author, committer, message, tree, [repo.head.target])
 
         self.update()
@@ -469,6 +472,10 @@ class Guild:
         agentMeta = self.getMetadata(agent.xlink)
         self.addRef(agentMeta, "comment", commentAsset.xlink)
         self.guildProject.writeMetadata(agentMeta)
+
+        docMeta = self.getMetadata(xlink)
+        self.addRef(docMeta, "comment", commentAsset.xlink)
+        self.repoProject.writeMetadata(docMeta)
 
         return commentAsset.xlink
 
