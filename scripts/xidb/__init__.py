@@ -126,6 +126,7 @@ class Asset:
             obj.blob = blob
             obj.metadata = data
             obj.snapshot = snapshot
+            obj.init()
             if obj.isValid():
                 obj.addMetadata()
 
@@ -344,7 +345,7 @@ class Project:
         xlink = base['xlink']
         path = self.createPath(xlink)
         saveJSON(path, meta)
-        print "writeMetadata", path, meta
+        #print "writeMetadata", path, meta
 
 
 class Guild:

@@ -8,13 +8,19 @@ from markdown.extensions.tables import TableExtension
 
 class Asset(object):
     def __init__(self, blob, metadata):
-        self.blob = blob
-        self.metadata = metadata
-        self.name = metadata['asset']['name']
-        self.xlink = metadata['base']['xlink']
-        self.vlink = metadata['base']['commit'][:8]
+        self.name = ''
         self.contentType = ''
         self.title = ''
+        self.xlink = ''
+        self.vlink = ''
+
+    def init(self):
+        asset = self.metadata['asset']
+        self.name = asset['name']
+        base = self.metadata['base']
+        self.xlink = base['xlink']
+        self.vlink = base['commit'][:8]
+        print ">>> Asset init", self.name, self.xlink, "<<<<"
 
     def isValid(self):
         return False
@@ -30,6 +36,9 @@ class Asset(object):
 class Text(Asset):
     def __init__(self, blob, metadata):
         super(Text, self).__init__(blob, metadata)
+
+    def init(self):
+        super(Text, self).init()
 
     def isValid(self):
         return not self.blob.is_binary
@@ -50,6 +59,9 @@ def urlBuilder(label, base, end):
 class Markdown(Text):
     def __init__(self, blob, metadata):
         super(Markdown, self).__init__(blob, metadata)
+
+    def init(self):
+        super(Markdown, self).init()
 
     def isValid(self):
         return self.checkExtension(['.md']) and super(Markdown, self).isValid()
@@ -83,6 +95,10 @@ class Markdown(Text):
 class Comment(Markdown):
     def __init__(self, blob, metadata):
         super(Comment, self).__init__(blob, metadata)
+
+    def init(self):
+        super(Comment, self).init()
+        print ">>> Comment init", self.name, self.xlink, "<<<<"
 
     def isValid(self):
         return re.match("comments", self.name) and super(Comment, self).isValid()
