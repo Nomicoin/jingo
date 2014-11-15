@@ -404,7 +404,7 @@ function _newComment(req, res) {
   xidb.addComment(req.user.email, xlink, req.body.comment, function(err, link) {
     //console.log("new comment link:", link);
     //console.log("\n\n\n\n");
-    res.redirect(url);
+    res.redirect(url + "#addComment");
   });
 }
 
