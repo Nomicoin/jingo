@@ -395,15 +395,17 @@ function _getMetaTest(req, res) {
 function _newComment(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
+  var xlink = xidb.createLink(xid, cid);
+  var url = xidb.getUrl(xlink);
 
-  console.log("\n\n\n\n");
-  console.log("_newComment");
-  console.log(req.params);
-  console.log(req.body);
-  console.log(req.user);
-  console.log("\n\n\n\n");
+  //console.log("\n\n\n\n");
+  //console.log("_newComment");
 
-  res.redirect("/meta/" + xid + "/" + cid);
+  xidb.addComment(req.user.email, xlink, req.body.comment, function(err, link) {
+    //console.log("new comment link:", link);
+    //console.log("\n\n\n\n");
+    res.redirect(url);
+  });
 }
 
 module.exports = router;
