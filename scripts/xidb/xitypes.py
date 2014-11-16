@@ -61,10 +61,17 @@ class Markdown(Text):
     def init(self):
         super(Markdown, self).init()
 
+        self.page = self.name[:-3] # remove .md extension
+        self.plink = os.path.join(self.vlink, self.page)
+
+        title = os.path.basename(self.name)
+        title = os.path.splitext(title)[0]
+        self.title = title.replace("-", " ")
+
     def isValid(self):
         return self.checkExtension(['.md']) and super(Markdown, self).isValid()
 
-    def addHtml(self):
+    def generateHtml(self):
         try:
             extensions=[TableExtension(),
                         WikiLinkExtension(html_class='internal',
@@ -77,18 +84,14 @@ class Markdown(Text):
             print "markdown processing failed on", self.name, str(e)
 
     def addMetadata(self):
-        self.addHtml()
-
-        title = os.path.basename(self.name)
-        title = os.path.splitext(title)[0]
-        self.metadata['markdown'] = { 
-            'page': title,
-            'plink': self.vlink + "/" + title,
-        }
-
-        self.title = title.replace("-", " ")
-
         super(Markdown, self).addMetadata()
+
+        self.generateHtml()
+
+        self.metadata['markdown'] = { 
+            'page': self.page,
+            'plink': self.plink
+        }
 
 class Comment(Markdown):
     def __init__(self):
@@ -96,10 +99,18 @@ class Comment(Markdown):
 
     def init(self):
         super(Comment, self).init()
+
         try:
             self.xaction = json.loads(self.snapshot.commit.message)
         except:
             self.xaction = False
+        
+        if self.isValid():
+            ref = self.xaction['ref']
+            # todo: retrieve reference's metadata
+            author=self.xaction['author']
+            # todo: retrieve author's name from metadata
+            self.title = "Comment on %s by %s" % (ref, author)
 
     def isComment(self):
         return (self.xaction and 
@@ -112,12 +123,13 @@ class Comment(Markdown):
         return self.isComment() and super(Comment, self).isValid()
 
     def addMetadata(self):
+        super(Comment, self).addMetadata()
+
         self.metadata['comment'] = dict(
             ref=self.xaction['ref'], 
             author=self.xaction['author'],
             email=self.snapshot.commit.author.email,
         )
-        super(Comment, self).addMetadata()
 
 class Image(Asset):
     def __init__(self):
