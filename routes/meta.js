@@ -3,6 +3,7 @@ var renderer = require('../lib/renderer');
 var xidb = require('../lib/xidb');
 var fs = require("fs");
 var moment = require("moment");
+var path = require('path');
 
 router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
@@ -10,6 +11,9 @@ router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
 //router.get("/viki/:page", _getVikiPage);
 //router.get("/viki/:page/:version", _getVikiPage);
+
+router.get("/vwiki/*", _getTest);
+router.get("/v/:version/*", _getVPage);
 
 router.get("/viki/:page", _getPage);
 router.get("/viki/:version/:page", _getVersionPage);
@@ -25,6 +29,51 @@ router.get("/meta/:xid/:cid/:item*", _getMetaPageItem);
 router.get("/meta/tree/:commit/:file", _getMetaPageTree);
 
 router.post("/comment/:xid/:cid", _newComment);
+
+function _getTest(req, res) {
+  var cid = _getHeadCommit('Meridion');
+  var page = req.params['0'];
+
+  console.log("\n\n>>> _getTest", req.url, req.params, cid, page);
+
+  var url = path.join("/v", cid.slice(0,8), page);
+
+  res.redirect(url);
+}
+
+function _getVPage(req, res) {
+  console.log("\n\n>>> _getVPage", req.url, req.params);
+
+  var cid = req.params.version;
+  var page = req.params['0'];
+  var file = page.replace(/ /g, "-") + '.md';
+  var xlink = xidb.getMetalink(cid, file, true);
+
+  if (xlink == null) {
+    res.locals.title = "404 - Not found";
+    res.statusCode = 404;
+    res.render('404.jade');
+    return;
+  }
+
+  var metadata = xidb.getMetadataFromLink(xlink);
+  var branch = xidb.getMetadataFromLink(metadata.base.branch);
+  var content = metadata.as.html;
+  var snapshot = xidb.getSnapshot(cid);
+  var age = moment(snapshot.commit.timestamp).fromNow();
+  var addComment = "/comment/" + xlink;
+  var comments = xidb.getComments(snapshot, xlink);
+
+  res.render("page", {
+    'title': metadata.asset.title,
+    'page': metadata,
+    'commit': branch.commit,
+    'age': age,
+    'content': content,
+    'comments': comments,
+    'addCommentLink': addComment,
+  });
+}
 
 function _apiv1GetAsset(req, res) {
   var xid = req.params.xid;
@@ -382,15 +431,6 @@ function _getMetaPageTree(req, res) {
 
   res.redirect("/meta/" + metalink);
 }
-
-
-function _getMetaTest(req, res) {
-
-  console.log(">>> _getMetaTest", req.url, req.params);
-
-  res.redirect("/meta");
-}
-
 
 function _newComment(req, res) {
   var xid = req.params.xid;
