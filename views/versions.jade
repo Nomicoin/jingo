@@ -10,7 +10,7 @@ block content
         td #{version.version}
         td 
           if asset.title
-            a(href="/viki/#{version.commit.slice(0,8)}/#{asset.title}") #{version.timestamp}
+            a(href="/v/#{version.commit.slice(0,8)}/#{asset.title}") #{version.timestamp}
           else
             a(href="/meta/#{version.xlink}/asset") #{version.branch.commit.timestamp}
         td
