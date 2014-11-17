@@ -18,8 +18,8 @@ router.get("/meta/:xid/:cid", _getMetaPage);
 router.get("/meta/:xid/:cid/asset", _getAsset);
 router.get("/meta/:xid/:cid/as/:format", _getAsFormat);
 router.get("/meta/:xid/:cid/branch", _getBranch);
-router.get("/meta/:xid/:cid/:item*", _getMetaPageItem);
-router.get("/meta/tree/:commit/:file", _getMetaPageTree);
+//router.get("/meta/:xid/:cid/:item*", _getMetaPageItem);
+//router.get("/meta/tree/:commit/:file", _getMetaPageTree);
 
 router.post("/comment/:xid/:cid", _newComment);
 
@@ -39,14 +39,16 @@ function _getVPage(req, res) {
   var cid = req.params.version;
   var page = req.params['0'];
   var file = page.replace(/ /g, "-") + '.md';
-  var xlink = xidb.getMetalink(cid, file, true);
+  var snapshot = xidb.getSnapshot(cid);
+  var xlink = xidb.getMetalink(snapshot, file, true);
 
   if (xlink == null) {
     // check for legacy versioned URL
     cid = path.basename(page);
+    snapshot = xidb.getSnapshot(cid);
     page = path.dirname(page);
     file = page.replace(/ /g, "-") + '.md';
-    xlink = xidb.getMetalink(cid, file, true);
+    xlink = xidb.getMetalink(snapshot, file, true);
 
     //console.log("\n\n>>>check for legacy versioned URL", cid, page, file, xlink);
 
@@ -68,12 +70,23 @@ function _getVPage(req, res) {
   var branch = xidb.getMetadataFromLink(metadata.base.branch);
   var content = metadata.as.html;
   var snapshot = xidb.getSnapshot(cid);
-  var latest = xidb.getLatestSnapshot();
-  var age = moment(snapshot.commit.timestamp).fromNow();
+  var latestSnapshot = xidb.getLatestSnapshot();
+  var latestXlink = xidb.getMetalink(latestSnapshot, file, true);
+  var comments = xidb.getComments(latestSnapshot, xlink);
   var addComment = "/comment/" + xlink;
-  var comments = xidb.getComments(latest, xlink);
+  var age;
 
-  console.log("\n\n>>>", cid, snapshot.commit, latest.commit);
+  if (xlink != latestXlink) {
+    age = moment(snapshot.commit.timestamp).fromNow();
+  }
+  else {
+    age = "current";
+  }
+
+  console.log("\n\n>>>", cid, snapshot.commit.timestamp, metadata.base.timestamp);
+  console.log("branch age:", moment(snapshot.commit.timestamp).fromNow());
+  console.log("page age:", moment(metadata.base.timestamp).fromNow());
+  console.log("\n\n");
 
   res.render("page", {
     'title': metadata.asset.title,
@@ -327,41 +340,41 @@ function _getMetaPage(req, res) {
   });
 }
 
-function _getMetaPageItem(req, res) {
+// function _getMetaPageItem(req, res) {
 
-  var xid = req.params.xid;
-  var cid = req.params.cid;
-  var item = req.params.item;
-  var rest = req.params['0'];
+//   var xid = req.params.xid;
+//   var cid = req.params.cid;
+//   var item = req.params.item;
+//   var rest = req.params['0'];
 
-  var metadata = xidb.getMetadata(xid, cid).xidb;
+//   var metadata = xidb.getMetadata(xid, cid).xidb;
 
-  if (!(item in metadata)) {
-    res.redirect("/meta");
-    return;
-  }
+//   if (!(item in metadata)) {
+//     res.redirect("/meta");
+//     return;
+//   }
 
-  var val = metadata[item];
+//   var val = metadata[item];
 
-  if (/\w{8}\/\w{8}/.test(val)) {
-    res.redirect("/meta/" + val + rest);
-    return;
-  }
+//   if (/\w{8}\/\w{8}/.test(val)) {
+//     res.redirect("/meta/" + val + rest);
+//     return;
+//   }
 
-  res.render("metadata", {
-    title: "metadata",
-    metadata: {'metadatum': [{ 'key':item, 'val':val, 'link':null }]}
-  });
-}
+//   res.render("metadata", {
+//     title: "metadata",
+//     metadata: {'metadatum': [{ 'key':item, 'val':val, 'link':null }]}
+//   });
+// }
 
-function _getMetaPageTree(req, res) {
+// function _getMetaPageTree(req, res) {
 
-  var commit = req.params.commit;
-  var file = req.params.file;
-  var metalink = xidb.getMetalink(commit, file);
+//   var commit = req.params.commit;
+//   var file = req.params.file;
+//   var metalink = xidb.getMetalink(commit, file);
 
-  res.redirect("/meta/" + metalink);
-}
+//   res.redirect("/meta/" + metalink);
+// }
 
 function _newComment(req, res) {
   var xid = req.params.xid;

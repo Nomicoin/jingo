@@ -9,9 +9,11 @@ block content
 
   #content.show
     span(style="float:right")
-      a(href="/meta/#{page.base.xid}") #{age}
+      |#{age}
       |&nbsp;|&nbsp;
-      a(href="/viki/#{title}") current
+      a(href="/meta/#{page.base.xid}") history
+      |&nbsp;|&nbsp;
+      a(href="/viki/#{title}") latest
     h1 #{title}
 
     !=content
