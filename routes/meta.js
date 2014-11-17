@@ -68,11 +68,12 @@ function _getVPage(req, res) {
   var branch = xidb.getMetadataFromLink(metadata.base.branch);
   var content = metadata.as.html;
   var snapshot = xidb.getSnapshot(cid);
+  var latest = xidb.getLatestSnapshot();
   var age = moment(snapshot.commit.timestamp).fromNow();
   var addComment = "/comment/" + xlink;
-  var comments = xidb.getComments(snapshot, xlink);
+  var comments = xidb.getComments(latest, xlink);
 
-  console.log("\n\n>>>", cid, snapshot.commit);
+  console.log("\n\n>>>", cid, snapshot.commit, latest.commit);
 
   res.render("page", {
     'title': metadata.asset.title,
