@@ -18,8 +18,6 @@ router.get("/meta/:xid/:cid", _getMetaPage);
 router.get("/meta/:xid/:cid/asset", _getAsset);
 router.get("/meta/:xid/:cid/as/:format", _getAsFormat);
 router.get("/meta/:xid/:cid/branch", _getBranch);
-//router.get("/meta/:xid/:cid/:item*", _getMetaPageItem);
-//router.get("/meta/tree/:commit/:file", _getMetaPageTree);
 
 router.post("/comment/:xid/:cid", _newComment);
 
@@ -28,14 +26,10 @@ function _getPage(req, res) {
   var page = req.params['0'];
   var url = path.join("/v", cid.slice(0,8), page);
 
-  //console.log("\n\n>>> _getPage", req.url, req.params, cid, page);
-
   res.redirect(url);
 }
 
 function _getVPage(req, res) {
-  //console.log("\n\n>>> _getVPage", req.url, req.params);
-
   var cid = req.params.version;
   var page = req.params['0'];
   var file = page.replace(/ /g, "-") + '.md';
@@ -49,8 +43,6 @@ function _getVPage(req, res) {
     page = path.dirname(page);
     file = page.replace(/ /g, "-") + '.md';
     xlink = xidb.getMetalink(snapshot, file, true);
-
-    //console.log("\n\n>>>check for legacy versioned URL", cid, page, file, xlink);
 
     if (xlink != null) {
       var ver = cid.slice(0,8);
@@ -339,42 +331,6 @@ function _getMetaPage(req, res) {
     metadata: model
   });
 }
-
-// function _getMetaPageItem(req, res) {
-
-//   var xid = req.params.xid;
-//   var cid = req.params.cid;
-//   var item = req.params.item;
-//   var rest = req.params['0'];
-
-//   var metadata = xidb.getMetadata(xid, cid).xidb;
-
-//   if (!(item in metadata)) {
-//     res.redirect("/meta");
-//     return;
-//   }
-
-//   var val = metadata[item];
-
-//   if (/\w{8}\/\w{8}/.test(val)) {
-//     res.redirect("/meta/" + val + rest);
-//     return;
-//   }
-
-//   res.render("metadata", {
-//     title: "metadata",
-//     metadata: {'metadatum': [{ 'key':item, 'val':val, 'link':null }]}
-//   });
-// }
-
-// function _getMetaPageTree(req, res) {
-
-//   var commit = req.params.commit;
-//   var file = req.params.file;
-//   var metalink = xidb.getMetalink(commit, file);
-
-//   res.redirect("/meta/" + metalink);
-// }
 
 function _newComment(req, res) {
   var xid = req.params.xid;
