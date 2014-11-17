@@ -72,6 +72,8 @@ function _getVPage(req, res) {
   var addComment = "/comment/" + xlink;
   var comments = xidb.getComments(snapshot, xlink);
 
+  console.log("\n\n>>>", cid, snapshot.commit);
+
   res.render("page", {
     'title': metadata.asset.title,
     'page': metadata,
@@ -139,10 +141,6 @@ function _getAssetVersions(req, res) {
     'name': metadata.asset.name,
     'versions': versions
   });
-}
-
-function _makeWikiLink(text, link) {
-  return "[" + text + "](" + link +")";
 }
 
 function _getHeadCommit(project) {
@@ -244,8 +242,11 @@ function _addXidbLinks(section, xlink) {
       break;
 
     case 'page':
-    case 'plink':
       link = "/viki/"+ val;
+      break;
+
+    case 'plink':
+      link = "/v/"+ val;
       break;
     }
 
