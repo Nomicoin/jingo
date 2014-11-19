@@ -3,17 +3,14 @@ var renderer = require('../lib/renderer');
 var xidb = require('../lib/xidb');
 var fs = require("fs");
 var moment = require("moment");
+var path = require('path');
 
 router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
 router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
-//router.get("/viki/:page", _getVikiPage);
-//router.get("/viki/:page/:version", _getVikiPage);
-
-router.get("/viki/:page", _getPage);
-router.get("/viki/:version/:page", _getVersionPage);
-router.get("/viki/:version/:page/:cid", _getPinnedPage);
+router.get("/viki/*", _getPage);
+router.get("/v/:version/*", _getVPage);
 
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
@@ -21,10 +18,79 @@ router.get("/meta/:xid/:cid", _getMetaPage);
 router.get("/meta/:xid/:cid/asset", _getAsset);
 router.get("/meta/:xid/:cid/as/:format", _getAsFormat);
 router.get("/meta/:xid/:cid/branch", _getBranch);
-router.get("/meta/:xid/:cid/:item*", _getMetaPageItem);
-router.get("/meta/tree/:commit/:file", _getMetaPageTree);
 
 router.post("/comment/:xid/:cid", _newComment);
+
+function _getPage(req, res) {
+  var cid = _getHeadCommit('Meridion');
+  var page = req.params['0'];
+  var url = path.join("/v", cid.slice(0,8), page);
+
+  res.redirect(url);
+}
+
+function _getVPage(req, res) {
+  var cid = req.params.version;
+  var page = req.params['0'];
+  var file = page.replace(/ /g, "-") + '.md';
+  var snapshot = xidb.getSnapshot(cid);
+  var xlink = xidb.getMetalink(snapshot, file, true);
+
+  if (xlink == null) {
+    // check for legacy versioned URL
+    cid = path.basename(page);
+    snapshot = xidb.getSnapshot(cid);
+    page = path.dirname(page);
+    file = page.replace(/ /g, "-") + '.md';
+    xlink = xidb.getMetalink(snapshot, file, true);
+
+    if (xlink != null) {
+      var ver = cid.slice(0,8);
+      var url = path.join("/v", ver, page);
+      res.redirect(url);
+    }
+    else {
+      res.locals.title = "404 - Not found";
+      res.statusCode = 404;
+      res.render('404.jade');
+    }
+
+    return;
+  }
+
+  var metadata = xidb.getMetadataFromLink(xlink);
+  var branch = xidb.getMetadataFromLink(metadata.base.branch);
+  var content = metadata.as.html;
+  var snapshot = xidb.getSnapshot(cid);
+  var latestSnapshot = xidb.getLatestSnapshot();
+  var latestXlink = xidb.getMetalink(latestSnapshot, file, true);
+  var comments = xidb.getComments(latestSnapshot, xlink);
+  var addComment = "/comment/" + xlink;
+  var age;
+
+  if (xlink != latestXlink) {
+    age = moment(snapshot.commit.timestamp).fromNow();
+  }
+  else {
+    age = "current";
+  }
+
+  console.log("\n\n>>>", cid, snapshot.commit.timestamp, metadata.base.timestamp);
+  console.log("branch age:", moment(snapshot.commit.timestamp).fromNow());
+  console.log("page age:", moment(metadata.base.timestamp).fromNow());
+  console.log(comments);
+  console.log("\n\n");
+
+  res.render("page", {
+    'title': metadata.asset.title,
+    'page': metadata,
+    'commit': branch.commit,
+    'age': age,
+    'content': content,
+    'comments': comments,
+    'addCommentLink': addComment,
+  });
+}
 
 function _apiv1GetAsset(req, res) {
   var xid = req.params.xid;
@@ -84,10 +150,6 @@ function _getAssetVersions(req, res) {
   });
 }
 
-function _makeWikiLink(text, link) {
-  return "[" + text + "](" + link +")";
-}
-
 function _getHeadCommit(project) {
   var projects = xidb.getProjectList();
 
@@ -98,85 +160,6 @@ function _getHeadCommit(project) {
   }
 
   return null;
-}
-
-function _getPage(req, res) {
-  var page = req.params.page;
-  var cid = _getHeadCommit('Meridion');
-
-  res.redirect("/viki/" + cid.slice(0,8) + "/" + page);
-}
-
-function _getPinnedPage(req, res) {
-  var ver = req.params.version;
-  var page = req.params.page;
-  var cid = req.params.cid.slice(0,8);
-
-  res.redirect("/viki/" + cid + "/" + page);
-}
-
-function _getVersionPage(req, res) {
-  var cid = req.params.version;
-  var page = req.params.page;
-  var file = page.replace(/ /g, "-") + '.md';
-  var xlink = xidb.getMetalink(cid, file, true);
-
-  if (xlink == null) {
-    res.locals.title = "404 - Not found";
-    res.statusCode = 404;
-    res.render('404.jade');
-    return;
-  }
-
-  var metadata = xidb.getMetadataFromLink(xlink);
-  var branch = xidb.getMetadataFromLink(metadata.base.branch);
-  var content = metadata.as.html;
-
-  var snapshot = xidb.getSnapshot(cid);
-  var age = moment(snapshot.commit.timestamp).fromNow();
-  var addComment = "/comment/" + xlink;
-
-  res.render("page", {
-    'title': metadata.asset.title,
-    'metadata': metadata,
-    'commit': branch.commit,
-    'age': age,
-    'content': content,
-    'addCommentLink': addComment,
-  });
-}
-
-function _getVikiPage(req, res) {
-  var page = req.params.page;
-  var ver = req.params.version;
-  var cid = ver || _getHeadCommit('Meridion');
-  var file = page + '.md';
-  var xlink = xidb.getMetalink(cid, file, true);
-
-  if (xlink == null) {
-    res.locals.title = "404 - Not found";
-    res.statusCode = 404;
-    res.render('404.jade');
-    return;
-  }
-
-  var metadata = xidb.getMetadataFromLink(xlink);
-  var branch = xidb.getMetadataFromLink(metadata.base.branch);
-  var content = metadata.as.html;
-  var age = 'current';
-
-  if (ver) {
-    content = content.replace(/\/viki\/([^\"]*)/gm, "/viki/$1/" + ver.slice(0,8));
-    age = moment(branch.commit.timestamp).fromNow();
-  }
-
-  res.render("page", {
-    'title': metadata.asset.title,
-    'metadata': metadata,
-    'commit': branch.commit,
-    'age': age,
-    'content': content,
-  });
 }
 
 function _getAsFormat(req, res) {
@@ -248,6 +231,8 @@ function _addXidbLinks(section, xlink) {
     case 'snapshot':
     case 'type':
     case 'xlink':
+    case 'ref':
+    case 'author':
       link = "/meta/" + val;
       break;
 
@@ -265,8 +250,11 @@ function _addXidbLinks(section, xlink) {
       break;
 
     case 'page':
-    case 'plink':
       link = "/viki/"+ val;
+      break;
+
+    case 'plink':
+      link = "/v/"+ val;
       break;
     }
 
@@ -346,62 +334,17 @@ function _getMetaPage(req, res) {
   });
 }
 
-function _getMetaPageItem(req, res) {
-
-  var xid = req.params.xid;
-  var cid = req.params.cid;
-  var item = req.params.item;
-  var rest = req.params['0'];
-
-  var metadata = xidb.getMetadata(xid, cid).xidb;
-
-  if (!(item in metadata)) {
-    res.redirect("/meta");
-    return;
-  }
-
-  var val = metadata[item];
-
-  if (/\w{8}\/\w{8}/.test(val)) {
-    res.redirect("/meta/" + val + rest);
-    return;
-  }
-
-  res.render("metadata", {
-    title: "metadata",
-    metadata: {'metadatum': [{ 'key':item, 'val':val, 'link':null }]}
-  });
-}
-
-function _getMetaPageTree(req, res) {
-
-  var commit = req.params.commit;
-  var file = req.params.file;
-  var metalink = xidb.getMetalink(commit, file);
-
-  res.redirect("/meta/" + metalink);
-}
-
-function _getMetaTest(req, res) {
-
-  console.log(">>> _getMetaTest", req.url, req.params);
-
-  res.redirect("/meta");
-}
-
-
 function _newComment(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
+  var xlink = xidb.createLink(xid, cid);
+  var url = xidb.getUrl(xlink);
 
-  console.log("\n\n\n\n");
-  console.log("_newComment");
-  console.log(req.params);
-  console.log(req.body);
   console.log(req.user);
-  console.log("\n\n\n\n");
 
-  res.redirect("/meta/" + xid + "/" + cid);
+  xidb.addComment(req.user, xlink, req.body.comment, function(err, link) {
+    res.redirect(url + "#addComment");
+  });
 }
 
 module.exports = router;

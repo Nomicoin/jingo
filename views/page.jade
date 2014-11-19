@@ -3,13 +3,17 @@ extends layout
 include mixins/form
 
 block tools
-  mixin tools('show', metadata.base.xlink)
+  mixin tools('show', page.base.name)
 
 block content
 
   #content.show
     span(style="float:right")
-      a(href="/meta/#{metadata.base.xid}") #{age}
+      |#{age}
+      |&nbsp;|&nbsp;
+      a(href="/meta/#{page.base.xid}") history
+      |&nbsp;|&nbsp;
+      a(href="/viki/#{title}") latest
     h1 #{title}
 
     !=content
@@ -19,14 +23,28 @@ block content
       img(src=gravatar().url("#{commit.email}", {s:16}))
     b  #{commit.author}
     |,&nbsp;
-    | #{commit.timestamp} &ndash; #{metadata.base.xlink}
+    | #{commit.timestamp} &ndash; #{page.base.xlink}
 
   #content.discuss
 
     h2 Discussion
 
+    if comments
+      each comment in comments
+        if comment.comment.email
+          img(src=gravatar().url("#{comment.comment.authorEmail}", {s:20}))
+          | &nbsp;
+        a(href="#{comment.comment.authorLink}") #{comment.comment.authorName}
+        | &nbsp; &ndash; 
+        a(href="/v/#{comment.markdown.plink}") #{comment.base.timestamp} 
+        | (#{comment.comment.age})
+
+        .well
+          !=comment.as.html
+
     h3 Add Comment
 
+    a(id="addComment")
     form(action='#{addCommentLink}', method='post', class='edit')
       .form-group
         textarea.form-control(name="comment", data-widearea="enable", rows=2)#editor

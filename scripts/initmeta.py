@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 
-import argparse, shutil, yaml
+import argparse, yaml
 from xidb import Guild
 
 def initMetadata(args):
     with open(args.config) as f:
         config = yaml.load(f.read())
 
-    guild = Guild(config)
-
-    if args.rebuild:
-        shutil.rmtree(guild.metaDir, ignore_errors=True)
+    guild = Guild(config, args.rebuild)
 
     if args.init:
         guild.init()

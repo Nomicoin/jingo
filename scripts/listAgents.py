@@ -12,8 +12,8 @@ with open(args.config) as f:
 
 guild = Guild(config)
 
-for email in guild.agents:
-    agent = guild.agents[email]
-    print agent.xid, agent.name, agent.email
+for handle in guild.agents:
+    agent = guild.agents[handle]
+    print handle, agent.getName(), agent.getEmail()
 
 
