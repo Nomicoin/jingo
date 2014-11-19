@@ -326,7 +326,7 @@ class Project:
 
 
 class Guild:
-    def __init__(self, config):
+    def __init__(self, config, rebuild):
         self.wiki = config['application']['title']
         self.guildDir = config['application']['guild']
         self.metaDir = os.path.join(self.guildDir, "meta")
@@ -341,6 +341,9 @@ class Guild:
         self.projProject = Project(self.project, self.projDir, self.metaDir)
 
         self.assets = {}
+
+        if rebuild:
+            shutil.rmtree(self.metaDir, ignore_errors=True)
 
         if not os.path.exists(self.metaDir):
             os.makedirs(self.metaDir)
