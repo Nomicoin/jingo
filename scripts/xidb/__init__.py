@@ -435,7 +435,7 @@ class Guild:
         index.write()
 
         tree = index.write_tree()
-        branch = 'refs/heads/test7'
+        branch = repo.head.name
         author = agent.getSignature()
         committer = author #todo: should be this script agent
         xaction = dict(author=agent.getXlink(), ref=asset.xlink, type="comment")
@@ -462,11 +462,7 @@ class Guild:
         sha = asset['sha']
         blob = self.guildProject.repo[sha]
         data = json.loads(blob.data)
-
-        print "\n\n>>> agent", data
-
-        agent = Agent(data, meta)
-        return agent
+        return Agent(data, meta)
 
     def saveIndex(self):
         """

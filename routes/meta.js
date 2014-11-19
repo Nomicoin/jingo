@@ -78,6 +78,7 @@ function _getVPage(req, res) {
   console.log("\n\n>>>", cid, snapshot.commit.timestamp, metadata.base.timestamp);
   console.log("branch age:", moment(snapshot.commit.timestamp).fromNow());
   console.log("page age:", moment(metadata.base.timestamp).fromNow());
+  console.log(comments);
   console.log("\n\n");
 
   res.render("page", {
@@ -339,7 +340,9 @@ function _newComment(req, res) {
   var xlink = xidb.createLink(xid, cid);
   var url = xidb.getUrl(xlink);
 
-  xidb.addComment(req.user.email, xlink, req.body.comment, function(err, link) {
+  console.log(req.user);
+
+  xidb.addComment(req.user, xlink, req.body.comment, function(err, link) {
     res.redirect(url + "#addComment");
   });
 }

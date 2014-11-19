@@ -32,14 +32,12 @@ block content
     if comments
       each comment in comments
         if comment.comment.email
-          img(src=gravatar().url("#{comment.comment.email}", {s:20}))
+          img(src=gravatar().url("#{comment.comment.authorEmail}", {s:20}))
           | &nbsp;
         a(href="#{comment.comment.authorLink}") #{comment.comment.authorName}
         | &nbsp; &ndash; 
         a(href="/v/#{comment.markdown.plink}") #{comment.base.timestamp} 
         | (#{comment.comment.age})
-        | &nbsp; &ndash; 
-        a(href="#{comment.comment.link}") #{comment.base.xlink}
 
         .well
           !=comment.as.html
