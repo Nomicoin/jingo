@@ -127,8 +127,9 @@ class Comment(Markdown):
 
         self.metadata['comment'] = dict(
             ref=self.xaction['ref'], 
-            author=self.xaction['author'],
-            email=self.snapshot.commit.author.email,
+            author=self.xaction['author'], 
+            authorName=self.snapshot.commit.author.name,
+            authorEmail=self.snapshot.commit.author.email,
         )
 
 class Image(Asset):

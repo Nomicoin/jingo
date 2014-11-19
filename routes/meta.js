@@ -231,6 +231,7 @@ function _addXidbLinks(section, xlink) {
     case 'type':
     case 'xlink':
     case 'ref':
+    case 'author':
       link = "/meta/" + val;
       break;
 
