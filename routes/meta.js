@@ -75,12 +75,6 @@ function _getVPage(req, res) {
     age = "current";
   }
 
-  console.log("\n\n>>>", cid, snapshot.commit.timestamp, metadata.base.timestamp);
-  console.log("branch age:", moment(snapshot.commit.timestamp).fromNow());
-  console.log("page age:", moment(metadata.base.timestamp).fromNow());
-  console.log(comments);
-  console.log("\n\n");
-
   res.render("page", {
     'title': metadata.asset.title,
     'page': metadata,

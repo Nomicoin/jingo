@@ -2,9 +2,9 @@
 # Configuration sample file for Jingo (YAML)
 application:
   title: Meridion
-  guild: "/opt/viki/guilds/Archetech"
-  repository: "/opt/viki/repos/Archetech/Meridion.wiki"
-  project: "/opt/viki/instances/archetech_viki"
+  guild: "/home/david/dev/guilds/Archetech"
+  repository: "/home/david/dev/Meridion.wiki"
+  project: "/home/david/dev/viki"
   docSubdir: ""
   remote: ""
   pushInterval: 30
@@ -15,15 +15,15 @@ application:
   staticWhitelist: "/\\.png$/i, /\\.jpg$/i, /\\.gif$/i, /\\.pdf$/, /\\.gliffy$/"
 authentication:
   google:
-    enabled: true
-    clientId: 272763902122-f3osoghk4so78h5b34oqbm7ljsgearm4.apps.googleusercontent.com
-    clientSecret: H4MTAwulEBe8CJt1dxDRuWrZ
+    enabled: false
+    clientId: replace me with the real value
+    clientSecret: replace me with the real value
   github:
     enabled: true
-    clientId: 659e3bf6356095a66e14
-    clientSecret: f616015bbf0e80680ccbb986866bb4ecae3412f8
+    clientId: 05d7e73742f53aad5255
+    clientSecret: ed8562ca1ab2fbe7f7561adae5e66b47aebc538a
   alone:
-    enabled: false
+    enabled: true
     username: "macterra"
     passwordHash: "d033e22ae348aeb5660fc2140aec35850c4da997"
     email: "davidmc@gmail.com"
@@ -31,11 +31,11 @@ features:
   markitup: false
   codemirror: true
 server:
-  hostname: guild.archetech.com
-  port: 6666
+  hostname: localhost
+  port: 6067
   localOnly: false
 authorization:
-  anonRead: false
+  anonRead: true
   validMatches: .+
 pages:
   index: Home
