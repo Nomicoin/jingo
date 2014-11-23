@@ -417,6 +417,10 @@ class Guild:
         base['ref'] = ref
         meta['base'] = base
 
+    def addComment(self, handle, xlink, comment):
+        agent = self.getAgent(handle)
+        return self.saveComment(agent, xlink, comment)
+
     def addRating(self, handle, xlink, val, min, max, comment):
         agent = self.getAgent(handle)
         val = float(val)
@@ -429,18 +433,12 @@ class Guild:
                     min=min,
                     max=max,
                     rating=rating,
-                    type="rating",
-                    comment=comment)
-        self.saveEval(agent, xlink, eval)
-        
-    def addComment(self, handle, xlink, comment):
-        agent = self.getAgent(handle)
-        eval = dict(agent=agent.getXlink(),
-                    ref=xlink,
-                    type="post",
-                    comment=comment)
-        self.saveEval(agent, xlink, eval)
+                    type="rating")
 
+        evalLink = self.saveEval(agent, xlink, eval)
+        self.saveComment(agent, evalLink, comment)
+        return evalLink
+        
     def addVote(self, handle, xlink, vote, comment):
         agent = self.getAgent(handle)
 
@@ -462,41 +460,51 @@ class Guild:
                     vote=vote,
                     val=val,
                     min=min,
-                    max=max,
-                    comment=comment)
-        self.saveEval(agent, xlink, eval)
+                    max=max)
+        evalLink = self.saveEval(agent, xlink, eval)
+        self.saveComment(agent, evalLink, comment)
+        return evalLink
+
+    def makeEvalPath(self, ext):
+        fileName = datetime.now().isoformat() + ext
+        fileName = fileName.replace("-","/")
+        fileName = fileName.replace("T","/")
+        return os.path.join("evals", fileName) 
 
     def saveEval(self, agent, xlink, eval):
         asset = self.getAsset(xlink)
-        print "addComment", asset.name, asset.xlink
-        print "agent:", agent.getName()
-        #print "script path:", os.path.realpath(__file__)
-
-        fileName = datetime.now().isoformat() + ".md"
-        fileName = fileName.replace("-","/")
-        fileName = fileName.replace("T","/")
-        evalPath = os.path.join("evals", fileName) 
-        fullPath = os.path.join(self.repoDir, evalPath)
+        path = self.makeEvalPath(".json")
+        fullPath = os.path.join(self.repoDir, path)
 
         saveJSON(fullPath, eval)
+        return self.commitFile(agent, asset, eval['type'], path)
 
+    def saveComment(self, agent, xlink, comment):
+        asset = self.getAsset(xlink)
+        path = self.makeEvalPath(".md")
+        fullPath = os.path.join(self.repoDir, path)
+
+        saveFile(fullPath, comment)
+        return self.commitFile(agent, asset, "comment", path)
+
+    def commitFile(self, agent, asset, type, path):
         repo = self.repoProject.repo
         index = repo.index
 
         index.read()
-        index.add(evalPath)
+        index.add(path)
         index.write()
 
         tree = index.write_tree()
         branch = repo.head.name
         author = agent.getSignature()
         committer = author #todo: should be this script agent
-        xaction = dict(author=agent.getXlink(), ref=asset.xlink, type="eval")
+        xaction = dict(author=agent.getXlink(), ref=asset.xlink, type=type)
         message = json.dumps(xaction)
         cid = repo.create_commit(branch, author, committer, message, tree, [repo.head.target])
 
         self.update()
-        evalAsset = self.assets[evalPath]
+        newAsset = self.assets[path]
 
         # print "agent xlink", agent.xlink
         # agentMeta = self.getMetadata(agent.xlink)
@@ -507,7 +515,7 @@ class Guild:
         # self.addRef(docMeta, "comment", commentAsset.xlink)
         # self.repoProject.writeMetadata(docMeta)
 
-        return evalAsset.xlink
+        return newAsset.xlink
 
     def agentFromXlink(self, xlink):
         meta = self.getMetadata(xlink)
