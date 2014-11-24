@@ -20,6 +20,7 @@ router.get("/meta/:xid/:cid/as/:format", _getAsFormat);
 router.get("/meta/:xid/:cid/branch", _getBranch);
 
 router.post("/comment/:xid/:cid", _newComment);
+router.post("/vote/:xid/:cid", _newVote);
 
 function _getPage(req, res) {
   var cid = _getHeadCommit('Meridion');
@@ -65,7 +66,7 @@ function _getVPage(req, res) {
   var latestSnapshot = xidb.getLatestSnapshot();
   var latestXlink = xidb.getMetalink(latestSnapshot, file, true);
   var comments = xidb.getComments(latestSnapshot, xlink);
-  var addComment = "/comment/" + xlink;
+  var votes = xidb.getVotes(latestSnapshot, xlink);
   var age;
 
   if (xlink != latestXlink) {
@@ -82,7 +83,9 @@ function _getVPage(req, res) {
     'age': age,
     'content': content,
     'comments': comments,
-    'addCommentLink': addComment,
+    'commentLink': "/comment/" + xlink,
+    'votes': votes,
+    'voteLink': "/vote/" + xlink,
   });
 }
 
@@ -339,6 +342,20 @@ function _newComment(req, res) {
   xidb.addComment(req.user, xlink, req.body.comment, function(err, link) {
     res.redirect(url + "#addComment");
   });
+}
+
+function _newVote(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
+  var xlink = xidb.createLink(xid, cid);
+  var url = xidb.getUrl(xlink);
+
+  console.log(req);
+
+  xidb.addVote(req.user, xlink, req.body, function(err, link) {
+    res.redirect(url + "#addVote");
+  });
+
 }
 
 module.exports = router;

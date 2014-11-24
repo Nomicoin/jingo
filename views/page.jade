@@ -45,8 +45,39 @@ block content
     h3 Add Comment
 
     a(id="addComment")
-    form(action='#{addCommentLink}', method='post', class='edit')
+    form(action='#{commentLink}', method='post', class='edit')
       .form-group
         textarea.form-control(name="comment", data-widearea="enable", rows=2)#editor
 
       mixin saveAndCancel()
+
+  #content.vote
+
+    h2 Votes
+
+    if votes
+      each vote in votes
+        if vote.vote.email
+          img(src=gravatar().url("#{vote.vote.authorEmail}", {s:20}))
+          | &nbsp;
+        a(href="#{vote.vote.authorLink}") #{vote.vote.authorName}
+        | &nbsp; &ndash; 
+        a(href="/v/#{vote.base.timestamp}") #{vote.base.timestamp} 
+        | (#{vote.vote.age})
+
+        .well.well-sm
+          p tbd
+
+    h3 Vote
+
+    a(id="addVote")
+    form(action='#{voteLink}', method='post', class='edit')
+      .well
+        input(type='submit',name='vote',value=approveText || 'Approve').btn.btn-primary
+        |&nbsp;
+        input(type='submit',name='vote',value=rejectText || 'Reject').btn
+        |&nbsp;
+        input(type='submit',name='vote',value=abstainText || 'Abstain').btn
+      span (comment optional)
+      .form-group
+        textarea.form-control(name="comment", data-widearea="enable", rows=2)#editor

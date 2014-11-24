@@ -457,12 +457,13 @@ class Guild:
         eval = dict(agent=agent.getXlink(),
                     ref=xlink,
                     type="vote",
+                    comment=comment,
                     vote=vote,
                     val=val,
                     min=min,
                     max=max)
         evalLink = self.saveEval(agent, xlink, eval)
-        self.saveComment(agent, evalLink, comment)
+        #self.saveComment(agent, evalLink, comment)
         return evalLink
 
     def makeEvalPath(self, ext):
