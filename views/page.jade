@@ -56,17 +56,24 @@ block content
     h2 Votes
 
     if votes
-      each vote in votes
-        if vote.vote.email
-          img(src=gravatar().url("#{vote.vote.authorEmail}", {s:20}))
-          | &nbsp;
-        a(href="#{vote.vote.authorLink}") #{vote.vote.authorName}
-        | &nbsp; &ndash; 
-        a(href="/v/#{vote.base.timestamp}") #{vote.base.timestamp} 
-        | (#{vote.vote.age})
-
-        .well.well-sm
-          p tbd
+      table.table-bordered.table-hover.table-condensed
+        tr
+          td name
+          td vote
+          td when
+          td comment
+        each vote in votes
+          tr
+            td
+              if vote.vote.authorEmail
+                img(src=gravatar().url("#{vote.vote.authorEmail}", {s:20}))
+                | &nbsp;
+              a(href="#{vote.vote.authorLink}") #{vote.vote.authorName}
+            td 
+              a(href="#{vote.vote.link}") #{vote.voteDoc.vote}
+            td #{vote.vote.age}
+            td #{vote.voteDoc.comment}
+    p
 
     h3 Vote
 
