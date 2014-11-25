@@ -6,7 +6,6 @@ var router = require("express").Router(),
     tools = require("../lib/tools");
 
 var auth = app.locals.config.get("authentication");
-var server = app.locals.config.get("server");
 var passport = app.locals.passport;
 
 router.get("/login", _getLogin);
@@ -29,17 +28,12 @@ router.get("/auth/github/callback", passport.authenticate('github', {
 }));
 
 if (auth.google.enabled) {
-  // If you're trying to obfuscate the port on which your app runs using reverse-proxy, 
-  // you don't want to send Google a baseUrl that includes the port number.
-  if (server.reverseProxy) 
-    var callback = '/oauth2callback';
-  else
-    var callback = app.locals.baseUrl + '/oauth2callback';
-
   passport.use(new passportGoogle.OAuth2Strategy({
       clientID: auth.google.clientId,
       clientSecret: auth.google.clientSecret,
-      callbackURL: callback
+      // I will leave the horrible name as the default to make the painful creation
+      // of the client id/secret simpler
+      callbackURL: '/oauth2callback'
     },
 
     function(accessToken, refreshToken, profile, done) {
@@ -50,19 +44,13 @@ if (auth.google.enabled) {
 }
 
 if (auth.github.enabled) {
-  // If you're trying to obfuscate the port on which your app runs using reverse-proxy, 
-  // you don't want to send Github a baseUrl that includes the port number.
-  if (server.reverseProxy) 
-    var callback = '/auth/github/callback';
-  else
-    var callback = app.locals.baseUrl + '/auth/github/callback';
 
   // Register a new Application with Github https://github.com/settings/applications/new
   // Authorization callback URL /auth/github/callback
   passport.use(new passportGithub({
       clientID: auth.github.clientId,
       clientSecret: auth.github.clientSecret,
-      callbackURL: callback
+      callbackURL: '/auth/github/callback'
     },
     function(accessToken, refreshToken, profile, done) {
       usedAuthentication("github");
