@@ -75,6 +75,23 @@ block content
             td #{vote.voteDoc.comment}
     p
 
+    if voteResults
+      table.table-bordered.table-hover.table-condensed
+       tr
+         td approvals
+         td rejections
+         td abstentions
+         td result
+         td time left
+       tr
+         td #{voteResults.approvals}
+         td #{voteResults.rejections}
+         td #{voteResults.abstentions}
+         td #{voteResults.result}
+         td #{voteResults.timeLeft}
+
+    p
+
     h3 Vote
 
     a(id="addVote")

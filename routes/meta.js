@@ -67,6 +67,8 @@ function _getVPage(req, res) {
   var latestXlink = xidb.getMetalink(latestSnapshot, file, true);
   var comments = xidb.getComments(latestSnapshot, xlink);
   var votes = xidb.getVotes(latestSnapshot, xlink);
+  var voteResults = xidb.getVoteResults(metadata, votes);
+
   var age;
 
   if (xlink != latestXlink) {
@@ -85,6 +87,7 @@ function _getVPage(req, res) {
     'comments': comments,
     'commentLink': "/comment/" + xlink,
     'votes': votes,
+    'voteResults': voteResults,
     'voteLink': "/vote/" + xlink,
   });
 }
@@ -337,8 +340,6 @@ function _newComment(req, res) {
   var xlink = xidb.createLink(xid, cid);
   var url = xidb.getUrl(xlink);
 
-  console.log(req.user);
-
   xidb.addComment(req.user, xlink, req.body.comment, function(err, link) {
     res.redirect(url + "#addComment");
   });
@@ -350,12 +351,9 @@ function _newVote(req, res) {
   var xlink = xidb.createLink(xid, cid);
   var url = xidb.getUrl(xlink);
 
-  console.log(req);
-
   xidb.addVote(req.user, xlink, req.body, function(err, link) {
     res.redirect(url + "#addVote");
   });
-
 }
 
 module.exports = router;
