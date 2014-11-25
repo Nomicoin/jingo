@@ -475,21 +475,20 @@ class Guild:
     def saveEval(self, agent, xlink, eval):
         asset = self.getAsset(xlink)
         path = self.makeEvalPath(".json")
-        fullPath = os.path.join(self.repoDir, path)
+        fullPath = os.path.join(self.guildDir, path)
 
         saveJSON(fullPath, eval)
-        return self.commitFile(agent, asset, eval['type'], path)
+        return self.commitFile(self.guildProject.repo, agent, asset, eval['type'], path)
 
     def saveComment(self, agent, xlink, comment):
         asset = self.getAsset(xlink)
         path = self.makeEvalPath(".md")
-        fullPath = os.path.join(self.repoDir, path)
+        fullPath = os.path.join(self.guildDir, path)
 
         saveFile(fullPath, comment)
-        return self.commitFile(agent, asset, "comment", path)
+        return self.commitFile(self.guildProject.repo, agent, asset, "comment", path)
 
-    def commitFile(self, agent, asset, type, path):
-        repo = self.repoProject.repo
+    def commitFile(self, repo, agent, asset, type, path):
         index = repo.index
 
         index.read()

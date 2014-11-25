@@ -34,13 +34,13 @@ function _getVPage(req, res) {
   var cid = req.params.version;
   var page = req.params['0'];
   var file = page.replace(/ /g, "-") + '.md';
-  var snapshot = xidb.getSnapshot(cid);
+  var snapshot = xidb.getWikiSnapshot(cid);
   var xlink = xidb.getMetalink(snapshot, file, true);
 
   if (xlink == null) {
     // check for legacy versioned URL
     cid = path.basename(page);
-    snapshot = xidb.getSnapshot(cid);
+    snapshot = xidb.getWikiSnapshot(cid);
     page = path.dirname(page);
     file = page.replace(/ /g, "-") + '.md';
     xlink = xidb.getMetalink(snapshot, file, true);
@@ -62,11 +62,12 @@ function _getVPage(req, res) {
   var metadata = xidb.getMetadataFromLink(xlink);
   var branch = xidb.getMetadataFromLink(metadata.base.branch);
   var content = metadata.as.html;
-  var snapshot = xidb.getSnapshot(cid);
-  var latestSnapshot = xidb.getLatestSnapshot();
+  var snapshot = xidb.getWikiSnapshot(cid);
+  var latestSnapshot = xidb.getLatestWikiSnapshot();
   var latestXlink = xidb.getMetalink(latestSnapshot, file, true);
-  var comments = xidb.getComments(latestSnapshot, xlink);
-  var votes = xidb.getVotes(latestSnapshot, xlink);
+  var guildSnapshot = xidb.getLatestGuildSnapshot();
+  var comments = xidb.getComments(guildSnapshot, xlink);
+  var votes = xidb.getVotes(guildSnapshot, xlink);
   var voteResults = xidb.getVoteResults(metadata, votes);
 
   var age;
