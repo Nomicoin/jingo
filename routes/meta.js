@@ -342,6 +342,9 @@ function _newComment(req, res) {
   var url = xidb.getUrl(xlink);
 
   xidb.addComment(req.user, xlink, req.body.comment, function(err, link) {
+    if (err) {
+      console.log(err);
+    }
     res.redirect(url + "#addComment");
   });
 }
@@ -353,6 +356,9 @@ function _newVote(req, res) {
   var url = xidb.getUrl(xlink);
 
   xidb.addVote(req.user, xlink, req.body, function(err, link) {
+    if (err) {
+      console.log(err);
+    }
     res.redirect(url + "#addVote");
   });
 }
