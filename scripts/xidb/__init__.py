@@ -394,9 +394,10 @@ class Guild:
         self.projProject.update(self.assets)
         self.saveIndex()
 
-    def getAgent(self, email):
-        if email in self.agents:
-            return self.agents[email]
+    def getAgent(self, id):
+        id = id.lower()
+        if id in self.agents:
+            return self.agents[id]
 
     def getAsset(self, xlink):
         path = self.repoProject.createPath(xlink)
