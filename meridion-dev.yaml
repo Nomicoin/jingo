@@ -31,10 +31,9 @@ features:
   markitup: false
   codemirror: true
 server:
-  hostname: guild.archetech.com
-  port: 42666
+  hostname: localhost
+  port: 6067
   localOnly: false
-  reverseProxy: true
 authorization:
   anonRead: true
   validMatches: .+

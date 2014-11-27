@@ -1,0 +1,3 @@
+#!/bin/sh
+
+nodemon jingo -c meridion.yaml | tee viki.out

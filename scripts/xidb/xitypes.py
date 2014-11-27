@@ -132,6 +132,45 @@ class Comment(Markdown):
             authorEmail=self.snapshot.commit.author.email,
         )
 
+class Vote(Text):
+    def __init__(self):
+        super(Vote, self).__init__()
+
+    def init(self):
+        super(Vote, self).init()
+
+        try:
+            self.xaction = json.loads(self.snapshot.commit.message)
+        except:
+            self.xaction = False
+        
+        if self.isValid():
+            ref = self.xaction['ref']
+            # todo: retrieve reference's metadata
+            author=self.xaction['author']
+            # todo: retrieve author's name from metadata
+            self.title = "Vote on %s by %s" % (ref, author)
+
+    def isVote(self):
+        return (self.xaction and 
+                'type' in self.xaction and 
+                self.xaction['type'] == 'vote' and 
+                'ref' in self.xaction and 
+                'author' in self.xaction)
+
+    def isValid(self):
+        return self.isVote() and super(Vote, self).isValid()
+
+    def addMetadata(self):
+        super(Vote, self).addMetadata()
+
+        self.metadata['vote'] = dict(
+            ref=self.xaction['ref'], 
+            author=self.xaction['author'], 
+            authorName=self.snapshot.commit.author.name,
+            authorEmail=self.snapshot.commit.author.email,
+        )
+
 class Image(Asset):
     def __init__(self):
         super(Image, self).__init__()
@@ -223,6 +262,7 @@ class Gif(Image):
 
 # put leaf classes first because only first valid type will be used to generate metadata
 allTypes = [
+    lambda : Vote(),
     lambda : Comment(),
     lambda : Markdown(),
     lambda : Text(),

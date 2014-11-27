@@ -20,6 +20,7 @@ router.get("/meta/:xid/:cid/as/:format", _getAsFormat);
 router.get("/meta/:xid/:cid/branch", _getBranch);
 
 router.post("/comment/:xid/:cid", _newComment);
+router.post("/vote/:xid/:cid", _newVote);
 
 function _getPage(req, res) {
   var cid = _getHeadCommit('Meridion');
@@ -33,13 +34,13 @@ function _getVPage(req, res) {
   var cid = req.params.version;
   var page = req.params['0'];
   var file = page.replace(/ /g, "-") + '.md';
-  var snapshot = xidb.getSnapshot(cid);
+  var snapshot = xidb.getWikiSnapshot(cid);
   var xlink = xidb.getMetalink(snapshot, file, true);
 
   if (xlink == null) {
     // check for legacy versioned URL
     cid = path.basename(page);
-    snapshot = xidb.getSnapshot(cid);
+    snapshot = xidb.getWikiSnapshot(cid);
     page = path.dirname(page);
     file = page.replace(/ /g, "-") + '.md';
     xlink = xidb.getMetalink(snapshot, file, true);
@@ -61,11 +62,14 @@ function _getVPage(req, res) {
   var metadata = xidb.getMetadataFromLink(xlink);
   var branch = xidb.getMetadataFromLink(metadata.base.branch);
   var content = metadata.as.html;
-  var snapshot = xidb.getSnapshot(cid);
-  var latestSnapshot = xidb.getLatestSnapshot();
+  var snapshot = xidb.getWikiSnapshot(cid);
+  var latestSnapshot = xidb.getLatestWikiSnapshot();
   var latestXlink = xidb.getMetalink(latestSnapshot, file, true);
-  var comments = xidb.getComments(latestSnapshot, xlink);
-  var addComment = "/comment/" + xlink;
+  var guildSnapshot = xidb.getLatestGuildSnapshot();
+  var comments = xidb.getComments(guildSnapshot, xlink);
+  var votes = xidb.getVotes(guildSnapshot, xlink);
+  var voteResults = xidb.getVoteResults(metadata, votes);
+
   var age;
 
   if (xlink != latestXlink) {
@@ -75,12 +79,6 @@ function _getVPage(req, res) {
     age = "current";
   }
 
-  console.log("\n\n>>>", cid, snapshot.commit.timestamp, metadata.base.timestamp);
-  console.log("branch age:", moment(snapshot.commit.timestamp).fromNow());
-  console.log("page age:", moment(metadata.base.timestamp).fromNow());
-  console.log(comments);
-  console.log("\n\n");
-
   res.render("page", {
     'title': metadata.asset.title,
     'page': metadata,
@@ -88,7 +86,10 @@ function _getVPage(req, res) {
     'age': age,
     'content': content,
     'comments': comments,
-    'addCommentLink': addComment,
+    'commentLink': "/comment/" + xlink,
+    'votes': votes,
+    'voteResults': voteResults,
+    'voteLink': "/vote/" + xlink,
   });
 }
 
@@ -340,10 +341,19 @@ function _newComment(req, res) {
   var xlink = xidb.createLink(xid, cid);
   var url = xidb.getUrl(xlink);
 
-  console.log(req.user);
-
   xidb.addComment(req.user, xlink, req.body.comment, function(err, link) {
     res.redirect(url + "#addComment");
+  });
+}
+
+function _newVote(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
+  var xlink = xidb.createLink(xid, cid);
+  var url = xidb.getUrl(xlink);
+
+  xidb.addVote(req.user, xlink, req.body, function(err, link) {
+    res.redirect(url + "#addVote");
   });
 }
 

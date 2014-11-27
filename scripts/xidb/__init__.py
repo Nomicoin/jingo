@@ -326,7 +326,7 @@ class Project:
 
 
 class Guild:
-    def __init__(self, config, rebuild):
+    def __init__(self, config, rebuild=False):
         self.wiki = config['application']['title']
         self.guildDir = config['application']['guild']
         self.metaDir = os.path.join(self.guildDir, "meta")
@@ -419,34 +419,92 @@ class Guild:
 
     def addComment(self, handle, xlink, comment):
         agent = self.getAgent(handle)
-        asset = self.getAsset(xlink)
-        print "addComment", asset.name, asset.xlink
-        print "agent:", agent.getName()
-        #print "script path:", os.path.realpath(__file__)
+        return self.saveComment(agent, xlink, comment)
 
-        fileName = datetime.now().isoformat() + ".md"
-        commentPath = os.path.join("comments", fileName) 
-        fullPath = os.path.join(self.repoDir, commentPath)
+    def addRating(self, handle, xlink, val, min, max, comment):
+        agent = self.getAgent(handle)
+        val = float(val)
+        min = int(min)
+        max = int(max)
+        rating = (val-min)/(max-min)
+        eval = dict(agent=agent.getXlink(),
+                    ref=xlink,
+                    val=val,
+                    min=min,
+                    max=max,
+                    rating=rating,
+                    type="rating")
+
+        evalLink = self.saveEval(agent, xlink, eval)
+        self.saveComment(agent, evalLink, comment)
+        return evalLink
+        
+    def addVote(self, handle, xlink, vote, comment):
+        agent = self.getAgent(handle)
+
+        min = 0
+        max = 1
+
+        vote = vote.lower()
+
+        if vote in ["yes", "+1", "approve", "aye"]:
+            val = max
+        elif vote in ["no", "-1", "reject", "nay"]:
+            val = min
+        else:
+            val = 0.5
+
+        eval = dict(agent=agent.getXlink(),
+                    ref=xlink,
+                    type="vote",
+                    comment=comment,
+                    vote=vote,
+                    val=val,
+                    min=min,
+                    max=max)
+        evalLink = self.saveEval(agent, xlink, eval)
+        #self.saveComment(agent, evalLink, comment)
+        return evalLink
+
+    def makeEvalPath(self, ext):
+        fileName = datetime.now().isoformat() + ext
+        fileName = fileName.replace("-","/")
+        fileName = fileName.replace("T","/")
+        return os.path.join("evals", fileName) 
+
+    def saveEval(self, agent, xlink, eval):
+        asset = self.getAsset(xlink)
+        path = self.makeEvalPath(".json")
+        fullPath = os.path.join(self.guildDir, path)
+
+        saveJSON(fullPath, eval)
+        return self.commitFile(self.guildProject.repo, agent, asset, eval['type'], path)
+
+    def saveComment(self, agent, xlink, comment):
+        asset = self.getAsset(xlink)
+        path = self.makeEvalPath(".md")
+        fullPath = os.path.join(self.guildDir, path)
 
         saveFile(fullPath, comment)
+        return self.commitFile(self.guildProject.repo, agent, asset, "comment", path)
 
-        repo = self.repoProject.repo
+    def commitFile(self, repo, agent, asset, type, path):
         index = repo.index
 
         index.read()
-        index.add(commentPath)
+        index.add(path)
         index.write()
 
         tree = index.write_tree()
         branch = repo.head.name
         author = agent.getSignature()
         committer = author #todo: should be this script agent
-        xaction = dict(author=agent.getXlink(), ref=asset.xlink, type="comment")
+        xaction = dict(author=agent.getXlink(), ref=asset.xlink, type=type)
         message = json.dumps(xaction)
         cid = repo.create_commit(branch, author, committer, message, tree, [repo.head.target])
 
         self.update()
-        commentAsset = self.assets[commentPath]
+        newAsset = self.assets[path]
 
         # print "agent xlink", agent.xlink
         # agentMeta = self.getMetadata(agent.xlink)
@@ -457,7 +515,7 @@ class Guild:
         # self.addRef(docMeta, "comment", commentAsset.xlink)
         # self.repoProject.writeMetadata(docMeta)
 
-        return commentAsset.xlink
+        return newAsset.xlink
 
     def agentFromXlink(self, xlink):
         meta = self.getMetadata(xlink)
