@@ -23,6 +23,8 @@ class Asset(object):
         return asset
 
     def __init__(self):
+        self.name = ''
+        self.metadata = {}
         self.type = None
         self.contentType = ''
         self.title = ''
@@ -37,6 +39,9 @@ class Asset(object):
         self.sha = str(sha)
         self.xlink = createLink(self.xid, self.cid)
  
+    def save(self, path):
+        saveJSON(path, self.metadata)
+
     def addVersion(self, cid, sha):
         sha = str(sha)
         cid = str(cid)
@@ -46,17 +51,17 @@ class Asset(object):
             self.cid = cid
             self.xlink = createLink(self.xid, self.cid)
 
-    def generateMetadata(self, blob, snapshot, type):
+    def generateMetadata(self, blob, snapshot):
         data = {}
 
         data['base'] = {
             'xid': self.xid,
             'commit': str(snapshot.commit.id),
-            'xlink': createLink(self.xid, snapshot.commit.id),
+            'xlink': self.xlink,
             'branch': snapshot.xlink,
             'timestamp': snapshot.timestamp,
             'ref': '',
-            'type': type
+            'type': ''
         }
 
         data['asset'] = {
@@ -71,6 +76,7 @@ class Asset(object):
 
         for factory in allTypes:
             obj = factory()
+            obj.configure(self.cid, self.sha, self.xid, self.name)
             obj.blob = blob
             obj.metadata = data
             obj.snapshot = snapshot
@@ -78,15 +84,13 @@ class Asset(object):
             if obj.isValid():
                 obj.addMetadata()
                 self.type = obj
+                data['base']['type'] = self.typeName() # TBD should be type xlink
                 break # use only first valid xitype
-        return data
+
+        self.metadata = data
 
     def init(self):
-        asset = self.metadata['asset']
-        self.name = asset['name']
-        base = self.metadata['base']
-        self.xlink = base['xlink']
-        self.vlink = base['commit'][:8]
+        self.vlink = self.metadata['base']['commit'][:8]
 
     def typeName(self):
         if self.type:

@@ -230,9 +230,9 @@ class Project:
                 asset = self.assets[name]
 
                 if not os.path.isfile(path):
-                    type = self.getType(asset.name)
-                    metadata = asset.generateMetadata(blob, snapshot, type)
-                    saveJSON(path, metadata)
+                    #type = self.getType(asset.name)
+                    asset.generateMetadata(blob, snapshot)
+                    asset.save(path)
                     print "wrote metadata for", link, name, asset.typeName()
                     self.assetsCreated += 1
 
