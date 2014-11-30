@@ -178,7 +178,8 @@ class Project:
                         asset.addVersion(snapshot.commit.id, sha)
                     else:
                         # print "Adding %s as %s" % (name, xid)
-                        asset = Asset(commit, sha, xid, name)
+                        asset = Asset()
+                        asset.configure(commit, sha, xid, name)
                         self.assets[name] = asset
                     snapshot.add(asset)
                 self.snapshotsLoaded += 1
