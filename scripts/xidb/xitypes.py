@@ -5,14 +5,81 @@ import genxid
 from io import BytesIO
 from markdown.extensions.wikilinks import WikiLinkExtension
 from markdown.extensions.tables import TableExtension
+from xidb.utils import *
 
 class Asset(object):
+    @staticmethod
+    def fromMetadata(meta):
+        base = meta['base']
+        cid = base['commit']
+        xid = base['xid']
+
+        asset = meta['asset']
+        sha = asset['sha']
+        name = asset['name']
+
+        asset = Asset()
+        asset.configure(cid, sha, xid, name)
+        return asset
+
     def __init__(self):
-        self.name = ''
+        self.type = None
         self.contentType = ''
         self.title = ''
         self.xlink = ''
         self.vlink = ''
+
+    def configure(self, cid, sha, xid, name):
+        self.xid = str(xid)
+        self.name = name
+        self.ext = os.path.splitext(name)[1]
+        self.cid = str(cid)
+        self.sha = str(sha)
+        self.xlink = createLink(self.xid, self.cid)
+ 
+    def addVersion(self, cid, sha):
+        sha = str(sha)
+        cid = str(cid)
+        if (self.sha != sha):
+            # print "new version for", self.name, self.sha, sha
+            self.sha = sha
+            self.cid = cid
+            self.xlink = createLink(self.xid, self.cid)
+
+    def generateMetadata(self, blob, snapshot, type):
+        data = {}
+
+        data['base'] = {
+            'xid': self.xid,
+            'commit': str(snapshot.commit.id),
+            'xlink': createLink(self.xid, snapshot.commit.id),
+            'branch': snapshot.xlink,
+            'timestamp': snapshot.timestamp,
+            'ref': '',
+            'type': type
+        }
+
+        data['asset'] = {
+            'name': self.name,
+            'ext': self.ext,
+            'title': '',
+            'description': '',
+            'sha': str(blob.id),
+            'size': blob.size,
+            'encoding': 'binary' if blob.is_binary else 'text',
+        }
+
+        for factory in allTypes:
+            obj = factory()
+            obj.blob = blob
+            obj.metadata = data
+            obj.snapshot = snapshot
+            obj.init()
+            if obj.isValid():
+                obj.addMetadata()
+                self.type = obj
+                break # use only first valid xitype
+        return data
 
     def init(self):
         asset = self.metadata['asset']
@@ -20,6 +87,12 @@ class Asset(object):
         base = self.metadata['base']
         self.xlink = base['xlink']
         self.vlink = base['commit'][:8]
+
+    def typeName(self):
+        if self.type:
+            return type(self.type).__name__
+        else:
+            return "unknown"
 
     def isValid(self):
         return False

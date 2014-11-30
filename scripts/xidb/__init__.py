@@ -2,28 +2,9 @@ import uuid, os, shutil, yaml, json, mimetypes, re
 from pygit2 import *
 from glob import glob
 from datetime import datetime
-from genxid import genxid
-import xitypes
-
-
-def createLink(xid, cid):
-    xidRef = str(xid)[:8]
-    cidRef = str(cid)[:8]
-    return os.path.join(xidRef, cidRef)
-
-def makeDirs(path):
-    dirName = os.path.dirname(path)
-    if not os.path.exists(dirName):
-        os.makedirs(dirName)
-
-def saveFile(path, data):
-    makeDirs(path)
-    with open(path, 'w') as f:
-        f.write(data)
-
-def saveJSON(path, obj):
-    res = json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
-    saveFile(path, res + "\n")
+from xidb.genxid import genxid
+from xidb.xitypes import Asset
+from xidb.utils import *
 
 class Agent:
     def __init__(self, data, meta):
@@ -44,70 +25,6 @@ class Agent:
 
     def getSignature(self):
         return Signature(self.getName(), self.getEmail())
-
-class Asset:
-    @staticmethod
-    def fromMetadata(meta):
-        base = meta['base']
-        cid = base['commit']
-        xid = base['xid']
-
-        asset = meta['asset']
-        sha = asset['sha']
-        name = asset['name']
-
-        return Asset(cid, sha, xid, name)
-
-    def __init__(self, cid, sha, xid, name):
-        self.xid = str(xid)
-        self.name = name
-        self.ext = os.path.splitext(name)[1]
-        self.cid = str(cid)
-        self.sha = str(sha)
-        self.xlink = createLink(self.xid, self.cid)
-
-    def addVersion(self, cid, sha):
-        sha = str(sha)
-        cid = str(cid)
-        if (self.sha != sha):
-            # print "new version for", self.name, self.sha, sha
-            self.sha = sha
-            self.cid = cid
-            self.xlink = createLink(self.xid, self.cid)
-
-    def metadata(self, blob, snapshot, type):
-        data = {}
-
-        data['base'] = {
-            'xid': self.xid,
-            'commit': str(snapshot.commit.id),
-            'xlink': createLink(self.xid, snapshot.commit.id),
-            'branch': snapshot.xlink,
-            'timestamp': snapshot.timestamp,
-            'ref': '',
-            'type': type
-        }
-
-        data['asset'] = {
-            'name': self.name,
-            'ext': self.ext,
-            'title': '',
-            'description': '',
-            'sha': str(blob.id),
-            'size': blob.size,
-            'encoding': 'binary' if blob.is_binary else 'text',
-        }
-
-        for factory in xitypes.allTypes:
-            obj = factory()
-            obj.blob = blob
-            obj.metadata = data
-            obj.snapshot = snapshot
-            obj.init()
-            if obj.isValid():
-                obj.addMetadata()
-                break # use only first valid xitype
-        return data
 
 class Snapshot:
     def __init__(self, xid, commit, link, path):
@@ -222,7 +139,8 @@ class Project:
                     asset.addVersion(snapshot.commit.id, obj.id)
                 else:
                     xid = genxid(snapshot.commit.id, obj.id)
-                    asset = Asset(snapshot.commit.id, obj.id, xid, name)
+                    asset = Asset()
+                    asset.configure(snapshot.commit.id, obj.id, xid, name)
                     self.assets[name] = asset
                 snapshot.add(asset)
 
@@ -312,9 +230,9 @@ class Project:
 
                 if not os.path.isfile(path):
                     type = self.getType(asset.name)
-                    metadata = asset.metadata(blob, snapshot, type)
+                    metadata = asset.generateMetadata(blob, snapshot, type)
                     saveJSON(path, metadata)
-                    print "wrote metadata for", link, name
+                    print "wrote metadata for", link, name, asset.typeName()
                     self.assetsCreated += 1
 
     def writeMetadata(self, meta):
