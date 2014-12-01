@@ -71,10 +71,11 @@ class Snapshot:
 
 
 class Project:
-    def __init__(self, name, repoDir, metaDir):
+    def __init__(self, name, repoDir, metaDir, assets):
         self.name = name
         self.repoDir = repoDir
         self.metaDir = metaDir
+        self.assets = assets
         self.repo = Repository(self.repoDir)
         self.xid = self.genxid()
         self.snapshots = []
@@ -93,20 +94,18 @@ class Project:
         xid = genxid(commit.id, commit.tree.id)
         return str(xid)
 
-    def init(self, assets):
+    def init(self):
         """
         Generates metadata for all commits. Overwrites existing metadata.
         """
-        self.assets = assets
         self.initSnapshots()
         self.initMetadata(True)
         self.saveSnapshots()
 
-    def update(self, assets):
+    def update(self):
         """
         Generates metadata for all commits since the last update
         """
-        self.assets = assets
         self.updateSnapshots()
         self.initMetadata()
         self.saveSnapshots()
@@ -209,6 +208,9 @@ class Project:
         return schema.xlink if schema else '?'
 
     def initMetadata(self, rewrite=False):
+
+        #assets = {asset.xlink: asset for xid, asset in assets.items()}
+
         for snapshot in self.snapshots:
             for xid in snapshot.assets:
                 info = snapshot.assets[xid]
@@ -230,7 +232,6 @@ class Project:
                 asset = self.assets[name]
 
                 if not os.path.isfile(path):
-                    #type = self.getType(asset.name)
                     asset.generateMetadata(blob, snapshot)
                     asset.save(path)
                     print "wrote metadata for", link, name, asset.typeName()
@@ -243,7 +244,6 @@ class Project:
         saveJSON(path, meta)
         #print "writeMetadata", path, meta
 
-
 class Guild:
     def __init__(self, config, rebuild=False):
         self.wiki = config['application']['title']
@@ -254,12 +254,11 @@ class Guild:
 
         self.name = os.path.basename(self.guildDir)
         self.project = os.path.basename(self.projDir)
-
-        self.guildProject = Project(self.name, self.guildDir, self.metaDir)
-        self.repoProject = Project(self.wiki, self.repoDir, self.metaDir)
-        self.projProject = Project(self.project, self.projDir, self.metaDir)
-
         self.assets = {}
+
+        self.guildProject = Project(self.name, self.guildDir, self.metaDir, self.assets)
+        self.repoProject = Project(self.wiki, self.repoDir, self.metaDir, self.assets)
+        self.projProject = Project(self.project, self.projDir, self.metaDir, self.assets)
 
         if rebuild:
             shutil.rmtree(self.metaDir, ignore_errors=True)
@@ -302,15 +301,15 @@ class Guild:
         return types
         
     def init(self):
-        self.guildProject.init(self.assets)
-        self.repoProject.init(self.assets)
-        self.projProject.init(self.assets)
+        self.guildProject.init()
+        self.repoProject.init()
+        self.projProject.init()
         self.saveIndex()
 
     def update(self):
-        self.guildProject.update(self.assets)
-        self.repoProject.update(self.assets)
-        self.projProject.update(self.assets)
+        self.guildProject.update()
+        self.repoProject.update()
+        self.projProject.update()
         self.saveIndex()
 
     def getAgent(self, id):

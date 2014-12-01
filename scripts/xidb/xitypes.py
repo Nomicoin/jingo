@@ -31,16 +31,26 @@ class Asset(object):
         self.xlink = ''
         self.vlink = ''
 
+    def init(self):
+        self.vlink = self.metadata['base']['commit'][:8]
+
     def configure(self, cid, sha, xid, name):
         self.xid = str(xid)
         self.name = name
+        self.title = os.path.basename(name)
         self.ext = os.path.splitext(name)[1]
         self.cid = str(cid)
         self.sha = str(sha)
         self.xlink = createLink(self.xid, self.cid)
  
-    def save(self, path):
+    def save(self, path=None):
+        if path:
+            self.path = path
+        else:
+            path = self.path
+
         saveJSON(path, self.metadata)
+        print ">>> saved metadata to ", path
 
     def addVersion(self, cid, sha):
         sha = str(sha)
@@ -57,7 +67,7 @@ class Asset(object):
         data['base'] = {
             'xid': self.xid,
             'commit': str(snapshot.commit.id),
-            'xlink': self.xlink,
+            'xlink': createLink(self.xid, snapshot.commit.id),
             'branch': snapshot.xlink,
             'timestamp': snapshot.timestamp,
             'ref': '',
@@ -89,8 +99,9 @@ class Asset(object):
 
         self.metadata = data
 
-    def init(self):
-        self.vlink = self.metadata['base']['commit'][:8]
+    def connect(self, assets):
+        if self.type:
+            self.type.connect(assets)
 
     def typeName(self):
         if self.type:
@@ -108,6 +119,14 @@ class Asset(object):
     def addMetadata(self):
         self.metadata['asset']['content-type'] = self.contentType
         self.metadata['asset']['title'] = self.title
+
+    def addVote(self, vote):
+        print ">>> addVote", vote
+        self.save()
+
+    def addComment(self, comment):
+        print ">>> addComment", comment
+        self.save()
 
 class Text(Asset):
     def __init__(self):
@@ -183,11 +202,11 @@ class Comment(Markdown):
             self.xaction = False
         
         if self.isValid():
-            ref = self.xaction['ref']
+            self.ref = self.xaction['ref']
             # todo: retrieve reference's metadata
             author=self.xaction['author']
             # todo: retrieve author's name from metadata
-            self.title = "Comment on %s by %s" % (ref, author)
+            self.title = "Comment on %s by %s" % (self.ref, author)
 
     def isComment(self):
         return (self.xaction and 
@@ -209,6 +228,14 @@ class Comment(Markdown):
             authorEmail=self.snapshot.commit.author.email,
         )
 
+    def connect(self, assets):
+        if self.ref in assets:
+            ref = assets[self.ref]
+            ref.addComment(self)
+            print ">>> added comment to ", self.ref.name
+        else:
+            print ">>> comment failed to find ref", self.ref
+
 class Vote(Text):
     def __init__(self):
         super(Vote, self).__init__()
@@ -222,11 +249,11 @@ class Vote(Text):
             self.xaction = False
         
         if self.isValid():
-            ref = self.xaction['ref']
+            self.ref = self.xaction['ref']
             # todo: retrieve reference's metadata
             author=self.xaction['author']
             # todo: retrieve author's name from metadata
-            self.title = "Vote on %s by %s" % (ref, author)
+            self.title = "Vote on %s by %s" % (self.ref, author)
 
     def isVote(self):
         return (self.xaction and 
@@ -247,6 +274,14 @@ class Vote(Text):
             authorName=self.snapshot.commit.author.name,
             authorEmail=self.snapshot.commit.author.email,
         )
+
+    def connect(self, assets):
+        if self.ref in assets:
+            ref = assets[self.ref]
+            ref.addVote(self)
+            print ">>> added vote to ", self.ref.name
+        else:
+            print ">>> vote failed to find ref", self.ref, assets
 
 class Image(Asset):
     def __init__(self):
