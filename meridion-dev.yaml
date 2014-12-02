@@ -2,16 +2,24 @@
 # Configuration sample file for Jingo (YAML)
 application:
   title: Meridion
-  guild: "/home/david/dev/guilds/Archetech"
-  repository: "/home/david/dev/Meridion.wiki"
-  project: "/home/david/dev/viki"
+  publicGuildName: "Archetech Distributed"
+  publicGuildDescription: 
+          Archetech Distributed is an organization devoted 
+          to the promotion of collaborative intelligence.
+          Some of our products include Viki and Meridion.
+          You can find out more information about us at 
+          http://archetech.com
+  guild: "/home/v/dev/guilds/Archetech"
+  repository: "/home/v/dev/Meridion.wiki"
+  bareRepo: "/home/v/dev/Meridion.git"
+  project: "/home/v/dev/viki"
   docSubdir: ""
   remote: ""
   pushInterval: 30
   secret: change me
   git: git
   skipGitCheck: false
-  loggingMode: 1
+  loggingMode: 2
   staticWhitelist: "/\\.png$/i, /\\.jpg$/i, /\\.gif$/i, /\\.pdf$/, /\\.gliffy$/"
 authentication:
   google:
@@ -24,9 +32,9 @@ authentication:
     clientSecret: ed8562ca1ab2fbe7f7561adae5e66b47aebc538a
   alone:
     enabled: true
-    username: "macterra"
+    username: "flaxscrip"
     passwordHash: "d033e22ae348aeb5660fc2140aec35850c4da997"
-    email: "davidmc@gmail.com"
+    email: "01010110@flaxscrip.nu"
 features:
   markitup: false
   codemirror: true
@@ -50,4 +58,14 @@ customizations:
   footer: _Footer
   style: _style
   script: _script
+bitmessage:
+  bmAddress: "BM-2cXkWSet4JKLs6fbmfns3exuXpL9cVFonT"
+#  bmAddress: "BM-2cXV416r1c6RV6qbjv8pdfg7FbHmJ3J7CX"
+  bmServer: "127.0.0.1"
+  bmPort: 8556
+#  bmPort: 8442
+  bmPath: "/"
+  bmUser: "flaxscrip"
+  bmPassword: "goodforyou"
+  bmAnnounce: "BM-2cXGmvw3ECyCCaR5pnbFX41QWm6jhmkrS2"
 

@@ -1,0 +1,21 @@
+extends layout
+
+block content
+  p Admin page for testing repository distribution 
+
+  p #{status}
+
+  form(action="/admin", method="post").input-group.input-group-sm.search
+    
+    select.form-control(name="command")
+      option(value="list") List Addresses
+      option(value="subs") Subscriptions
+      option(value="all")  All Messages
+      option(value="send") Send Message
+
+    input.form-control(type="text", value="", name="message")
+    button.btn.btn-primary(type="submit") Run Command
+  
+  p
+  pre #{results}
+
