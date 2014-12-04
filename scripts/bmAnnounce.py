@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys, argparse, yaml, xmlrpclib, json, time
+import argparse, yaml, xmlrpclib
 
 parser = argparse.ArgumentParser(description="")
 parser.add_argument('-r', '--repo', dest='repo', required=False)

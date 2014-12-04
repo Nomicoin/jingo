@@ -9,7 +9,7 @@
 #  4) Respond to requests to subscribe to a repository
 #
 
-import sys, argparse, yaml, xmlrpclib, json, time
+import argparse, yaml, xmlrpclib, json
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-r', '--repo', dest='repo', required=False)
