@@ -27,6 +27,8 @@ authentication:
     username: "macterra"
     passwordHash: "d033e22ae348aeb5660fc2140aec35850c4da997"
     email: "davidmc@gmail.com"
+  rsshttp:
+    enabled: true
 features:
   markitup: false
   codemirror: true
