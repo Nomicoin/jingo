@@ -3,28 +3,8 @@ from pygit2 import *
 from glob import glob
 from datetime import datetime
 from xidb.genxid import genxid
-from xidb.xitypes import Asset
+from xidb.xitypes import Agent, Asset
 from xidb.utils import *
-
-class Agent:
-    def __init__(self, data, meta):
-        self.data = data
-        self.meta = meta
-
-    def getContact(self):
-        return self.data['contact']
-
-    def getName(self):
-        return self.getContact()['name']
-
-    def getEmail(self):
-        return self.getContact()['email']
-
-    def getXlink(self):
-        return self.meta['base']['xlink']
-
-    def getSignature(self):
-        return Signature(self.getName(), self.getEmail())
 
 class Snapshot:
     def __init__(self, xid, commit, link, path):
@@ -79,7 +59,6 @@ class Project:
         self.repo = Repository(self.repoDir)
         self.xid = self.genxid()
         self.snapshots = []
-        self.assets = {}
         self.snapshotsLoaded = 0
         self.snapshotsCreated = 0
         self.assetsLoaded = 0
@@ -162,6 +141,7 @@ class Project:
         self.loadSnapshots(True)
 
     def loadSnapshots(self, rewrite=False):
+        self.newAssets = []
         for snapshot in self.snapshots:
             if not rewrite and os.path.exists(snapshot.path):
                 print "Loading snapshot", snapshot.path
@@ -180,6 +160,7 @@ class Project:
                         asset = Asset()
                         asset.configure(commit, sha, xid, name)
                         self.assets[name] = asset
+                        self.newAssets.append(asset)
                     snapshot.add(asset)
                 self.snapshotsLoaded += 1
             else:
@@ -281,6 +262,7 @@ class Guild:
         path = self.repoProject.createPath(xlink)
         with open(path) as f:
             meta = json.loads(f.read())
+            meta['path'] = path
         return meta
 
     def loadAgents(self):
@@ -304,13 +286,19 @@ class Guild:
         self.guildProject.init()
         self.repoProject.init()
         self.projProject.init()
+        self.connectAssets()
         self.saveIndex()
 
     def update(self):
         self.guildProject.update()
         self.repoProject.update()
         self.projProject.update()
+        self.connectAssets()
         self.saveIndex()
+
+    def connectAssets(self):
+        for xid, asset in self.assets.items():
+            asset.connect(self)
 
     def getAgent(self, id):
         id = id.lower()

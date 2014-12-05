@@ -7,6 +7,37 @@ from markdown.extensions.wikilinks import WikiLinkExtension
 from markdown.extensions.tables import TableExtension
 from xidb.utils import *
 
+class Agent:
+    def __init__(self, data, meta):
+        self.data = data
+        self.meta = meta
+
+    def getContact(self):
+        return self.data['contact']
+
+    def getName(self):
+        return self.getContact()['name']
+
+    def getEmail(self):
+        return self.getContact()['email']
+
+    def getXlink(self):
+        return self.meta['base']['xlink']
+
+    def getSignature(self):
+        return Signature(self.getName(), self.getEmail())
+
+    def addPub(self, xlink, type):
+        print ">>> addPub", xlink, type
+        base = self.meta['base']
+        pubs = base['pubs'] if "pubs" in base else {}
+        publist = pubs[type] if type in pubs else []
+        publist.append(xlink)
+        pubs[type] = publist
+        base['pubs'] = pubs
+        self.meta['base'] = base
+        saveMetadata(self.meta)
+
 class Asset(object):
     @staticmethod
     def fromMetadata(meta):
@@ -30,6 +61,7 @@ class Asset(object):
         self.title = ''
         self.xlink = ''
         self.vlink = ''
+        self.connected = True
 
     def init(self):
         self.vlink = self.metadata['base']['commit'][:8]
@@ -98,10 +130,13 @@ class Asset(object):
                 break # use only first valid xitype
 
         self.metadata = data
+        self.connected = False
 
-    def connect(self, assets):
-        if self.type:
-            self.type.connect(assets)
+    def connect(self, guild):
+        if self.type and not self.connected:
+            self.type.connect(guild)
+            #print ">>> connected", self.typeName(), self.connected
+            self.connected = True
 
     def typeName(self):
         if self.type:
@@ -122,11 +157,11 @@ class Asset(object):
 
     def addVote(self, vote):
         print ">>> addVote", vote
-        self.save()
+        #self.save()
 
     def addComment(self, comment):
         print ">>> addComment", comment
-        self.save()
+        #self.save()
 
 class Text(Asset):
     def __init__(self):
@@ -204,9 +239,9 @@ class Comment(Markdown):
         if self.isValid():
             self.ref = self.xaction['ref']
             # todo: retrieve reference's metadata
-            author=self.xaction['author']
+            self.author=self.xaction['author']
             # todo: retrieve author's name from metadata
-            self.title = "Comment on %s by %s" % (self.ref, author)
+            self.title = "Comment on %s by %s" % (self.ref, self.author)
 
     def isComment(self):
         return (self.xaction and 
@@ -222,19 +257,22 @@ class Comment(Markdown):
         super(Comment, self).addMetadata()
 
         self.metadata['comment'] = dict(
-            ref=self.xaction['ref'], 
-            author=self.xaction['author'], 
+            ref=self.ref,
+            author=self.author,
             authorName=self.snapshot.commit.author.name,
             authorEmail=self.snapshot.commit.author.email,
         )
 
-    def connect(self, assets):
-        if self.ref in assets:
-            ref = assets[self.ref]
+    def connect(self, guild):
+        ref = guild.getAsset(self.ref)
+        if ref:
             ref.addComment(self)
-            print ">>> added comment to ", self.ref.name
-        else:
-            print ">>> comment failed to find ref", self.ref
+            print ">>> added comment to ", ref.name
+
+        author = guild.agentFromXlink(self.author)
+        if author:
+            author.addPub(self.xlink, "comments")
+            print ">>> added vote from", author.getName(), self.xlink
 
 class Vote(Text):
     def __init__(self):
@@ -251,9 +289,9 @@ class Vote(Text):
         if self.isValid():
             self.ref = self.xaction['ref']
             # todo: retrieve reference's metadata
-            author=self.xaction['author']
+            self.author=self.xaction['author']
             # todo: retrieve author's name from metadata
-            self.title = "Vote on %s by %s" % (self.ref, author)
+            self.title = "Vote on %s by %s" % (self.ref, self.author)
 
     def isVote(self):
         return (self.xaction and 
@@ -269,19 +307,22 @@ class Vote(Text):
         super(Vote, self).addMetadata()
 
         self.metadata['vote'] = dict(
-            ref=self.xaction['ref'], 
-            author=self.xaction['author'], 
+            ref=self.ref,
+            author=self.author,
             authorName=self.snapshot.commit.author.name,
             authorEmail=self.snapshot.commit.author.email,
         )
 
-    def connect(self, assets):
-        if self.ref in assets:
-            ref = assets[self.ref]
+    def connect(self, guild):
+        ref = guild.getAsset(self.ref)
+        if ref:
             ref.addVote(self)
-            print ">>> added vote to ", self.ref.name
-        else:
-            print ">>> vote failed to find ref", self.ref, assets
+            print ">>> added vote to", ref.name, self.xlink
+
+        author = guild.agentFromXlink(self.author)
+        if author:
+            author.addPub(self.xlink, "votes")
+            print ">>> added vote from", author.getName(), self.xlink
 
 class Image(Asset):
     def __init__(self):
