@@ -21,6 +21,9 @@ class Agent:
     def getEmail(self):
         return self.getContact()['email']
 
+    def getXid(self):
+        return self.meta['base']['xid']
+
     def getXlink(self):
         return self.meta['base']['xlink']
 
@@ -50,6 +53,7 @@ class Asset(object):
         name = asset['name']
 
         asset = Asset()
+        asset.metadata = meta
         asset.configure(cid, sha, xid, name)
         return asset
 
@@ -155,9 +159,18 @@ class Asset(object):
         self.metadata['asset']['content-type'] = self.contentType
         self.metadata['asset']['title'] = self.title
 
-    def addVote(self, vote):
-        print ">>> addVote", vote
-        #self.save()
+    def addVote(self, agent, vote):
+        xid = agent.getXid()
+        xlink = vote.xlink
+
+        print ">>> addVote", xid, vote
+
+        base = self.metadata['base']
+        votes = base['votes'] if "votes" in base else {}
+        votes[xid] = xlink
+        base['votes'] = votes
+        self.metadata['base'] = base
+        saveMetadata(self.metadata)
 
     def addComment(self, comment):
         print ">>> addComment", comment
@@ -314,15 +327,16 @@ class Vote(Text):
         )
 
     def connect(self, guild):
-        ref = guild.getAsset(self.ref)
-        if ref:
-            ref.addVote(self)
-            print ">>> added vote to", ref.name, self.xlink
-
         author = guild.agentFromXlink(self.author)
-        if author:
+        ref = guild.getAsset(self.ref)
+
+        if author and ref:
             author.addPub(self.xlink, "votes")
             print ">>> added vote from", author.getName(), self.xlink
+
+            ref.addVote(author, self)
+            print ">>> added vote to", ref.name, self.xlink
+
 
 class Image(Asset):
     def __init__(self):
