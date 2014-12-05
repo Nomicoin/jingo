@@ -162,19 +162,22 @@ class Asset(object):
     def addVote(self, agent, vote):
         xid = agent.getXid()
         xlink = vote.xlink
-
-        print ">>> addVote", xid, vote
-
         base = self.metadata['base']
         votes = base['votes'] if "votes" in base else {}
         votes[xid] = xlink
         base['votes'] = votes
         self.metadata['base'] = base
         saveMetadata(self.metadata)
+        print ">>> addVote", xid, vote
 
     def addComment(self, comment):
+        base = self.metadata['base']
+        comments = base['comments'] if "comments" in base else []
+        comments.append(comment.xlink)
+        base['comments'] = comments
+        self.metadata['base'] = base
+        saveMetadata(self.metadata)
         print ">>> addComment", comment
-        #self.save()
 
 class Text(Asset):
     def __init__(self):
