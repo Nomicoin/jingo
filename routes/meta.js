@@ -65,11 +65,9 @@ function _getVPage(req, res) {
   var snapshot = xidb.getWikiSnapshot(cid);
   var latestSnapshot = xidb.getLatestWikiSnapshot();
   var latestXlink = xidb.getMetalink(latestSnapshot, file, true);
-  var guildSnapshot = xidb.getLatestGuildSnapshot();
-  var comments = xidb.getComments(guildSnapshot, xlink);
-  var votes = xidb.getVotes(guildSnapshot, xlink);
+  var comments = xidb.getComments(xlink);
+  var votes = xidb.getVotes(xlink);
   var voteResults = xidb.getVoteResults(metadata, votes);
-
   var age;
 
   if (xlink != latestXlink) {
