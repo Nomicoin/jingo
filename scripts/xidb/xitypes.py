@@ -31,13 +31,13 @@ class Agent:
     def getSignature(self):
         return Signature(self.getName(), self.getEmail())
 
-    def addPub(self, xlink, type):
-        print ">>> addPub", xlink, type
+    def addPub(self, pub, kind):
+        print ">>> addPub", pub.xlink, kind
         base = self.meta['base']
         pubs = base['pubs'] if "pubs" in base else {}
-        publist = pubs[type] if type in pubs else []
-        publist.append(xlink)
-        pubs[type] = publist
+        publist = pubs[kind] if kind in pubs else []
+        publist.append(pub.xlink)
+        pubs[kind] = publist
         base['pubs'] = pubs
         self.meta['base'] = base
         saveMetadata(self.meta)
@@ -288,7 +288,7 @@ class Comment(Markdown):
 
         author = guild.agentFromXlink(self.author)
         if author:
-            author.addPub(self.xlink, "comments")
+            author.addPub(self, "comment")
             print ">>> added vote from", author.getName(), self.xlink
 
 class Vote(Text):
@@ -335,7 +335,7 @@ class Vote(Text):
         ref = guild.getAsset(self.ref)
 
         if author and ref:
-            author.addPub(self.xlink, "votes")
+            author.addPub(self, "vote")
             print ">>> added vote from", author.getName(), self.xlink
 
             ref.addVote(author, self)
