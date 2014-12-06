@@ -214,7 +214,6 @@ function _viewAsset(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
   var metadata = xidb.getMetadata(xid, cid);
-  var kind = metadata.base.kind;
   var snapshot = xidb.getMetadataFromLink(metadata.base.branch);
 
   if ('image' in metadata) {
@@ -227,9 +226,15 @@ function _viewAsset(req, res) {
   }
   else {
     xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, content) {
-      res.render(kind, {
+      var data = JSON.parse(content);
+      var kind = metadata.base.kind;
+      var view = kind.toLowerCase();
+
+      console.log(data);
+
+      res.render(view, {
 	'title': metadata.asset.name,
-	'content': content,
+	'data': data,
 	'nav': metadata.navigation,
 	'snapshot': snapshot.commit
       });

@@ -274,8 +274,8 @@ class Guild:
         for name in index:
             xlink = index[name]
             agent = self.agentFromXlink(xlink)
-            email = os.path.basename(name)
-            agents[email] = agent
+            id = os.path.basename(name)
+            agents[id] = agent
         return agents
 
     def loadTypes(self):
@@ -305,12 +305,13 @@ class Guild:
         if id in self.agents:
             return self.agents[id]
 
-    def getAsset(self, xlink):
+    def getAsset(self, xlink, asset=Asset()):
         path = self.repoProject.createPath(xlink)
         with open(path) as f:
             meta = json.loads(f.read())
             meta['base']['path'] = path
-        return Asset.fromMetadata(meta)
+        asset.initFromMetadata(meta)
+        return asset
 
     def loadTypes(self):
         types = {}
@@ -431,7 +432,10 @@ class Guild:
         sha = asset['sha']
         blob = self.guildProject.repo[sha]
         data = json.loads(blob.data)
-        return Agent(data, meta)
+        #return Agent(data, meta)
+        agent = Agent()
+        agent.initFromMetadata(meta)
+        agent.data = data
 
     def saveIndex(self):
         """

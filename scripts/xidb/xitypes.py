@@ -8,43 +8,9 @@ from markdown.extensions.wikilinks import WikiLinkExtension
 from markdown.extensions.tables import TableExtension
 from xidb.utils import *
 
-class Agent:
-    def __init__(self, data, meta):
-        self.data = data
-        self.meta = meta
-
-    def getContact(self):
-        return self.data['contact']
-
-    def getName(self):
-        return self.getContact()['name']
-
-    def getEmail(self):
-        return self.getContact()['email']
-
-    def getXid(self):
-        return self.meta['base']['xid']
-
-    def getXlink(self):
-        return self.meta['base']['xlink']
-
-    def getSignature(self):
-        return Signature(self.getName(), self.getEmail())
-
-    def addPub(self, pub, kind):
-        print ">>> addPub", pub.xlink, kind
-        base = self.meta['base']
-        pubs = base['pubs'] if "pubs" in base else {}
-        publist = pubs[kind] if kind in pubs else []
-        publist.append(pub.xlink)
-        pubs[kind] = publist
-        base['pubs'] = pubs
-        self.meta['base'] = base
-        saveMetadata(self.meta)
-
 class Asset(object):
     @staticmethod
-    def fromMetadata(meta):
+    def fromMetadataX(meta):
         base = meta['base']
         cid = base['commit']
         xid = base['xid']
@@ -70,6 +36,18 @@ class Asset(object):
 
     def init(self):
         self.vlink = self.metadata['base']['commit'][:8]
+
+    def initFromMetadata(self, meta):
+        base = meta['base']
+        cid = base['commit']
+        xid = base['xid']
+
+        asset = meta['asset']
+        sha = asset['sha']
+        name = asset['name']
+
+        self.metadata = meta
+        self.configure(cid, sha, xid, name)
 
     def configure(self, cid, sha, xid, name):
         self.xid = str(xid)
@@ -197,6 +175,47 @@ class Text(Asset):
 
         self.contentType = "text/plain"
         super(Text, self).addMetadata()
+
+class Agent(Text):
+    def __init__(self):
+        super(Agent, self).__init__()
+
+    def init(self):
+        super(Agent, self).init()
+
+    def isValid(self):
+        return (self.checkExtension(['.json']) 
+                and self.name.find("agents/data") == 0
+                and super(Agent, self).isValid())
+
+    def getContact(self):
+        return self.data['contact']
+
+    def getName(self):
+        return self.getContact()['name']
+
+    def getEmail(self):
+        return self.getContact()['email']
+
+    def getXid(self):
+        return self.meta['base']['xid']
+
+    def getXlink(self):
+        return self.meta['base']['xlink']
+
+    def getSignature(self):
+        return Signature(self.getName(), self.getEmail())
+
+    def addPub(self, pub, kind):
+        print ">>> addPub", pub.xlink, kind
+        base = self.meta['base']
+        pubs = base['pubs'] if "pubs" in base else {}
+        publist = pubs[kind] if kind in pubs else []
+        publist.append(pub.xlink)
+        pubs[kind] = publist
+        base['pubs'] = pubs
+        self.meta['base'] = base
+        saveMetadata(self.meta)
 
 def urlBuilder(label, base, end):
     url = label.replace(" ", "-")
@@ -433,6 +452,7 @@ class Gif(Image):
 
 # put leaf classes first because only first valid type will be used to generate metadata
 allTypes = [
+    lambda : Agent(),
     lambda : Vote(),
     lambda : Comment(),
     lambda : Markdown(),
