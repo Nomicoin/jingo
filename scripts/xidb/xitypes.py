@@ -3,6 +3,7 @@ import PIL.Image, PIL.ExifTags
 import markdown, pygit2
 import genxid
 from io import BytesIO
+from pygit2 import Signature
 from markdown.extensions.wikilinks import WikiLinkExtension
 from markdown.extensions.tables import TableExtension
 from xidb.utils import *

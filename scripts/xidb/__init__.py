@@ -262,7 +262,7 @@ class Guild:
         path = self.repoProject.createPath(xlink)
         with open(path) as f:
             meta = json.loads(f.read())
-            meta['path'] = path
+            meta['base']['path'] = path
         return meta
 
     def loadAgents(self):
@@ -309,7 +309,7 @@ class Guild:
         path = self.repoProject.createPath(xlink)
         with open(path) as f:
             meta = json.loads(f.read())
-            meta['path'] = path
+            meta['base']['path'] = path
         return Asset.fromMetadata(meta)
 
     def loadTypes(self):
