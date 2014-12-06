@@ -108,7 +108,7 @@ class Asset(object):
             'branch': snapshot.xlink,
             'timestamp': snapshot.timestamp,
             'ref': '',
-            'type': ''
+            'kind': ''
         }
 
         data['asset'] = {
@@ -131,7 +131,7 @@ class Asset(object):
             if obj.isValid():
                 obj.addMetadata()
                 self.type = obj
-                data['base']['type'] = self.typeName() # TBD should be type xlink
+                data['base']['kind'] = self.typeName() # TBD should be type xlink
                 break # use only first valid xitype
 
         self.metadata = data

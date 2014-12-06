@@ -11,6 +11,7 @@ router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
 router.get("/viki/*", _getPage);
 router.get("/v/:version/*", _getVPage);
+router.get("/view/:xid/:cid", _viewAsset);
 
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
@@ -202,6 +203,33 @@ function _getAsset(req, res) {
 	'title': metadata.asset.name,
 	'content': content,
 	//'lines': lines, 
+	'nav': metadata.navigation,
+	'snapshot': snapshot.commit
+      });
+    });
+  }
+}
+
+function _viewAsset(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
+  var metadata = xidb.getMetadata(xid, cid);
+  var kind = metadata.base.kind;
+  var snapshot = xidb.getMetadataFromLink(metadata.base.branch);
+
+  if ('image' in metadata) {
+    res.render("asset", {
+      'title': metadata.asset.name,
+      'imgsrc': "/api/v1/asset/" + metadata.base.xlink + "/" + metadata.asset.name,
+      'nav': metadata.navigation,
+      'snapshot': snapshot.commit
+    });
+  }
+  else {
+    xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, content) {
+      res.render(kind, {
+	'title': metadata.asset.name,
+	'content': content,
 	'nav': metadata.navigation,
 	'snapshot': snapshot.commit
       });
