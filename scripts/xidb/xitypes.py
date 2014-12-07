@@ -10,6 +10,7 @@ from xidb.utils import *
 
 class Asset(object):
     @staticmethod
+    # deprecated?
     def fromMetadataX(meta):
         base = meta['base']
         cid = base['commit']
@@ -134,20 +135,26 @@ class Asset(object):
         ext = self.metadata['asset']['ext']
         return ext in extensions
 
+    def getBase(self):
+        return self.metadata['base']
+
+    def getTimestamp(self):
+        return self.getBase()['timestamp']
+
     def addMetadata(self):
         self.metadata['asset']['content-type'] = self.contentType
         self.metadata['asset']['title'] = self.title
 
     def addVote(self, agent, vote):
         xid = agent.getXid()
-        xlink = vote.xlink
+        xlink = vote.xlink # change to getXlink()?
         base = self.metadata['base']
         votes = base['votes'] if "votes" in base else {}
         votes[xid] = xlink
         base['votes'] = votes
         self.metadata['base'] = base
         saveMetadata(self.metadata)
-        print ">>> addVote", xid, vote
+        print ">>> addVote", xid, xlink, vote.getTimestamp()
 
     def addComment(self, comment):
         base = self.metadata['base']
@@ -197,25 +204,25 @@ class Agent(Text):
     def getEmail(self):
         return self.getContact()['email']
 
-    def getXid(self):
-        return self.meta['base']['xid']
+    def getXid(self): # promote to Asset?
+        return self.metadata['base']['xid']
 
-    def getXlink(self):
-        return self.meta['base']['xlink']
+    def getXlink(self): # promote to Asset?
+        return self.metadata['base']['xlink']
 
     def getSignature(self):
         return Signature(self.getName(), self.getEmail())
 
     def addPub(self, pub, kind):
         print ">>> addPub", pub.xlink, kind
-        base = self.meta['base']
+        base = self.metadata['base']
         pubs = base['pubs'] if "pubs" in base else {}
         publist = pubs[kind] if kind in pubs else []
         publist.append(pub.xlink)
         pubs[kind] = publist
         base['pubs'] = pubs
-        self.meta['base'] = base
-        saveMetadata(self.meta)
+        self.metadata['base'] = base
+        saveMetadata(self.metadata)
 
 def urlBuilder(label, base, end):
     url = label.replace(" ", "-")

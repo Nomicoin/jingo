@@ -432,10 +432,10 @@ class Guild:
         sha = asset['sha']
         blob = self.guildProject.repo[sha]
         data = json.loads(blob.data)
-        #return Agent(data, meta)
         agent = Agent()
         agent.initFromMetadata(meta)
         agent.data = data
+        return agent
 
     def saveIndex(self):
         """

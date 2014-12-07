@@ -14,6 +14,7 @@ guild = Guild(config)
 
 for handle in guild.agents:
     agent = guild.agents[handle]
-    print handle, agent.getName(), agent.getEmail()
+    print handle
+    print agent.getName(), agent.getEmail()
 
 
