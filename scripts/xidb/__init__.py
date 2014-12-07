@@ -130,6 +130,7 @@ class Project:
             self.snapshots.insert(0, snapshot)
             if os.path.exists(path):
                 break
+        # load only snapshots since last update
         self.loadSnapshots()
 
     def initSnapshots(self):
@@ -138,6 +139,7 @@ class Project:
             path = self.createPath(link)
             snapshot = Snapshot(self.xid, commit, link, path)
             self.snapshots.append(snapshot)
+        # load all snapshots in project
         self.loadSnapshots(True)
 
     def loadSnapshots(self, rewrite=False):
@@ -213,17 +215,11 @@ class Project:
                 asset = self.assets[name]
 
                 if not os.path.isfile(path):
-                    asset.generateMetadata(blob, snapshot)
+                    asset = asset.generate(blob, snapshot)
                     asset.save(path)
+                    self.assets[name] = asset
                     print "wrote metadata for", link, name, asset.typeName()
                     self.assetsCreated += 1
-
-    def writeMetadata(self, meta):
-        base = meta['base']
-        xlink = base['xlink']
-        path = self.createPath(xlink)
-        saveJSON(path, meta)
-        #print "writeMetadata", path, meta
 
 class Guild:
     def __init__(self, config, rebuild=False):
@@ -414,16 +410,6 @@ class Guild:
 
         self.update()
         newAsset = self.assets[path]
-
-        # print "agent xlink", agent.xlink
-        # agentMeta = self.getMetadata(agent.xlink)
-        # self.addRef(agentMeta, "comment", commentAsset.xlink)
-        # self.guildProject.writeMetadata(agentMeta)
-
-        # docMeta = self.getMetadata(xlink)
-        # self.addRef(docMeta, "comment", commentAsset.xlink)
-        # self.repoProject.writeMetadata(docMeta)
-
         return newAsset.xlink
 
     def agentFromXlink(self, xlink):

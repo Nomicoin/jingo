@@ -28,7 +28,6 @@ class Asset(object):
     def __init__(self):
         self.name = ''
         self.metadata = {}
-        self.type = None
         self.contentType = ''
         self.title = ''
         self.xlink = ''
@@ -77,7 +76,8 @@ class Asset(object):
             self.cid = cid
             self.xlink = createLink(self.xid, self.cid)
 
-    def generateMetadata(self, blob, snapshot):
+    def generate(self, blob, snapshot):
+        """ Generates metadata and returns a kind (subclass instance) of Asset """
         data = {}
 
         data['base'] = {
@@ -100,6 +100,8 @@ class Asset(object):
             'encoding': 'binary' if blob.is_binary else 'text',
         }
 
+        kind = None
+
         for factory in allTypes:
             obj = factory()
             obj.configure(self.cid, self.sha, self.xid, self.name)
@@ -109,24 +111,25 @@ class Asset(object):
             obj.init()
             if obj.isValid():
                 obj.addMetadata()
-                self.type = obj
-                data['base']['kind'] = self.typeName() # TBD should be type xlink
+                kind = obj
+                data['base']['kind'] = kind.typeName() # TBD should be kind xlink
                 break # use only first valid xitype
 
-        self.metadata = data
-        self.connected = False
+        if kind:
+            kind.metadata = data
+            kind.connected = False
+            return kind
+        else:
+            self.metadata = data
+            self.connected = False
+            return self
 
     def connect(self, guild):
-        if self.type and not self.connected:
-            self.type.connect(guild)
-            #print ">>> connected", self.typeName(), self.connected
-            self.connected = True
+        print ">>> connected", self.typeName(), self.connected
+        self.connected = True
 
     def typeName(self):
-        if self.type:
-            return type(self.type).__name__
-        else:
-            return "unknown"
+        return type(self).__name__
 
     def isValid(self):
         return False
@@ -355,6 +358,8 @@ class Vote(Text):
             authorName=self.snapshot.commit.author.name,
             authorEmail=self.snapshot.commit.author.email,
         )
+
+        print ">>> addVote new", self.xlink, self.getTimestamp()
 
     def connect(self, guild):
         author = guild.agentFromXlink(self.author)
