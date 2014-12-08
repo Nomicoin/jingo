@@ -78,7 +78,7 @@ class Project:
         Generates metadata for all commits. Overwrites existing metadata.
         """
         self.initSnapshots()
-        self.initMetadata(True)
+        self.initMetadata()
         self.saveSnapshots()
 
     def update(self):
@@ -190,9 +190,11 @@ class Project:
 
         return schema.xlink if schema else '?'
 
-    def initMetadata(self, rewrite=False):
+    def initMetadata(self):
 
         #assets = {asset.xlink: asset for xid, asset in assets.items()}
+
+        self.newAssets = []
 
         for snapshot in self.snapshots:
             for xid in snapshot.assets:
@@ -218,6 +220,7 @@ class Project:
                     asset = asset.generate(blob, snapshot)
                     asset.save(path)
                     self.assets[name] = asset
+                    self.newAssets.append(asset)
                     print "wrote metadata for", link, name, asset.typeName()
                     self.assetsCreated += 1
 
@@ -293,8 +296,17 @@ class Guild:
         self.saveIndex()
 
     def connectAssets(self):
-        for xid, asset in self.assets.items():
+        assets = []
+        assets.extend(self.guildProject.newAssets)
+        assets.extend(self.repoProject.newAssets)
+        assets.extend(self.projProject.newAssets)
+
+        assets = sorted(assets, key=lambda asset: asset.getTimestamp())
+
+        for asset in assets:
             asset.connect(self)
+
+        print ">>> connectAssets", len(assets)
 
     def getAgent(self, id):
         id = id.lower()
