@@ -57,3 +57,21 @@ block content
           td #{key}
           td #{val}
 
+  if metadata.base.pubs.comment
+    p
+    h2 comments
+    ul
+      each comment in metadata.base.pubs.comment
+        li 
+          a(href="/meta/#{comment}") #{comment}
+
+  if metadata.base.pubs.vote
+    p
+    h2 votes
+    ul
+      each vote in metadata.base.pubs.vote
+        li
+          a(href="/meta/#{vote}") #{vote}
+
+
+

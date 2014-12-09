@@ -231,10 +231,12 @@ function _viewAsset(req, res) {
       var view = kind.toLowerCase();
 
       console.log(data);
+      console.log(metadata);
 
       res.render(view, {
 	'title': metadata.asset.name,
 	'data': data,
+	'metadata': metadata,
 	'nav': metadata.navigation,
 	'snapshot': snapshot.commit
       });
