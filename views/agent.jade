@@ -57,7 +57,7 @@ block content
           td #{key}
           td #{val}
 
-  if metadata.base.pubs.comment
+  if metadata && metadata.base && metadata.base.pubs && metadata.base.pubs.comment
     p
     h2 comments
     ul
@@ -65,7 +65,7 @@ block content
         li 
           a(href="/meta/#{comment}") #{comment}
 
-  if metadata.base.pubs.vote
+  if metadata && metadata.base && metadata.base.pubs && metadata.base.pubs.vote
     p
     h2 votes
     ul
