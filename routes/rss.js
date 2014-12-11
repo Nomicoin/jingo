@@ -7,6 +7,7 @@ var router = require("express").Router(),
 models.use(Git);
 
 router.get("/rss", _getRSS);
+//server.use(express.basicAuth('test','testpass'));
 
 function _getRSS(req, res) {
   var items = [];
