@@ -1,0 +1,77 @@
+extends layout
+
+block content
+  h1 #{data.contact.name}
+
+  table.table-bordered.table-hover.table-condensed
+    tr 
+      td author
+      td #{snapshot.author} (#{snapshot.email})
+    tr
+      td message
+      td #{snapshot.message}
+    tr
+      td timestamp
+      td #{snapshot.timestamp}
+    tr
+      td navigation
+      td
+        if nav.first
+          a(href="/meta/#{nav.first + '/asset'}") first&nbsp;
+        else
+          span first&nbsp;
+
+        if nav.prev
+          a(href="/meta/#{nav.prev + '/asset'}") prev&nbsp;
+        else
+          span prev&nbsp;
+
+        if nav.link
+          a(href="/meta/#{nav.link}") [metadata]&nbsp;
+        else
+          span [metadata]&nbsp;
+
+        if nav.next
+          a(href="/meta/#{nav.next + '/asset'}") next&nbsp;
+        else
+          span next&nbsp;
+
+        if nav.last
+          a(href="/meta/#{nav.last + '/asset'}") last&nbsp;
+        else
+          span last&nbsp;
+
+    tr
+      td version
+      td
+        span #{nav.version}
+
+  p
+
+  table.table-bordered.table-hover.table-condensed
+    each type, section in data
+      tr 
+        td(colspan=2, style="text-align:center; font-weight:bold") #{section}
+      each val, key in type
+        tr
+          td #{key}
+          td #{val}
+
+  if metadata && metadata.base && metadata.base.pubs && metadata.base.pubs.comment
+    p
+    h2 comments
+    ul
+      each comment in metadata.base.pubs.comment
+        li 
+          a(href="/meta/#{comment}") #{comment}
+
+  if metadata && metadata.base && metadata.base.pubs && metadata.base.pubs.vote
+    p
+    h2 votes
+    ul
+      each vote in metadata.base.pubs.vote
+        li
+          a(href="/meta/#{vote}") #{vote}
+
+
+

@@ -11,6 +11,7 @@ router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
 router.get("/viki/*", _getPage);
 router.get("/v/:version/*", _getVPage);
+router.get("/view/:xid/:cid", _viewAsset);
 
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
@@ -65,11 +66,9 @@ function _getVPage(req, res) {
   var snapshot = xidb.getWikiSnapshot(cid);
   var latestSnapshot = xidb.getLatestWikiSnapshot();
   var latestXlink = xidb.getMetalink(latestSnapshot, file, true);
-  var guildSnapshot = xidb.getLatestGuildSnapshot();
-  var comments = xidb.getComments(guildSnapshot, xlink);
-  var votes = xidb.getVotes(guildSnapshot, xlink);
+  var comments = xidb.getComments(xlink);
+  var votes = xidb.getVotes(xlink);
   var voteResults = xidb.getVoteResults(metadata, votes);
-
   var age;
 
   if (xlink != latestXlink) {
@@ -204,6 +203,40 @@ function _getAsset(req, res) {
 	'title': metadata.asset.name,
 	'content': content,
 	//'lines': lines, 
+	'nav': metadata.navigation,
+	'snapshot': snapshot.commit
+      });
+    });
+  }
+}
+
+function _viewAsset(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
+  var metadata = xidb.getMetadata(xid, cid);
+  var snapshot = xidb.getMetadataFromLink(metadata.base.branch);
+
+  if ('image' in metadata) {
+    res.render("asset", {
+      'title': metadata.asset.name,
+      'imgsrc': "/api/v1/asset/" + metadata.base.xlink + "/" + metadata.asset.name,
+      'nav': metadata.navigation,
+      'snapshot': snapshot.commit
+    });
+  }
+  else {
+    xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, content) {
+      var data = JSON.parse(content);
+      var kind = metadata.base.kind;
+      var view = kind.toLowerCase();
+
+      console.log(data);
+      console.log(metadata);
+
+      res.render(view, {
+	'title': metadata.asset.name,
+	'data': data,
+	'metadata': metadata,
 	'nav': metadata.navigation,
 	'snapshot': snapshot.commit
       });
