@@ -125,7 +125,7 @@ class Asset(object):
             return self
 
     def connect(self, guild):
-        print ">>> connected", self.typeName(), self.connected
+        # print ">>> connected", self.typeName(), self.connected
         self.connected = True
 
     def typeName(self):
@@ -359,7 +359,7 @@ class Vote(Text):
             authorEmail=self.snapshot.commit.author.email,
         )
 
-        print ">>> addVote new", self.xlink, self.getTimestamp()
+        # print ">>> addVote new", self.xlink, self.getTimestamp()
 
     def connect(self, guild):
         author = guild.agentFromXlink(self.author)

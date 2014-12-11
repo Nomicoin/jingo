@@ -22,4 +22,4 @@ def saveJSON(path, obj):
 def saveMetadata(meta):
     path = meta['base']['path']
     saveJSON(path, meta)
-    print ">>> saveMetadata", path, meta
+    # print ">>> saveMetadata", path, meta
