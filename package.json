@@ -47,7 +47,8 @@
     "semver": "^2.3.2",
     "serve-favicon": "^2.0.1",
     "toml-js": "^0.0.8",
-    "moment": "~2.8.3"
+    "moment": "~2.8.3",
+    "passport-http": "~0.2.2"
   },
   "devDependencies": {
     "chai": "*",
