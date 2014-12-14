@@ -182,7 +182,22 @@ class Text(Asset):
         self.contentType = "text/plain"
         super(Text, self).addMetadata()
 
-class Agent(Text):
+class Json(Text):
+    def __init__(self):
+        super(Json, self).__init__()
+
+    def init(self):
+        super(Json, self).init()
+
+        try:
+            self.data = json.loads(self.blob.data)
+        except:
+            self.data = None
+
+    def isValid(self):
+        return (super(Json, self).isValid() and self.data)
+
+class Agent(Json):
     def __init__(self):
         super(Agent, self).__init__()
 
@@ -193,6 +208,10 @@ class Agent(Text):
         return (self.checkExtension(['.json']) 
                 and self.name.find("agents/data") == 0
                 and super(Agent, self).isValid())
+
+    def addMetadata(self):
+       super(Agent, self).addMetadata()
+       self.metadata['agent'] = self.data
 
     def getContact(self):
         return self.data['contact']
@@ -317,21 +336,6 @@ class Comment(Markdown):
             author.addPub(self, "comment")
             print ">>> added vote from", author.getName(), self.xlink
 
-class Json(Text):
-    def __init__(self):
-        super(Json, self).__init__()
-
-    def init(self):
-        super(Json, self).init()
-
-        try:
-            self.data = json.loads(self.blob.data)
-        except:
-            self.data = None
-
-    def isValid(self):
-        return (super(Json, self).isValid() and self.data)
-
 class Vote(Json):
     def __init__(self):
         super(Vote, self).__init__()
@@ -360,7 +364,8 @@ class Vote(Json):
                 'author' in self.xaction)
 
     def isValid(self):
-        return self.isVote() and super(Vote, self).isValid()
+        return (super(Vote, self).isValid()
+                and self.isVote())
 
     def addMetadata(self):
        super(Vote, self).addMetadata()

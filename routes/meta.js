@@ -78,6 +78,8 @@ function _getVPage(req, res) {
     age = "current";
   }
 
+  console.log(votes);
+
   res.render("page", {
     'title': metadata.asset.title,
     'page': metadata,

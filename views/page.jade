@@ -65,14 +65,14 @@ block content
         each vote in votes
           tr
             td
-              if vote.vote.authorEmail
-                img(src=gravatar().url("#{vote.vote.authorEmail}", {s:20}))
+              if vote.author.agent.contact.email
+                img(src=gravatar().url("#{vote.author.agent.contact.email}", {s:20}))
                 | &nbsp;
-              a(href="#{vote.vote.authorLink}") #{vote.vote.authorName}
+              a(href="#{vote.author.link}") #{vote.author.agent.contact.name}
             td 
-              a(href="#{vote.vote.link}") #{vote.voteDoc.vote}
+              a(href="#{vote.vote.link}") #{vote.vote.vote}
             td #{vote.vote.age}
-            td #{vote.voteDoc.comment}
+            td #{vote.vote.comment}
     p
 
     if voteResults
