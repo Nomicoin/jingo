@@ -314,10 +314,12 @@ class Guild:
             return self.agents[id]
 
     def getAsset(self, xlink, asset=Asset()):
+        # asset could be in any project, Guild should have a createPath()
         path = self.repoProject.createPath(xlink)
         with open(path) as f:
             meta = json.loads(f.read())
             meta['base']['path'] = path
+        # can we infer project from metadata and pass in the right repo here?
         asset.initFromMetadata(meta)
         return asset
 

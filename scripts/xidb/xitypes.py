@@ -9,22 +9,6 @@ from markdown.extensions.tables import TableExtension
 from xidb.utils import *
 
 class Asset(object):
-    @staticmethod
-    # deprecated?
-    def fromMetadataX(meta):
-        base = meta['base']
-        cid = base['commit']
-        xid = base['xid']
-
-        asset = meta['asset']
-        sha = asset['sha']
-        name = asset['name']
-
-        asset = Asset()
-        asset.metadata = meta
-        asset.configure(cid, sha, xid, name)
-        return asset
-
     def __init__(self):
         self.name = ''
         self.metadata = {}
@@ -59,12 +43,14 @@ class Asset(object):
         self.xlink = createLink(self.xid, self.cid)
  
     def save(self, path=None):
-        if path:
-            self.path = path
-        else:
-            path = self.path
+        base = self.getBase()
 
-        saveJSON(path, self.metadata)
+        if path:
+            base['path'] = path
+        else:
+            path = base['path']
+
+        saveMetadata(self.metadata)
         print ">>> saved metadata to ", path
 
     def addVersion(self, cid, sha):
@@ -156,7 +142,7 @@ class Asset(object):
         votes[xid] = xlink
         base['votes'] = votes
         self.metadata['base'] = base
-        saveMetadata(self.metadata)
+        self.save()
         print ">>> addVote", xid, xlink, vote.getTimestamp()
 
     def addComment(self, comment):
@@ -165,8 +151,15 @@ class Asset(object):
         comments.append(comment.xlink)
         base['comments'] = comments
         self.metadata['base'] = base
-        saveMetadata(self.metadata)
+        self.save()
         print ">>> addComment", comment
+
+    def getTitle(self):
+        return self.metadata['asset']['title']
+
+    def setTitle(self, title):
+        self.metadata['asset']['title'] = title
+        self.save()
 
 class Text(Asset):
     def __init__(self):
@@ -175,14 +168,17 @@ class Text(Asset):
     def init(self):
         super(Text, self).init()
 
+        if self.blob.is_binary:
+            self.text = None
+        else:
+            self.text = self.blob.data.decode('utf-8')
+
     def isValid(self):
-        return not self.blob.is_binary
+        return self.text != None
 
     def addMetadata(self):
-        text = self.blob.data.decode('utf-8')
-        lines = text.count('\n')
+        lines = self.text.count('\n')
         self.metadata['text'] = { 'lines': lines }
-
         self.contentType = "text/plain"
         super(Text, self).addMetadata()
 
@@ -314,13 +310,29 @@ class Comment(Markdown):
         if ref:
             ref.addComment(self)
             print ">>> added comment to ", ref.name
+            self.setTitle("re: " + ref.name)
 
         author = guild.agentFromXlink(self.author)
         if author:
             author.addPub(self, "comment")
             print ">>> added vote from", author.getName(), self.xlink
 
-class Vote(Text):
+class Json(Text):
+    def __init__(self):
+        super(Json, self).__init__()
+
+    def init(self):
+        super(Json, self).init()
+
+        try:
+            self.data = json.loads(self.blob.data)
+        except:
+            self.data = None
+
+    def isValid(self):
+        return (super(Json, self).isValid() and self.data)
+
+class Vote(Json):
     def __init__(self):
         super(Vote, self).__init__()
 
@@ -330,7 +342,7 @@ class Vote(Text):
         try:
             self.xaction = json.loads(self.snapshot.commit.message)
         except:
-            self.xaction = False
+            self.xaction = None
         
         if self.isValid():
             self.ref = self.xaction['ref']
@@ -340,7 +352,8 @@ class Vote(Text):
             self.title = "Vote on %s by %s" % (self.ref, self.author)
 
     def isVote(self):
-        return (self.xaction and 
+        return (self.data and
+                self.xaction and 
                 'type' in self.xaction and 
                 self.xaction['type'] == 'vote' and 
                 'ref' in self.xaction and 
@@ -350,16 +363,18 @@ class Vote(Text):
         return self.isVote() and super(Vote, self).isValid()
 
     def addMetadata(self):
-        super(Vote, self).addMetadata()
+       super(Vote, self).addMetadata()
 
-        self.metadata['vote'] = dict(
-            ref=self.ref,
-            author=self.author,
-            authorName=self.snapshot.commit.author.name,
-            authorEmail=self.snapshot.commit.author.email,
-        )
+       self.metadata['vote'] = self.data
 
-        # print ">>> addVote new", self.xlink, self.getTimestamp()
+       self.metadata['xaction'] = dict(
+           ref=self.ref,
+           author=self.author,
+           authorName=self.snapshot.commit.author.name,
+           authorEmail=self.snapshot.commit.author.email,
+       )
+
+       # print ">>> addVote new", self.xlink, self.getTimestamp()
 
     def connect(self, guild):
         author = guild.agentFromXlink(self.author)
@@ -371,6 +386,7 @@ class Vote(Text):
 
             ref.addVote(author, self)
             print ">>> added vote to", ref.name, self.xlink
+            self.setTitle("re: " + ref.getTitle())
 
 
 class Image(Asset):
