@@ -1,0 +1,36 @@
+0- A new guild is created
+[g1]$ st folders add tracker {tracker directory}
+[g1]$ st folders set tracker master 1
+[g1]$ st folders set tracker rescan 30
+[g1]$ st restart
+
+1- User creates a new Viki repository
+
+2- Repository gets added to local sync system
+[g1]$ st folders add {repo id} {repo directory}
+[g1]$ st folders set {repo id} master 1
+[g1]$ st folders set {repo id} rescan 30
+[g1]$ st restart
+
+3- User publishes repo in public registry
+
+4A- A untrusted guild requests access to our registry
+[g1]$ st devices add {foreign guild id} {guild name}
+[g1]$ st devices set {foreign guild id} compression 1
+[g1]$ st folders devices add tracker {foreign guild id}
+[g1]$ st restart 
+
+[g2]$ st devices add {guild id} {guild name}
+[g2]$ st devices set {guild id} compression 1
+[g2]$ st folders devices add tracker {guild id} //collusion around 'tracker' id???
+[g2]$ st restart
+
+4- A trusted foreign guild request access to our new repository
+[g1]$ st folders devices add {repo id} {foreign guild id}
+[g1]$ st restart
+
+[g2]$ st folders devices add {repo id} {guild id}
+[g2]$ st restart
+
+
+

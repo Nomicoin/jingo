@@ -1,0 +1,43 @@
+<configuration version="7">
+    <folder id="abc" path="/home/v/dev/test" ro="true" rescanIntervalS="60" ignorePerms="false">
+        <device id="LQBVE52-XPIKIWR-LOIX4R3-PP6OBU2-5S7ZEHW-63HUHSK-XRLLI4R-PKIYVQI"></device>
+        <versioning></versioning>
+        <lenientMtimes>false</lenientMtimes>
+        <copiers>1</copiers>
+        <pullers>16</pullers>
+        <finishers>1</finishers>
+    </folder>
+    <device id="LQBVE52-XPIKIWR-LOIX4R3-PP6OBU2-5S7ZEHW-63HUHSK-XRLLI4R-PKIYVQI" name="Elitist" compression="false" introducer="false">
+        <address>dynamic</address>
+    </device>
+    <device id="VYTBJPH-LSLKVCC-V6YVD6W-R6YATLR-ZLYHA4W-PXXEHK4-UY54PAQ-OCBXDAJ" name="Flaxscrip" compression="true" introducer="false">
+        <address>dynamic</address>
+    </device>
+    <gui enabled="true" tls="false">
+        <address>127.0.0.1:36947</address>
+        <apikey>rcgd33pk5us8htjs26nrr4iitncu7f</apikey>
+    </gui>
+    <options>
+        <listenAddress>0.0.0.0:40797</listenAddress>
+        <globalAnnounceServer>udp4://announce.syncthing.net:22026</globalAnnounceServer>
+        <globalAnnounceEnabled>true</globalAnnounceEnabled>
+        <localAnnounceEnabled>true</localAnnounceEnabled>
+        <localAnnouncePort>21025</localAnnouncePort>
+        <localAnnounceMCAddr>[ff32::5222]:21026</localAnnounceMCAddr>
+        <maxSendKbps>0</maxSendKbps>
+        <maxRecvKbps>0</maxRecvKbps>
+        <reconnectionIntervalS>60</reconnectionIntervalS>
+        <startBrowser>false</startBrowser>
+        <upnpEnabled>true</upnpEnabled>
+        <upnpLeaseMinutes>0</upnpLeaseMinutes>
+        <upnpRenewalMinutes>30</upnpRenewalMinutes>
+        <urAccepted>-1</urAccepted>
+        <urUniqueID></urUniqueID>
+        <restartOnWakeup>true</restartOnWakeup>
+        <autoUpgradeIntervalH>12</autoUpgradeIntervalH>
+        <keepTemporariesH>24</keepTemporariesH>
+        <cacheIgnoredFiles>true</cacheIgnoredFiles>
+        <progressUpdateIntervalS>5</progressUpdateIntervalS>
+        <symlinksEnabled>true</symlinksEnabled>
+    </options>
+</configuration>

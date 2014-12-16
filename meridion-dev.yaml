@@ -68,4 +68,10 @@ bitmessage:
   bmUser: "flaxscrip"
   bmPassword: "goodforyou"
   bmAnnounce: "BM-2cXGmvw3ECyCCaR5pnbFX41QWm6jhmkrS2"
-
+syncthing:
+  baseurl: "http://localhost:36947/rest"
+  apikey: "rcgd33pk5us8htjs26nrr4iitncu7f"
+  usernamei: ""
+  password: ""
+  syncrootdir: "/home/v/dev"
+ 

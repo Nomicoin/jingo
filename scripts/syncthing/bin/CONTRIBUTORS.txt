@@ -1,0 +1,25 @@
+Aaron Bieber <qbit@deftly.net>
+Alexander Graf <register-github@alex-graf.de>
+Andrew Dunham <andrew@du.nham.ca>
+Audrius Butkevicius <audrius.butkevicius@gmail.com>
+Arthur Axel fREW Schmidt <frew@afoolishmanifesto.com> <frioux@gmail.com>
+Ben Sidhom <bsidhom@gmail.com>
+Brandon Philips <brandon@ifup.org>
+Caleb Callaway <enlightened.despot@gmail.com>
+Chris Joel <chris@scriptolo.gy>
+Daniel Martí <mvdan@mvdan.cc>
+Felix Ableitner <me@nutomic.com>
+Felix Unterpaintner <bigbear2nd@gmail.com>
+Gilli Sigurdsson <gilli@vx.is>
+James Patterson <jamespatterson@operamail.com> <jpjp@users.noreply.github.com>
+Jens Diemer <github.com@jensdiemer.de> <git@jensdiemer.de>
+Jochen Voss <voss@seehuhn.de>
+Lode Hoste <zillode@zillode.be>
+Marcin Dziadus <dziadus.marcin@gmail.com>
+Michael Tilli <pyfisch@gmail.com>
+Philippe Schommers <philippe@schommers.be>
+Phill Luby <phill.luby@newredo.com>
+Ryan Sullivan <kayoticsully@gmail.com>
+Tully Robinson <tully@tojr.org>
+Veeti Paananen <veeti.paananen@rojekti.fi>
+Vil Brekin <vilbrekin@gmail.com>
