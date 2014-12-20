@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  h1 #{data.contact.name}
+  h1 #{asset.data.contact.name}
 
   table.table-bordered.table-hover.table-condensed
     tr 
@@ -49,7 +49,7 @@ block content
   p
 
   table.table-bordered.table-hover.table-condensed
-    each type, section in data
+    each type, section in asset.data
       tr 
         td(colspan=2, style="text-align:center; font-weight:bold") #{section}
       each val, key in type
@@ -57,19 +57,21 @@ block content
           td #{key}
           td #{val}
 
-  if metadata && metadata.base && metadata.base.pubs && metadata.base.pubs.comment
+  - var comments = asset.getComments()
+  if comments
     p
     h2 comments
     ul
-      each comment in metadata.base.pubs.comment
+      each comment in comments
         li 
           a(href="/meta/#{comment}") #{comment}
 
-  if metadata && metadata.base && metadata.base.pubs && metadata.base.pubs.vote
+  - var votes = asset.getVotes()
+  if votes
     p
     h2 votes
     ul
-      each vote in metadata.base.pubs.vote
+      each vote in votes
         li
           a(href="/meta/#{vote}") #{vote}
 

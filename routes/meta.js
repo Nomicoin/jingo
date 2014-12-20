@@ -1,6 +1,7 @@
 var router = require("express").Router();
 var renderer = require('../lib/renderer');
 var xidb = require('../lib/xidb');
+var assets = require('../lib/assets');
 var fs = require("fs");
 var moment = require("moment");
 var path = require('path');
@@ -227,17 +228,15 @@ function _viewAsset(req, res) {
     });
   }
   else {
-    xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, content) {
-      var data = JSON.parse(content);
-      var kind = metadata.base.kind;
-      var view = kind.toLowerCase();
+    xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, data) {
+      var asset = assets.createAsset(data, metadata);
+      var view = asset.getView();
 
-      console.log(data);
-      console.log(metadata);
+      console.log(">>>", view);
 
       res.render(view, {
 	'title': metadata.asset.name,
-	'data': data,
+	'asset': asset,
 	'metadata': metadata,
 	'nav': metadata.navigation,
 	'snapshot': snapshot.commit
