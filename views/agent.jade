@@ -64,7 +64,7 @@ block content
     ul
       each comment in comments
         li 
-          a(href="/meta/#{comment}") #{comment}
+          a(href="/view/#{comment.base.xlink}") #{comment.base.timestamp} #{comment.asset.title}
 
   - var votes = asset.getVotes()
   if votes
@@ -73,7 +73,7 @@ block content
     ul
       each vote in votes
         li
-          a(href="/meta/#{vote}") #{vote}
+          a(href="/view/#{vote.base.xlink}") #{vote.base.timestamp} #{vote.asset.title} (#{vote.vote.vote})
 
 
 
