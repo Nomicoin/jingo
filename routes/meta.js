@@ -235,8 +235,9 @@ function _viewAsset(req, res) {
       console.log(">>>", view);
 
       res.render(view, {
-	'title': metadata.asset.name,
+	'title': metadata.asset.title,
 	'asset': asset,
+	'content': data,
 	'metadata': metadata,
 	'nav': metadata.navigation,
 	'snapshot': snapshot.commit
