@@ -52,3 +52,10 @@ mixin showMetadata(metadata)
           td #{key}
           td #{val}
 
+mixin JsonTable(dict) 
+  table.table-bordered.table-hover.table-condensed
+    each val, key in dict
+      tr
+        td #{key}
+        td #{val}
+

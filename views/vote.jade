@@ -1,0 +1,18 @@
+extends layout
+
+include mixins/assets
+
+block content
+  h1 Vote #{asset.metadata.asset.title}
+
+  - var agent = asset.getAgent();
+  - var ref = asset.getRef();
+
+  a(href="/view/#{agent.base.xlink}") #{agent.agent.contact.name}
+  | &nbsp;
+  | voted to #{asset.data.vote}
+  | &nbsp;
+  a(href="/view/#{ref.base.xlink}") #{ref.asset.title}
+  | &nbsp;
+  | on #{asset.metadata.base.timestamp}
+

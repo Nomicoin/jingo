@@ -12,13 +12,6 @@ block content
   if content
     pre #{content}
 
-  if lines
-    table.compare.table-condensed
-      each line in lines
-        tr
-          td.ln 100
-          td #{line}
-
   if imgsrc
     table.table-bordered.table-hover.table-condensed
       tr
