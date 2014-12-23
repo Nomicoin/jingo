@@ -13,12 +13,12 @@ mixin versionInfo()
       td navigation
       td
         if nav.first
-          a(href="/meta/#{nav.first + '/asset'}") first&nbsp;
+          a(href="/view/#{nav.first}") first&nbsp;
         else
           span first&nbsp;
 
         if nav.prev
-          a(href="/meta/#{nav.prev + '/asset'}") prev&nbsp;
+          a(href="/view/#{nav.prev}") prev&nbsp;
         else
           span prev&nbsp;
 
@@ -28,12 +28,12 @@ mixin versionInfo()
           span [metadata]&nbsp;
 
         if nav.next
-          a(href="/meta/#{nav.next + '/asset'}") next&nbsp;
+          a(href="/view/#{nav.next}") next&nbsp;
         else
           span next&nbsp;
 
         if nav.last
-          a(href="/meta/#{nav.last + '/asset'}") last&nbsp;
+          a(href="/view/#{nav.last}") last&nbsp;
         else
           span last&nbsp;
 

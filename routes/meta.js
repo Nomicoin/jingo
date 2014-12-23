@@ -17,7 +17,6 @@ router.get("/view/:xid/:cid", _viewAsset);
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
 router.get("/meta/:xid/:cid", _getMetaPage);
-router.get("/meta/:xid/:cid/asset", _getAsset);
 router.get("/meta/:xid/:cid/as/:format", _getAsFormat);
 router.get("/meta/:xid/:cid/branch", _getBranch);
 
@@ -181,38 +180,6 @@ function _getAsFormat(req, res) {
   });
 }
 
-function _getAsset(req, res) {
-  var xid = req.params.xid;
-  var cid = req.params.cid;
-  var metadata = xidb.getMetadata(xid, cid);
-  var snapshot = xidb.getMetadataFromLink(metadata.base.branch);
-
-  if ('image' in metadata) {
-    res.render("asset", {
-      'title': metadata.asset.name,
-      'imgsrc': "/api/v1/asset/" + metadata.base.xlink + "/" + metadata.asset.name,
-      'nav': metadata.navigation,
-      'snapshot': snapshot.commit
-    });
-  }
-  else {
-    xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, content) {
-
-      // TODO: figure out how to get jade to preserve spaces
-      //var text = content.toString().replace(new RegExp(' ', 'g'), '&sp;');
-      //var lines = text.split('\n');
-
-      res.render("asset", {
-	'title': metadata.asset.name,
-	'content': content,
-	//'lines': lines, 
-	'nav': metadata.navigation,
-	'snapshot': snapshot.commit
-      });
-    });
-  }
-}
-
 function _viewAsset(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
@@ -282,7 +249,7 @@ function _addXidbLinks(section, xlink) {
 
     case 'asset':
     case 'sha':
-      link = "/meta/" + xlink + "/asset";
+      link = "/view/" + xlink;
       break;
 
     case 'page':
