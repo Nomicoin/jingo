@@ -1,3 +1,5 @@
+include form
+
 mixin versionInfo(snapshot, nav)
   table.table-bordered.table-hover.table-condensed
     tr 
@@ -51,6 +53,20 @@ mixin showMetadata(metadata)
         tr
           td #{key}
           td #{val}
+
+mixin editMetadata(metadata) 
+  form(action='tbd', method='post', class='edit')
+    .form-group
+      table.table-bordered.table-hover.table-condensed
+        each type, section in metadata
+          tr 
+            td(colspan=2, style="text-align:center; font-weight:bold") #{section}
+          each val, key in type
+            tr
+              td #{key}
+              td 
+                input.form-control(required, type='text', placeholder='#{val}', name='#{key}', value="#{val}")
+  mixin saveAndCancel()
 
 mixin JsonTable(dict) 
   table.table-bordered.table-hover.table-condensed

@@ -1,0 +1,11 @@
+extends layout
+
+include mixins/assets
+
+block content
+  h1 Edit: #{asset.data.contact.name}
+
+  p generic asset json editor
+
+  mixin editMetadata(asset.data)
+
