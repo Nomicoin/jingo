@@ -13,6 +13,7 @@ router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 router.get("/viki/*", _getPage);
 router.get("/v/:version/*", _getVPage);
 router.get("/view/:xid/:cid", _viewAsset);
+router.get("/edit/:xid/:cid", _editAsset);
 
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
@@ -190,7 +191,6 @@ function _viewAsset(req, res) {
     res.render("asset", {
       'title': metadata.asset.name,
       'imgsrc': "/api/v1/asset/" + metadata.base.xlink + "/" + metadata.asset.name,
-      'nav': metadata.navigation,
       'snapshot': snapshot.commit
     });
   }
@@ -206,11 +206,32 @@ function _viewAsset(req, res) {
 	'asset': asset,
 	'content': data,
 	'metadata': metadata,
-	'nav': metadata.navigation,
 	'snapshot': snapshot.commit
       });
     });
   }
+}
+
+function _editAsset(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
+  var metadata = xidb.getMetadata(xid, cid);
+  var snapshot = xidb.getMetadataFromLink(metadata.base.branch);
+
+  xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, data) {
+    var asset = assets.createAsset(data, metadata);
+    var editor = asset.getEditor();
+
+    console.log(">>>", editor);
+
+    res.render(editor, {
+      'title': metadata.asset.title,
+      'asset': asset,
+      'content': data,
+      'metadata': metadata,
+      'snapshot': snapshot.commit
+    });
+  });
 }
 
 function _addXidbLinks(section, xlink) {
