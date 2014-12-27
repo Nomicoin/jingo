@@ -239,10 +239,20 @@ function _saveAsset(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
   var xlink = xidb.createLink(xid, cid);
+  var content = JSON.stringify(req.body, null, 4);
 
-  console.log(">>> saveAsset", xlink, req.body);
+  console.log(">>> saveAsset", xlink, content);
 
-  res.redirect('/view/' + xlink);
+  xidb.saveAsset(req.user, xlink, content, function(err, newLink) {
+    if (err) {
+      console.log(err);
+      res.redirect('/view/' + xlink);
+    }
+    else {
+      console.log(">>> newLink", newLink);
+      res.redirect('/view/' + xlink);
+    }
+  });
 }
 
 function _addXidbLinks(section, xlink) {

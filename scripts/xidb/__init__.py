@@ -407,6 +407,15 @@ class Guild:
         saveFile(fullPath, comment)
         return self.commitFile(self.guildProject.repo, agent, asset, "comment", path)
 
+    def saveAsset(self, handle, xlink, content):
+        agent = self.getAgent(handle)
+        asset = self.getAsset(xlink)
+        path = asset.getName()
+        fullPath = os.path.join(self.guildDir, path)
+
+        saveFile(fullPath, content)
+        return self.commitFile(self.guildProject.repo, agent, asset, "asset", path)
+
     def commitFile(self, repo, agent, asset, type, path):
         index = repo.index
 

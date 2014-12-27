@@ -154,6 +154,9 @@ class Asset(object):
         self.save()
         print ">>> addComment", comment
 
+    def getName(self):
+        return self.metadata['asset']['name']
+
     def getTitle(self):
         return self.metadata['asset']['title']
 
