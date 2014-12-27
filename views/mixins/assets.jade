@@ -54,8 +54,8 @@ mixin showMetadata(metadata)
           td #{key}
           td #{val}
 
-mixin editMetadata(metadata) 
-  form(action='tbd', method='post', class='edit')
+mixin editMetadata(xlink, metadata) 
+  form(action='/save/#{xlink}', method='post', class='edit')
     .form-group
       table.table-bordered.table-hover.table-condensed
         each type, section in metadata
@@ -66,7 +66,10 @@ mixin editMetadata(metadata)
               td #{key}
               td 
                 input.form-control(required, type='text', placeholder='#{val}', name='#{key}', value="#{val}")
-  mixin saveAndCancel()
+      .well
+        input(type='submit',value='Save').btn.btn-primary
+        |&nbsp;
+        a(href="/view/#{xlink}").btn Cancel
 
 mixin JsonTable(dict) 
   table.table-bordered.table-hover.table-condensed

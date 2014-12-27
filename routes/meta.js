@@ -14,6 +14,7 @@ router.get("/viki/*", _getPage);
 router.get("/v/:version/*", _getVPage);
 router.get("/view/:xid/:cid", _viewAsset);
 router.get("/edit/:xid/:cid", _editAsset);
+router.post("/save/:xid/:cid", _saveAsset);
 
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
@@ -232,6 +233,16 @@ function _editAsset(req, res) {
       'snapshot': snapshot.commit
     });
   });
+}
+
+function _saveAsset(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
+  var xlink = xidb.createLink(xid, cid);
+
+  console.log(">>> saveAsset", xlink, req.body);
+
+  res.redirect('/view/' + xlink);
 }
 
 function _addXidbLinks(section, xlink) {

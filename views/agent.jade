@@ -5,6 +5,9 @@ include mixins/assets
 block content
   h1 #{asset.data.contact.name}
 
+  span(style="float:right")
+    a(href="/edit/#{metadata.base.xlink}") edit
+
   mixin versionInfo(snapshot, metadata.navigation)
 
   p
