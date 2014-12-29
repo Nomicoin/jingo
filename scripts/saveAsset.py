@@ -24,6 +24,6 @@ with open(config) as f:
     config = yaml.load(f.read())
 
 guild = Guild(config)
-print guild.guildProject.xid
+print "guild:", guild.guildProject.xid
 print guild.saveAsset(args.agent, args.xlink, asset)
 

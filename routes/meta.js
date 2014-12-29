@@ -235,11 +235,40 @@ function _editAsset(req, res) {
   });
 }
 
+function _form2json(body) {
+  var data = {};
+
+  for(var key in body) {
+    var val = body[key];
+    var keys = key.split('.');
+    var node = data;
+
+    for (var i = 0; i < keys.length; i++) {
+      var subkey = keys[i];
+
+      if (i == keys.length-1) {
+	node[subkey] = val;
+      }
+      else {
+	if (subkey in node) {
+	  node = node[subkey];
+	}
+	else {
+	  node[subkey] = {};
+	  node = node[subkey];
+	}
+      }
+    }
+  }
+
+  return JSON.stringify(data, null, 4);
+}
+
 function _saveAsset(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
   var xlink = xidb.createLink(xid, cid);
-  var content = JSON.stringify(req.body, null, 4);
+  var content = _form2json(req.body);
 
   console.log(">>> saveAsset", xlink, content);
 
@@ -250,7 +279,7 @@ function _saveAsset(req, res) {
     }
     else {
       console.log(">>> newLink", newLink);
-      res.redirect('/view/' + xlink);
+      res.redirect('/view/' + newLink);
     }
   });
 }
