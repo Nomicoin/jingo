@@ -270,7 +270,7 @@ function _saveAsset(req, res) {
   var xlink = xidb.createLink(xid, cid);
   var content = _form2json(req.body);
 
-  console.log(">>> saveAsset", xlink, content);
+  //console.log(">>> saveAsset", xlink, content);
 
   xidb.saveAsset(req.user, xlink, content, function(err, newLink) {
     if (err) {
