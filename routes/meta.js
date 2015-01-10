@@ -69,6 +69,7 @@ function _getVPage(req, res) {
 
   var metadata = xidb.getMetadataFromLink(xlink);
   var branch = xidb.getMetadataFromLink(metadata.base.branch);
+  var repo = xidb.getBranchRepo(metadata.base.branch);
   var content = metadata.as.html;
   var snapshot = xidb.getWikiSnapshot(wiki, cid);
   var latestSnapshot = xidb.getLatestWikiSnapshot(wiki);
@@ -85,11 +86,10 @@ function _getVPage(req, res) {
     age = "current";
   }
 
-  console.log(votes);
-
   res.render("page", {
     'title': metadata.asset.title,
     'page': metadata,
+    'repo': repo,
     'commit': branch.commit,
     'age': age,
     'content': content,
