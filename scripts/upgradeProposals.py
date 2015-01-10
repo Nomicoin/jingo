@@ -3,7 +3,7 @@
 import argparse, yaml, re
 from xidb import Guild
 
-parser = argparse.ArgumentParser(description="List agents in a specified guild")
+parser = argparse.ArgumentParser(description="Upgrade markdown proposals to json")
 parser.add_argument('-c', '--config', dest='config')
 args = parser.parse_args()
 
