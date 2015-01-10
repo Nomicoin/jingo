@@ -10,8 +10,8 @@ router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
 router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
-router.get("/viki/*", _getPage);
-router.get("/v/:version/*", _getVPage);
+router.get("/viki/:wiki/*", _getPage);
+router.get("/v/:wiki/:version/*", _getVPage);
 router.get("/view/:xid/:cid", _viewAsset);
 router.get("/edit/:xid/:cid", _editAsset);
 router.post("/save/:xid/:cid", _saveAsset);
@@ -26,31 +26,36 @@ router.post("/comment/:xid/:cid", _newComment);
 router.post("/vote/:xid/:cid", _newVote);
 
 function _getPage(req, res) {
-  var cid = _getHeadCommit('Meridion');
+  var wiki = req.params.wiki;
+  var repoDir = xidb.getWikiRepoDir(wiki);
+  var cid = xidb.getHeadCommit(repoDir);
   var page = req.params['0'];
-  var url = path.join("/v", cid.slice(0,8), page);
+  var url = path.join("/v", wiki, cid.slice(0,8), page);
+
+  console.log(">>> redirecting to", url);
 
   res.redirect(url);
 }
 
 function _getVPage(req, res) {
+  var wiki = req.params.wiki;
   var cid = req.params.version;
   var page = req.params['0'];
   var file = page.replace(/ /g, "-") + '.md';
-  var snapshot = xidb.getWikiSnapshot(cid);
+  var snapshot = xidb.getWikiSnapshot(wiki, cid);
   var xlink = xidb.getMetalink(snapshot, file, true);
 
   if (xlink == null) {
     // check for legacy versioned URL
     cid = path.basename(page);
-    snapshot = xidb.getWikiSnapshot(cid);
+    snapshot = xidb.getWikiSnapshot(wiki, cid);
     page = path.dirname(page);
     file = page.replace(/ /g, "-") + '.md';
     xlink = xidb.getMetalink(snapshot, file, true);
 
     if (xlink != null) {
       var ver = cid.slice(0,8);
-      var url = path.join("/v", ver, page);
+      var url = path.join("/v", wiki, ver, page);
       res.redirect(url);
     }
     else {
@@ -65,8 +70,8 @@ function _getVPage(req, res) {
   var metadata = xidb.getMetadataFromLink(xlink);
   var branch = xidb.getMetadataFromLink(metadata.base.branch);
   var content = metadata.as.html;
-  var snapshot = xidb.getWikiSnapshot(cid);
-  var latestSnapshot = xidb.getLatestWikiSnapshot();
+  var snapshot = xidb.getWikiSnapshot(wiki, cid);
+  var latestSnapshot = xidb.getLatestWikiSnapshot(wiki);
   var latestXlink = xidb.getMetalink(latestSnapshot, file, true);
   var comments = xidb.getComments(xlink);
   var votes = xidb.getVotes(xlink);
@@ -142,28 +147,15 @@ function _getAssetVersions(req, res) {
   var latest = versions[versions.length-1];
   var metadata = xidb.getMetadataFromLink(latest.xlink);
   var versions = xidb.resolveBranchLinks(versions);
-
-  console.log(versions);
-  console.log(metadata.asset);
+  var repo = xidb.getBranchRepo(metadata.base.branch);
 
   res.render("versions", {
     'title': metadata.asset.title,
     'asset': metadata.asset,
     'name': metadata.asset.name,
+    'repo': repo,
     'versions': versions
   });
-}
-
-function _getHeadCommit(project) {
-  var projects = xidb.getProjectList();
-
-  for(var name in projects) {
-    if (name == project) {
-      return xidb.getHeadCommit(projects[name].repo);
-    }
-  }
-
-  return null;
 }
 
 function _getAsFormat(req, res) {
