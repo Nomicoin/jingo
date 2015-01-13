@@ -27,7 +27,7 @@ router.post("/vote/:xid/:cid", _newVote);
 
 function _getPage(req, res) {
   var wiki = req.params.wiki;
-  var repoDir = xidb.getWikiRepoDir(wiki);
+  var repoDir = xidb.getRepoGitDir(wiki);
   var cid = xidb.getHeadCommit(repoDir);
   var page = req.params['0'];
   var url = path.join("/v", wiki, cid.slice(0,8), page);
