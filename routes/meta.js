@@ -149,6 +149,8 @@ function _getAssetVersions(req, res) {
   var versions = xidb.resolveBranchLinks(versions);
   var repo = xidb.getBranchRepo(metadata.base.branch);
 
+  console.log(versions);
+
   res.render("versions", {
     'title': metadata.asset.title,
     'asset': metadata.asset,
@@ -404,13 +406,12 @@ function _newComment(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
   var xlink = xidb.createLink(xid, cid);
-  var url = xidb.getUrl(xlink);
 
   xidb.addComment(req.user, xlink, req.body.comment, function(err, link) {
     if (err) {
       console.log(err);
     }
-    res.redirect(url + "#addComment");
+    res.redirect(req.headers.referer + "#addComment");
   });
 }
 
@@ -418,13 +419,12 @@ function _newVote(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
   var xlink = xidb.createLink(xid, cid);
-  var url = xidb.getUrl(xlink);
 
   xidb.addVote(req.user, xlink, req.body, function(err, link) {
     if (err) {
       console.log(err);
     }
-    res.redirect(url + "#addVote");
+    res.redirect(req.headers.referer + "#addVote");
   });
 }
 
