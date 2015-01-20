@@ -323,6 +323,24 @@ class Guild:
         asset.initFromMetadata(meta)
         return asset
 
+    def getProject(self, branch):
+        # TD figure out project from branch xlink
+        return self.repoProject
+
+    def regenerateAsset(self, asset):
+        meta = self.getMetadata(asset.xlink)
+        res = json.dumps(meta, sort_keys=True, indent=4, separators=(',', ': '))
+        print ">>> regenerateAsset", asset.xlink, res
+
+        project = self.getProject(asset.xlink)
+        asset = meta['asset']
+        sha = asset['sha']
+        blob = project.repo[sha]
+        text = blob.data.decode('utf-8')
+
+        print text
+        return asset
+
     def loadTypes(self):
         types = {}
         return types

@@ -20,6 +20,11 @@ for asset in guild.assets:
         print asset
         oldProposal = guild.assets[asset]
         print oldProposal.xid
+        oldProposal = guild.regenerateAsset(oldProposal)
+
+for snapshot in guild.repoProject.snapshots:
+    print snapshot.xid
+    print snapshot.xlink
 
 
 

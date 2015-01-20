@@ -1,12 +1,13 @@
 import png, array, os, re, json
 import PIL.Image, PIL.ExifTags
 import markdown, pygit2
-import genxid
+#import genxid
 from io import BytesIO
 from pygit2 import Signature
 from markdown.extensions.wikilinks import WikiLinkExtension
 from markdown.extensions.tables import TableExtension
 from xidb.utils import *
+
 
 class Asset(object):
     def __init__(self):
@@ -41,7 +42,7 @@ class Asset(object):
         self.cid = str(cid)
         self.sha = str(sha)
         self.xlink = createLink(self.xid, self.cid)
- 
+
     def save(self, path=None):
         base = self.getBase()
 
@@ -208,7 +209,7 @@ class Agent(Json):
         super(Agent, self).init()
 
     def isValid(self):
-        return (self.checkExtension(['.json']) 
+        return (self.checkExtension(['.json'])
                 and self.name.find("agents/data") == 0
                 and super(Agent, self).isValid())
 
@@ -283,7 +284,7 @@ class Markdown(Text):
 
         self.generateHtml()
 
-        self.metadata['markdown'] = { 
+        self.metadata['markdown'] = {
             'page': self.page,
             'plink': self.plink
         }
@@ -299,7 +300,7 @@ class Comment(Markdown):
             self.xaction = json.loads(self.snapshot.commit.message)
         except:
             self.xaction = False
-        
+
         if self.isValid():
             self.ref = self.xaction['ref']
             # todo: retrieve reference's metadata
@@ -308,10 +309,10 @@ class Comment(Markdown):
             self.title = "Comment on %s by %s" % (self.ref, self.author)
 
     def isComment(self):
-        return (self.xaction and 
-                'type' in self.xaction and 
-                self.xaction['type'] == 'comment' and 
-                'ref' in self.xaction and 
+        return (self.xaction and
+                'type' in self.xaction and
+                self.xaction['type'] == 'comment' and
+                'ref' in self.xaction and
                 'author' in self.xaction)
 
     def isValid(self):
@@ -350,7 +351,7 @@ class Vote(Json):
             self.xaction = json.loads(self.snapshot.commit.message)
         except:
             self.xaction = None
-        
+
         if self.isValid():
             self.ref = self.xaction['ref']
             # todo: retrieve reference's metadata
@@ -360,10 +361,10 @@ class Vote(Json):
 
     def isVote(self):
         return (self.data and
-                self.xaction and 
-                'type' in self.xaction and 
-                self.xaction['type'] == 'vote' and 
-                'ref' in self.xaction and 
+                self.xaction and
+                'type' in self.xaction and
+                self.xaction['type'] == 'vote' and
+                'ref' in self.xaction and
                 'author' in self.xaction)
 
     def isValid(self):
@@ -412,7 +413,7 @@ class Image(Asset):
         return self.blob.is_binary
 
     def addMetadata(self):
-        self.metadata['image'] = { 
+        self.metadata['image'] = {
             'width': self.width,
             'height': self.height,
             'colorDepth': self.colorDepth,
