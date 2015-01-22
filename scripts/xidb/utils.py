@@ -15,9 +15,11 @@ def saveFile(path, data):
     with open(path, 'w') as f:
         f.write(data)
 
+def toJSON(obj):
+    return json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
+
 def saveJSON(path, obj):
-    res = json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
-    saveFile(path, res + "\n")
+    saveFile(path, toJSON(obj) + "\n")
 
 def saveMetadata(meta):
     path = meta['base']['path']

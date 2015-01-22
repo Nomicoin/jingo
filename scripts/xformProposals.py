@@ -2,6 +2,7 @@
 
 import argparse, yaml, re
 from xidb import Guild
+from xidb.utils import *
 
 class Proposal:
     def __init__(self, xid, cid, sha, name):
@@ -9,11 +10,19 @@ class Proposal:
         self.cid = cid
         self.sha = sha
         self.name = name
+        self.propid = name[9:13]
         self.props = dict()
+        self.source = createLink(xid, cid)
+        self.title = ''
+        self.type = ''
+        self.status = ''
+        self.sponsors = []
+        self.rationale = ''
 
     def init(self, blob):
         self.text = blob.data.decode('utf-8')
         self.parse()
+        self.resolve()
 
     def parse(self):
         key = 'foo'
@@ -27,8 +36,37 @@ class Proposal:
                 print 'key', key
                 self.props[key] = []
             else:
+                if line[0:2] == "* ":
+                    line = line[2:] # remove wiki bullets
                 print key, line
                 self.props[key].append(line)
+
+    def resolve(self):
+        if 'title' in self.props:
+            self.title = self.props['title'][0]
+
+        if 'sponsor' in self.props:
+            self.sponsors = self.props['sponsor']
+
+        if 'status' in self.props:
+            self.status = self.props['status'][0]
+
+        if 'type' in self.props:
+            self.type = self.props['type'][0]
+
+        if 'rationale' in self.props:
+            self.rationale = "\n".join(self.props['rationale'])
+
+        self.data = dict(title=self.title,
+                         propid=self.propid,
+                         source=self.source,
+                         status=self.status,
+                         type=self.type,
+                         sponsors=self.sponsors,
+                         rationale=self.rationale)
+
+    def save(self):
+        print toJSON(self.data)
 
 parser = argparse.ArgumentParser(description="Upgrade markdown proposals to json")
 parser.add_argument('-c', '--config', dest='config')
@@ -58,3 +96,4 @@ for xid in assets:
         blob = project.repo[sha]
         prop.init(blob)
         print prop.props
+        prop.save()
