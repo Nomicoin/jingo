@@ -13,11 +13,15 @@ class Proposal:
         self.propid = name[9:13]
         self.props = dict()
         self.source = createLink(xid, cid)
+        self.xlink = self.source #needed in guild.commitFile
         self.title = ''
         self.type = ''
         self.status = ''
         self.sponsors = []
         self.rationale = ''
+
+    def getName(self):
+        return self.propid + ".json"
 
     def init(self, blob):
         self.text = blob.data.decode('utf-8')
@@ -65,9 +69,6 @@ class Proposal:
                          sponsors=self.sponsors,
                          rationale=self.rationale)
 
-    def save(self):
-        print toJSON(self.data)
-
 parser = argparse.ArgumentParser(description="Upgrade markdown proposals to json")
 parser.add_argument('-c', '--config', dest='config')
 args = parser.parse_args()
@@ -96,4 +97,4 @@ for xid in assets:
         blob = project.repo[sha]
         prop.init(blob)
         print prop.props
-        prop.save()
+        print guild.saveProposal("macterra", prop)

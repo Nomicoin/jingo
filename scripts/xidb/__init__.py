@@ -416,6 +416,14 @@ class Guild:
         saveFile(fullPath, content)
         return self.commitFile(self.guildProject.repo, agent, asset, "asset", path)
 
+    def saveProposal(self, handle, proposal):
+        agent = self.getAgent(handle)
+        path = os.path.join("nomicon/proposals", proposal.getName())
+        fullPath = os.path.join(self.repoDir, path)
+        saveJSON(fullPath, proposal.data)
+        #return self.commitFile(self.repoProject.repo, agent, proposal, "proposal", path)
+        return fullPath
+
     def commitFile(self, repo, agent, asset, type, path):
         index = repo.index
 
