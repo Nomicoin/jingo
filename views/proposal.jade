@@ -1,0 +1,31 @@
+extends layout
+
+include mixins/assets
+
+block content
+  h1 Proposal #{asset.data.propid}
+
+  mixin versionInfo(snapshot, metadata.navigation)
+
+  p
+
+  span(style="float:right")
+    a(href="/edit/#{metadata.base.xlink}") edit
+
+  h2 title
+
+  p #{asset.data.title}
+
+  h2 type
+
+  p #{asset.data.type}
+
+  h2 sponsor(s)
+
+  each sponsor in asset.data.sponsors
+    p #{asset.data.sponsors}
+
+  h2 rationale
+
+  p #{asset.data.rationale}
+

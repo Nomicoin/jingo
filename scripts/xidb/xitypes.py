@@ -171,10 +171,10 @@ class Text(Asset):
     def init(self):
         super(Text, self).init()
 
-        if self.blob.is_binary:
-            self.text = None
-        else:
+        try:
             self.text = self.blob.data.decode('utf-8')
+        except:
+            self.text = None
 
     def isValid(self):
         return self.text != None
@@ -199,6 +199,21 @@ class Json(Text):
 
     def isValid(self):
         return (super(Json, self).isValid() and self.data)
+
+class Proposal(Json):
+    def __init__(self):
+        super(Proposal, self).__init__()
+
+    def init(self):
+        super(Proposal, self).init()
+
+    def isValid(self):
+        return (super(Proposal, self).isValid()
+                and self.name.find("nomicon/proposals") == 0)
+
+    def addMetadata(self):
+       super(Proposal, self).addMetadata()
+       self.metadata['proposal'] = self.data
 
 class Agent(Json):
     def __init__(self):
@@ -489,9 +504,11 @@ class Gif(Image):
 # put leaf classes first because only first valid type will be used to generate metadata
 allTypes = [
     lambda : Agent(),
+    lambda : Proposal(),
     lambda : Vote(),
     lambda : Comment(),
     lambda : Markdown(),
+    lambda : Json(),
     lambda : Text(),
     lambda : Png(),
     lambda : Jpeg(),
