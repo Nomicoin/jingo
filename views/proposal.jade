@@ -13,19 +13,13 @@ block content
     a(href="/edit/#{metadata.base.xlink}") edit
 
   h2 title
-
-  p #{asset.data.title}
+  !=asset.getTitle()
 
   h2 type
-
-  p #{asset.data.type}
+  !=asset.getProposalType()
 
   h2 sponsor(s)
-
-  each sponsor in asset.data.sponsors
-    p #{asset.data.sponsors}
+  !=asset.getSponsors()
 
   h2 rationale
-
-  p #{asset.data.rationale}
-
+  !=asset.getRationale()
