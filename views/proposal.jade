@@ -3,14 +3,14 @@ extends layout
 include mixins/assets
 
 block content
-  h1 Proposal #{asset.data.propid}
+  h1 Proposal #{asset.getProposalId()}
 
   mixin versionInfo(snapshot, metadata.navigation)
 
   p
 
   span(style="float:right")
-    a(href="/edit/#{metadata.base.xlink}") edit
+    a(href="/edit/#{asset.getXlink()}") edit
 
   h2 title
   !=asset.getTitle()
