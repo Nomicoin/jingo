@@ -12,14 +12,18 @@ block content
   span(style="float:right")
     a(href="/edit/#{asset.getXlink()}") edit
 
-  h2 title
-  !=asset.getTitle()
+  h3 type: #{asset.getProposalType()}
 
-  h2 type
-  !=asset.getProposalType()
+  h3 status: #{asset.getStatus()}
 
   h2 sponsor(s)
   !=asset.getSponsors()
+
+  h2 title
+  !=asset.getTitle()
+
+  h2 content
+  !=asset.getProposalContent()
 
   h2 rationale
   !=asset.getRationale()
