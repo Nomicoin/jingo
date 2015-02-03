@@ -3,9 +3,10 @@ extends layout
 include mixins/assets
 
 block content
-  h1 Edit Proposal #{asset.getProposalId()}
+  h1 Edit: Proposal #{asset.getProposalId()}
 
-  table
+
+  table.table-bordered.table-hover.table-condensed
     tr
       td type:
       td
@@ -18,12 +19,14 @@ block content
         select(name="status")
           for status in asset.getStatuses()
             option(selected = status==asset.getStatus()) #{status}
-
-  h2 sponsor(s)
-  !=asset.getSponsors()
-
-  h2 title
-  !=asset.getTitle()
+    tr
+      td sponsor(s):
+      td
+        input.form-control(required, type='text', placeholder='sponsors', name='sponsors', value="#{asset.getSponsors()}")
+    tr
+      td title:
+      td
+        input.form-control(required, type='text', placeholder='sponsors', name='sponsors', value="#{asset.getTitle()}")
 
   h2 content
   !=asset.getProposalContent()
