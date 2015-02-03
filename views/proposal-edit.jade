@@ -1,0 +1,32 @@
+extends layout
+
+include mixins/assets
+
+block content
+  h1 Edit Proposal #{asset.getProposalId()}
+
+  table
+    tr
+      td type:
+      td
+        select(name="proposalType")
+          for type in asset.getProposalTypes()
+            option(selected = type==asset.getProposalType()) #{type}
+    tr
+      td status:
+      td 
+        select(name="status")
+          for status in asset.getStatuses()
+            option(selected = status==asset.getStatus()) #{status}
+
+  h2 sponsor(s)
+  !=asset.getSponsors()
+
+  h2 title
+  !=asset.getTitle()
+
+  h2 content
+  !=asset.getProposalContent()
+
+  h2 rationale
+  !=asset.getRationale()
