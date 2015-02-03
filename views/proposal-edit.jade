@@ -6,7 +6,7 @@ block content
   h1 Edit: Proposal #{asset.getProposalId()}
 
 
-  table.table-bordered.table-hover.table-condensed
+  table.table-bordered.table-hover.table-condensed(width="100%")
     tr
       td type:
       td
@@ -27,9 +27,12 @@ block content
       td title:
       td
         input.form-control(required, type='text', placeholder='sponsors', name='sponsors', value="#{asset.getTitle()}")
+    tr
+      td(colspan=2)
+        p content:
+        textarea.form-control(name="content", data-widearea="enable", rows=15)#editor #{asset.getProposalContent()}
+    tr
+      td(colspan=2)
+        p rationale:
+        textarea.form-control(name="content", data-widearea="enable", rows=5)#editor #{asset.data.rationale}
 
-  h2 content
-  !=asset.getProposalContent()
-
-  h2 rationale
-  !=asset.getRationale()
