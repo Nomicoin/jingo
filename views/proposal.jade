@@ -17,13 +17,17 @@ block content
   h3 status: #{asset.getStatus()}
 
   h2 sponsor(s)
-  !=asset.getSponsorLinks()
+  .well
+    !=asset.getSponsorLinks()
 
   h2 title
-  !=asset.getTitleLink()
+  .well
+    !=asset.getTitleLink()
 
   h2 content
-  !=asset.getProposalContent()
+  .well
+    !=asset.getProposalAsHtml()
 
   h2 rationale
-  !=asset.getRationale()
+  .well
+    !=asset.getRationaleAsHtml()

@@ -181,7 +181,10 @@ class Text(Asset):
 
     def addMetadata(self):
         lines = self.text.count('\n')
-        self.metadata['text'] = { 'lines': lines }
+        self.metadata['text'] = { 
+            'lines': lines,
+            'content': self.text
+        }
         self.contentType = "text/plain"
         super(Text, self).addMetadata()
 
