@@ -1,0 +1,80 @@
+include form
+
+mixin versionInfo(snapshot, nav)
+  table.table-bordered.table-hover.table-condensed
+    tr 
+      td author
+      td #{snapshot.author} (#{snapshot.email})
+    tr
+      td message
+      td #{snapshot.message}
+    tr
+      td timestamp
+      td #{snapshot.timestamp}
+    tr
+      td navigation
+      td
+        if nav.first
+          a(href="/view/#{nav.first}") first&nbsp;
+        else
+          span first&nbsp;
+
+        if nav.prev
+          a(href="/view/#{nav.prev}") prev&nbsp;
+        else
+          span prev&nbsp;
+
+        if nav.link
+          a(href="/meta/#{nav.link}") [metadata]&nbsp;
+        else
+          span [metadata]&nbsp;
+
+        if nav.next
+          a(href="/view/#{nav.next}") next&nbsp;
+        else
+          span next&nbsp;
+
+        if nav.last
+          a(href="/view/#{nav.last}") last&nbsp;
+        else
+          span last&nbsp;
+
+    tr
+      td version
+      td
+        span #{nav.version}
+
+mixin showMetadata(metadata) 
+  table.table-bordered.table-hover.table-condensed
+    each type, section in metadata
+      tr 
+        td(colspan=2, style="text-align:center; font-weight:bold") #{section}
+      each val, key in type
+        tr
+          td #{key}
+          td #{val}
+
+mixin editMetadata(xlink, metadata) 
+  form(action='/save/#{xlink}', method='post', class='edit')
+    .form-group
+      table.table-bordered.table-hover.table-condensed
+        each type, section in metadata
+          tr 
+            td(colspan=2, style="text-align:center; font-weight:bold") #{section}
+          each val, key in type
+            tr
+              td #{key}
+              td 
+                input.form-control(required, type='text', placeholder='tbd', name='#{section}.#{key}', value="#{val}")
+      .well
+        input(type='submit',value='Save').btn.btn-primary
+        |&nbsp;
+        a(href="/view/#{xlink}").btn Cancel
+
+mixin JsonTable(dict) 
+  table.table-bordered.table-hover.table-condensed
+    each val, key in dict
+      tr
+        td #{key}
+        td #{val}
+

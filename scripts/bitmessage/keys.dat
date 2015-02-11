@@ -1,0 +1,64 @@
+[bitmessagesettings]
+settingsversion = 10
+port = 8555
+apienabled = true
+apiport = 8556
+apiinterface = 127.0.0.1
+apiusername = flaxscrip
+apipassword = goodforyou
+timeformat = %%a, %%d %%b %%Y  %%I:%%M %%p
+blackwhitelist = black
+startonlogon = False
+minimizetotray = False
+showtraynotifications = False
+startintray = False
+socksproxytype = none
+sockshostname = localhost
+socksport = 9050
+socksauthentication = False
+sockslisten = False
+socksusername = 
+sockspassword = 
+keysencrypted = false
+messagesencrypted = false
+defaultnoncetrialsperbyte = 1000
+defaultpayloadlengthextrabytes = 1000
+minimizeonclose = false
+maxacceptablenoncetrialsperbyte = 0
+maxacceptablepayloadlengthextrabytes = 0
+userlocale = system
+useidenticons = False
+identiconsuffix = VT1zfUtFydZ5
+replybelow = False
+maxdownloadrate = 0
+maxuploadrate = 0
+stopresendingafterxdays = 
+stopresendingafterxmonths = 
+namecoinrpctype = namecoind
+namecoinrpchost = localhost
+namecoinrpcuser = namecoin
+namecoinrpcpassword = 3vlaicgtvXUuJ
+namecoinrpcport = 8336
+sendoutgoingconnections = True
+willinglysendtomobile = False
+
+[BM-2cXkWSet4JKLs6fbmfns3exuXpL9cVFonT]
+label = Archetech Distributed Guild
+enabled = true
+decoy = false
+noncetrialsperbyte = 1000
+payloadlengthextrabytes = 1000
+privsigningkey = 5JJnVNxUZDfXkzvC2CZyR1WdChzqGcoLd4he6hU94nXnFGhe9QD
+privencryptionkey = 5KkFcwke5RpFoynfMx6pw4dmfaNAhibTdrMicA9uu2NJBeJD7Wc
+lastpubkeysendtime = 1417476184
+
+[BM-2cXGmvw3ECyCCaR5pnbFX41QWm6jhmkrS2]
+label = [chan] Archetech Dev Announce
+enabled = true
+decoy = false
+chan = true
+noncetrialsperbyte = 1000
+payloadlengthextrabytes = 1000
+privsigningkey = 5JtsBuR5Vje8B265HSET6hEbrsH4PBNdNYn5cARG1373xXCHmUX
+privencryptionkey = 5KJJGiswx3Luo9v4is5HCnMdGGKWesknA2x471zx3n9RHRFpWGD
+

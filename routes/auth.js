@@ -2,7 +2,9 @@ var router = require("express").Router(),
     app = require("../lib/app").getInstance(),
     passportLocal = require('passport-local'),
     passportGoogle = require('passport-google-oauth'),
+    passportBasicHTTP = require('passport-http').BasicStrategy,
     passportGithub = require('passport-github').Strategy,
+    guild = require('../lib/guild'),
     tools = require("../lib/tools");
 
 var auth = app.locals.config.get("authentication");
@@ -26,6 +28,12 @@ router.get("/auth/github/callback", passport.authenticate('github', {
   successRedirect: '/auth/done',
   failureRedirect: '/login'
 }));
+
+// RSS feed get its own auth protocol (basic HTTP challenge/response)
+router.get("/auth/basic_rss", passport.authenticate('basic', {
+  successRedirect: '/rss' 
+}));
+
 
 if (auth.google.enabled) {
   passport.use(new passportGoogle.OAuth2Strategy({
@@ -77,6 +85,24 @@ if (auth.alone.enabled) {
       usedAuthentication("alone");
 
       return done(null, user);
+    }
+  ));
+}
+
+if (auth.rsshttp.enabled) {
+
+  passport.use(new passportBasicHTTP(
+
+    function(username, password, done) {
+
+      var agent = guild.getAgent(username);
+      var agentKey = guild.getAgentRSSKey (username);
+      if (!agentKey) { return done(null, false); }
+      if (agentKey != password) { return done(null, false); } 
+
+      usedAuthentication("rsshttp");
+
+      return done(null, agent);
     }
   ));
 }

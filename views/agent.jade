@@ -1,0 +1,35 @@
+extends layout
+
+include mixins/assets
+
+block content
+  h1 #{asset.data.contact.name}
+
+  mixin versionInfo(snapshot, metadata.navigation)
+
+  p
+
+  span(style="float:right")
+    a(href="/edit/#{metadata.base.xlink}") edit
+  mixin showMetadata(asset.data)
+
+  - var comments = asset.getComments()
+  if comments
+    p
+    h2 comments
+    ul
+      each comment in comments
+        li 
+          a(href="/view/#{comment.base.xlink}") #{comment.base.timestamp} #{comment.asset.title}
+
+  - var votes = asset.getVotes()
+  if votes
+    p
+    h2 votes
+    ul
+      each vote in votes
+        li
+          a(href="/view/#{vote.base.xlink}") #{vote.base.timestamp} #{vote.asset.title} (#{vote.vote.vote})
+
+
+

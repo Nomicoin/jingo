@@ -1,6 +1,7 @@
 var router = require("express").Router();
 var renderer = require('../lib/renderer');
 var xidb = require('../lib/xidb');
+var assets = require('../lib/assets');
 var fs = require("fs");
 var moment = require("moment");
 var path = require('path');
@@ -9,13 +10,15 @@ router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
 router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
-router.get("/viki/*", _getPage);
-router.get("/v/:version/*", _getVPage);
+router.get("/viki/:wiki/*", _getPage);
+router.get("/v/:wiki/:version/*", _getVPage);
+router.get("/view/:xid/:cid", _viewAsset);
+router.get("/edit/:xid/:cid", _editAsset);
+router.post("/save/:xid/:cid", _saveAsset);
 
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
 router.get("/meta/:xid/:cid", _getMetaPage);
-router.get("/meta/:xid/:cid/asset", _getAsset);
 router.get("/meta/:xid/:cid/as/:format", _getAsFormat);
 router.get("/meta/:xid/:cid/branch", _getBranch);
 
@@ -23,31 +26,36 @@ router.post("/comment/:xid/:cid", _newComment);
 router.post("/vote/:xid/:cid", _newVote);
 
 function _getPage(req, res) {
-  var cid = _getHeadCommit('Meridion');
+  var wiki = req.params.wiki;
+  var repoDir = xidb.getRepoGitDir(wiki);
+  var cid = xidb.getHeadCommit(repoDir);
   var page = req.params['0'];
-  var url = path.join("/v", cid.slice(0,8), page);
+  var url = path.join("/v", wiki, cid.slice(0,8), page);
+
+  console.log(">>> redirecting to", url);
 
   res.redirect(url);
 }
 
 function _getVPage(req, res) {
+  var wiki = req.params.wiki;
   var cid = req.params.version;
   var page = req.params['0'];
   var file = page.replace(/ /g, "-") + '.md';
-  var snapshot = xidb.getWikiSnapshot(cid);
+  var snapshot = xidb.getWikiSnapshot(wiki, cid);
   var xlink = xidb.getMetalink(snapshot, file, true);
 
   if (xlink == null) {
     // check for legacy versioned URL
     cid = path.basename(page);
-    snapshot = xidb.getWikiSnapshot(cid);
+    snapshot = xidb.getWikiSnapshot(wiki, cid);
     page = path.dirname(page);
     file = page.replace(/ /g, "-") + '.md';
     xlink = xidb.getMetalink(snapshot, file, true);
 
     if (xlink != null) {
       var ver = cid.slice(0,8);
-      var url = path.join("/v", ver, page);
+      var url = path.join("/v", wiki, ver, page);
       res.redirect(url);
     }
     else {
@@ -61,15 +69,14 @@ function _getVPage(req, res) {
 
   var metadata = xidb.getMetadataFromLink(xlink);
   var branch = xidb.getMetadataFromLink(metadata.base.branch);
+  var repo = xidb.getBranchRepo(metadata.base.branch);
   var content = metadata.as.html;
-  var snapshot = xidb.getWikiSnapshot(cid);
-  var latestSnapshot = xidb.getLatestWikiSnapshot();
+  var snapshot = xidb.getWikiSnapshot(wiki, cid);
+  var latestSnapshot = xidb.getLatestWikiSnapshot(wiki);
   var latestXlink = xidb.getMetalink(latestSnapshot, file, true);
-  var guildSnapshot = xidb.getLatestGuildSnapshot();
-  var comments = xidb.getComments(guildSnapshot, xlink);
-  var votes = xidb.getVotes(guildSnapshot, xlink);
+  var comments = xidb.getComments(xlink);
+  var votes = xidb.getVotes(xlink);
   var voteResults = xidb.getVoteResults(metadata, votes);
-
   var age;
 
   if (xlink != latestXlink) {
@@ -82,6 +89,7 @@ function _getVPage(req, res) {
   res.render("page", {
     'title': metadata.asset.title,
     'page': metadata,
+    'repo': repo,
     'commit': branch.commit,
     'age': age,
     'content': content,
@@ -139,28 +147,17 @@ function _getAssetVersions(req, res) {
   var latest = versions[versions.length-1];
   var metadata = xidb.getMetadataFromLink(latest.xlink);
   var versions = xidb.resolveBranchLinks(versions);
+  var repo = xidb.getBranchRepo(metadata.base.branch);
 
   console.log(versions);
-  console.log(metadata.asset);
 
   res.render("versions", {
     'title': metadata.asset.title,
     'asset': metadata.asset,
     'name': metadata.asset.name,
+    'repo': repo,
     'versions': versions
   });
-}
-
-function _getHeadCommit(project) {
-  var projects = xidb.getProjectList();
-
-  for(var name in projects) {
-    if (name == project) {
-      return xidb.getHeadCommit(projects[name].repo);
-    }
-  }
-
-  return null;
 }
 
 function _getAsFormat(req, res) {
@@ -179,7 +176,7 @@ function _getAsFormat(req, res) {
   });
 }
 
-function _getAsset(req, res) {
+function _viewAsset(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
   var metadata = xidb.getMetadata(xid, cid);
@@ -189,26 +186,96 @@ function _getAsset(req, res) {
     res.render("asset", {
       'title': metadata.asset.name,
       'imgsrc': "/api/v1/asset/" + metadata.base.xlink + "/" + metadata.asset.name,
-      'nav': metadata.navigation,
       'snapshot': snapshot.commit
     });
   }
   else {
-    xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, content) {
+    xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, data) {
+      var asset = assets.createAsset(data, metadata);
+      var view = asset.getView();
 
-      // TODO: figure out how to get jade to preserve spaces
-      //var text = content.toString().replace(new RegExp(' ', 'g'), '&sp;');
-      //var lines = text.split('\n');
+      console.log(">>>", view);
 
-      res.render("asset", {
-	'title': metadata.asset.name,
-	'content': content,
-	//'lines': lines, 
-	'nav': metadata.navigation,
+      res.render(view, {
+	'title': metadata.asset.title,
+	'asset': asset,
+	'content': data,
+	'metadata': metadata,
 	'snapshot': snapshot.commit
       });
     });
   }
+}
+
+function _editAsset(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
+  var metadata = xidb.getMetadata(xid, cid);
+  var snapshot = xidb.getMetadataFromLink(metadata.base.branch);
+
+  xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, data) {
+    var asset = assets.createAsset(data, metadata);
+    var editor = asset.getEditor();
+
+    console.log(">>>", editor);
+
+    res.render(editor, {
+      'title': metadata.asset.title,
+      'asset': asset,
+      'content': data,
+      'metadata': metadata,
+      'snapshot': snapshot.commit
+    });
+  });
+}
+
+function _form2json(body) {
+  var data = {};
+
+  for(var key in body) {
+    var val = body[key];
+    var keys = key.split('.');
+    var node = data;
+
+    for (var i = 0; i < keys.length; i++) {
+      var subkey = keys[i];
+
+      if (i == keys.length-1) {
+	node[subkey] = val;
+      }
+      else {
+	if (subkey in node) {
+	  node = node[subkey];
+	}
+	else {
+	  node[subkey] = {};
+	  node = node[subkey];
+	}
+      }
+    }
+  }
+
+  return JSON.stringify(data, null, 4);
+}
+
+function _saveAsset(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
+  var xlink = xidb.createLink(xid, cid);
+  var content = _form2json(req.body);
+
+  //console.log(">>> saveAsset", xlink, content);
+
+  xidb.saveAsset(req.user, xlink, content, function(err, newLink) {
+    if (err) {
+      console.log(err);
+      res.redirect('/view/' + xlink);
+    }
+    else {
+      console.log(">>> newLink", newLink);
+      res.redirect('/view/' + newLink);
+    }
+  });
 }
 
 function _addXidbLinks(section, xlink) {
@@ -247,7 +314,7 @@ function _addXidbLinks(section, xlink) {
 
     case 'asset':
     case 'sha':
-      link = "/meta/" + xlink + "/asset";
+      link = "/view/" + xlink;
       break;
 
     case 'page':
@@ -339,13 +406,12 @@ function _newComment(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
   var xlink = xidb.createLink(xid, cid);
-  var url = xidb.getUrl(xlink);
 
   xidb.addComment(req.user, xlink, req.body.comment, function(err, link) {
     if (err) {
       console.log(err);
     }
-    res.redirect(url + "#addComment");
+    res.redirect(req.headers.referer + "#addComment");
   });
 }
 
@@ -353,13 +419,12 @@ function _newVote(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
   var xlink = xidb.createLink(xid, cid);
-  var url = xidb.getUrl(xlink);
 
   xidb.addVote(req.user, xlink, req.body, function(err, link) {
     if (err) {
       console.log(err);
     }
-    res.redirect(url + "#addVote");
+    res.redirect(req.headers.referer + "#addVote");
   });
 }
 

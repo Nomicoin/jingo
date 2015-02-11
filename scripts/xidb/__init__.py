@@ -2,112 +2,9 @@ import uuid, os, shutil, yaml, json, mimetypes, re
 from pygit2 import *
 from glob import glob
 from datetime import datetime
-from genxid import genxid
-import xitypes
-
-
-def createLink(xid, cid):
-    xidRef = str(xid)[:8]
-    cidRef = str(cid)[:8]
-    return os.path.join(xidRef, cidRef)
-
-def makeDirs(path):
-    dirName = os.path.dirname(path)
-    if not os.path.exists(dirName):
-        os.makedirs(dirName)
-
-def saveFile(path, data):
-    makeDirs(path)
-    with open(path, 'w') as f:
-        f.write(data)
-
-def saveJSON(path, obj):
-    res = json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
-    saveFile(path, res + "\n")
-
-class Agent:
-    def __init__(self, data, meta):
-        self.data = data
-        self.meta = meta
-
-    def getContact(self):
-        return self.data['contact']
-
-    def getName(self):
-        return self.getContact()['name']
-
-    def getEmail(self):
-        return self.getContact()['email']
-
-    def getXlink(self):
-        return self.meta['base']['xlink']
-
-    def getSignature(self):
-        return Signature(self.getName(), self.getEmail())
-
-class Asset:
-    @staticmethod
-    def fromMetadata(meta):
-        base = meta['base']
-        cid = base['commit']
-        xid = base['xid']
-
-        asset = meta['asset']
-        sha = asset['sha']
-        name = asset['name']
-
-        return Asset(cid, sha, xid, name)
-
-    def __init__(self, cid, sha, xid, name):
-        self.xid = str(xid)
-        self.name = name
-        self.ext = os.path.splitext(name)[1]
-        self.cid = str(cid)
-        self.sha = str(sha)
-        self.xlink = createLink(self.xid, self.cid)
-
-    def addVersion(self, cid, sha):
-        sha = str(sha)
-        cid = str(cid)
-        if (self.sha != sha):
-            # print "new version for", self.name, self.sha, sha
-            self.sha = sha
-            self.cid = cid
-            self.xlink = createLink(self.xid, self.cid)
-
-    def metadata(self, blob, snapshot, type):
-        data = {}
-
-        data['base'] = {
-            'xid': self.xid,
-            'commit': str(snapshot.commit.id),
-            'xlink': createLink(self.xid, snapshot.commit.id),
-            'branch': snapshot.xlink,
-            'timestamp': snapshot.timestamp,
-            'ref': '',
-            'type': type
-        }
-
-        data['asset'] = {
-            'name': self.name,
-            'ext': self.ext,
-            'title': '',
-            'description': '',
-            'sha': str(blob.id),
-            'size': blob.size,
-            'encoding': 'binary' if blob.is_binary else 'text',
-        }
-
-        for factory in xitypes.allTypes:
-            obj = factory()
-            obj.blob = blob
-            obj.metadata = data
-            obj.snapshot = snapshot
-            obj.init()
-            if obj.isValid():
-                obj.addMetadata()
-                break # use only first valid xitype
-        return data
+from xidb.genxid import genxid
+from xidb.xitypes import Agent, Asset
+from xidb.utils import *
 
 class Snapshot:
     def __init__(self, xid, commit, link, path):
@@ -154,14 +51,14 @@ class Snapshot:
 
 
 class Project:
-    def __init__(self, name, repoDir, metaDir):
+    def __init__(self, name, repoDir, metaDir, assets):
         self.name = name
         self.repoDir = repoDir
         self.metaDir = metaDir
+        self.assets = assets
         self.repo = Repository(self.repoDir)
         self.xid = self.genxid()
         self.snapshots = []
-        self.assets = {}
         self.snapshotsLoaded = 0
         self.snapshotsCreated = 0
         self.assetsLoaded = 0
@@ -176,20 +73,18 @@ class Project:
         xid = genxid(commit.id, commit.tree.id)
         return str(xid)
 
-    def init(self, assets):
+    def init(self):
         """
         Generates metadata for all commits. Overwrites existing metadata.
         """
-        self.assets = assets
         self.initSnapshots()
-        self.initMetadata(True)
+        self.initMetadata()
         self.saveSnapshots()
 
-    def update(self, assets):
+    def update(self):
         """
         Generates metadata for all commits since the last update
         """
-        self.assets = assets
         self.updateSnapshots()
         self.initMetadata()
         self.saveSnapshots()
@@ -222,7 +117,8 @@ class Project:
                     asset.addVersion(snapshot.commit.id, obj.id)
                 else:
                     xid = genxid(snapshot.commit.id, obj.id)
-                    asset = Asset(snapshot.commit.id, obj.id, xid, name)
+                    asset = Asset()
+                    asset.configure(snapshot.commit.id, obj.id, xid, name)
                     self.assets[name] = asset
                 snapshot.add(asset)
 
@@ -234,6 +130,7 @@ class Project:
             self.snapshots.insert(0, snapshot)
             if os.path.exists(path):
                 break
+        # load only snapshots since last update
         self.loadSnapshots()
 
     def initSnapshots(self):
@@ -242,9 +139,11 @@ class Project:
             path = self.createPath(link)
             snapshot = Snapshot(self.xid, commit, link, path)
             self.snapshots.append(snapshot)
+        # load all snapshots in project
         self.loadSnapshots(True)
 
     def loadSnapshots(self, rewrite=False):
+        self.newAssets = []
         for snapshot in self.snapshots:
             if not rewrite and os.path.exists(snapshot.path):
                 print "Loading snapshot", snapshot.path
@@ -260,8 +159,10 @@ class Project:
                         asset.addVersion(snapshot.commit.id, sha)
                     else:
                         # print "Adding %s as %s" % (name, xid)
-                        asset = Asset(commit, sha, xid, name)
+                        asset = Asset()
+                        asset.configure(commit, sha, xid, name)
                         self.assets[name] = asset
+                        self.newAssets.append(asset)
                     snapshot.add(asset)
                 self.snapshotsLoaded += 1
             else:
@@ -289,7 +190,12 @@ class Project:
 
         return schema.xlink if schema else '?'
 
-    def initMetadata(self, rewrite=False):
+    def initMetadata(self):
+
+        #assets = {asset.xlink: asset for xid, asset in assets.items()}
+
+        self.newAssets = []
+
         for snapshot in self.snapshots:
             for xid in snapshot.assets:
                 info = snapshot.assets[xid]
@@ -311,19 +217,12 @@ class Project:
                 asset = self.assets[name]
 
                 if not os.path.isfile(path):
-                    type = self.getType(asset.name)
-                    metadata = asset.metadata(blob, snapshot, type)
-                    saveJSON(path, metadata)
-                    print "wrote metadata for", link, name
+                    asset = asset.generate(blob, snapshot)
+                    asset.save(path)
+                    self.assets[name] = asset
+                    self.newAssets.append(asset)
+                    print "wrote metadata for", link, name, asset.typeName()
                     self.assetsCreated += 1
-
-    def writeMetadata(self, meta):
-        base = meta['base']
-        xlink = base['xlink']
-        path = self.createPath(xlink)
-        saveJSON(path, meta)
-        #print "writeMetadata", path, meta
-
 
 class Guild:
     def __init__(self, config, rebuild=False):
@@ -335,12 +234,11 @@ class Guild:
 
         self.name = os.path.basename(self.guildDir)
         self.project = os.path.basename(self.projDir)
-
-        self.guildProject = Project(self.name, self.guildDir, self.metaDir)
-        self.repoProject = Project(self.wiki, self.repoDir, self.metaDir)
-        self.projProject = Project(self.project, self.projDir, self.metaDir)
-
         self.assets = {}
+
+        self.guildProject = Project(self.name, self.guildDir, self.metaDir, self.assets)
+        self.repoProject = Project(self.wiki, self.repoDir, self.metaDir, self.assets)
+        self.projProject = Project(self.project, self.projDir, self.metaDir, self.assets)
 
         if rebuild:
             shutil.rmtree(self.metaDir, ignore_errors=True)
@@ -363,6 +261,7 @@ class Guild:
         path = self.repoProject.createPath(xlink)
         with open(path) as f:
             meta = json.loads(f.read())
+            meta['base']['path'] = path
         return meta
 
     def loadAgents(self):
@@ -374,8 +273,8 @@ class Guild:
         for name in index:
             xlink = index[name]
             agent = self.agentFromXlink(xlink)
-            email = os.path.basename(name)
-            agents[email] = agent
+            id = os.path.basename(name)
+            agents[id] = agent
         return agents
 
     def loadTypes(self):
@@ -383,27 +282,46 @@ class Guild:
         return types
         
     def init(self):
-        self.guildProject.init(self.assets)
-        self.repoProject.init(self.assets)
-        self.projProject.init(self.assets)
+        self.guildProject.init()
+        self.repoProject.init()
+        self.projProject.init()
+        self.connectAssets()
         self.saveIndex()
 
     def update(self):
-        self.guildProject.update(self.assets)
-        self.repoProject.update(self.assets)
-        self.projProject.update(self.assets)
+        self.guildProject.update()
+        self.repoProject.update()
+        self.projProject.update()
+        self.connectAssets()
         self.saveIndex()
+
+    def connectAssets(self):
+        assets = []
+        assets.extend(self.guildProject.newAssets)
+        assets.extend(self.repoProject.newAssets)
+        assets.extend(self.projProject.newAssets)
+
+        assets = sorted(assets, key=lambda asset: asset.getTimestamp())
+
+        for asset in assets:
+            asset.connect(self)
+
+        print ">>> connectAssets", len(assets)
 
     def getAgent(self, id):
         id = id.lower()
         if id in self.agents:
             return self.agents[id]
 
-    def getAsset(self, xlink):
+    def getAsset(self, xlink, asset=Asset()):
+        # asset could be in any project, Guild should have a createPath()
         path = self.repoProject.createPath(xlink)
         with open(path) as f:
             meta = json.loads(f.read())
-        return Asset.fromMetadata(meta)
+            meta['base']['path'] = path
+        # can we infer project from metadata and pass in the right repo here?
+        asset.initFromMetadata(meta)
+        return asset
 
     def loadTypes(self):
         types = {}
@@ -489,6 +407,15 @@ class Guild:
         saveFile(fullPath, comment)
         return self.commitFile(self.guildProject.repo, agent, asset, "comment", path)
 
+    def saveAsset(self, handle, xlink, content):
+        agent = self.getAgent(handle)
+        asset = self.getAsset(xlink)
+        path = asset.getName()
+        fullPath = os.path.join(self.guildDir, path)
+
+        saveFile(fullPath, content)
+        return self.commitFile(self.guildProject.repo, agent, asset, "asset", path)
+
     def commitFile(self, repo, agent, asset, type, path):
         index = repo.index
 
@@ -506,16 +433,6 @@ class Guild:
 
         self.update()
         newAsset = self.assets[path]
-
-        # print "agent xlink", agent.xlink
-        # agentMeta = self.getMetadata(agent.xlink)
-        # self.addRef(agentMeta, "comment", commentAsset.xlink)
-        # self.guildProject.writeMetadata(agentMeta)
-
-        # docMeta = self.getMetadata(xlink)
-        # self.addRef(docMeta, "comment", commentAsset.xlink)
-        # self.repoProject.writeMetadata(docMeta)
-
         return newAsset.xlink
 
     def agentFromXlink(self, xlink):
@@ -524,7 +441,10 @@ class Guild:
         sha = asset['sha']
         blob = self.guildProject.repo[sha]
         data = json.loads(blob.data)
-        return Agent(data, meta)
+        agent = Agent()
+        agent.initFromMetadata(meta)
+        agent.data = data
+        return agent
 
     def saveIndex(self):
         """

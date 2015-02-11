@@ -1,0 +1,9 @@
+status: 200
+content-length: 48
+content-location: http://localhost:36947/rest/deviceid
+x-syncthing-version: v0.10.11
+cache-control: no-cache
+date: Tue, 09 Dec 2014 18:39:59 GMT
+content-type: application/json; charset=utf-8
+
+{"error":"device ID invalid: incorrect length"}

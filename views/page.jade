@@ -13,7 +13,7 @@ block content
       |&nbsp;|&nbsp;
       a(href="/meta/#{page.base.xid}") history
       |&nbsp;|&nbsp;
-      a(href="/viki/#{title}") latest
+      a(href="/viki/#{repo}/#{title}") latest
     h1 #{title}
 
     !=content
@@ -36,7 +36,7 @@ block content
           | &nbsp;
         a(href="#{comment.comment.authorLink}") #{comment.comment.authorName}
         | &nbsp; &ndash; 
-        a(href="/meta/#{comment.base.xlink}/asset") #{comment.base.timestamp} 
+        a(href="/view/#{comment.base.xlink}") #{comment.base.timestamp} 
         | (#{comment.comment.age})
 
         .well.well-sm
@@ -65,14 +65,14 @@ block content
         each vote in votes
           tr
             td
-              if vote.vote.authorEmail
-                img(src=gravatar().url("#{vote.vote.authorEmail}", {s:20}))
+              if vote.author.agent.contact.email
+                img(src=gravatar().url("#{vote.author.agent.contact.email}", {s:20}))
                 | &nbsp;
-              a(href="#{vote.vote.authorLink}") #{vote.vote.authorName}
+              a(href="#{vote.author.link}") #{vote.author.agent.contact.name}
             td 
-              a(href="#{vote.vote.link}") #{vote.voteDoc.vote}
+              a(href="#{vote.vote.link}") #{vote.vote.vote}
             td #{vote.vote.age}
-            td #{vote.voteDoc.comment}
+            td #{vote.vote.comment}
     p
 
     if voteResults

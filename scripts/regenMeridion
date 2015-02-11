@@ -1,5 +1,3 @@
 #!/bin/sh
 
-python initmeta.py -c ../meridion.yaml -i -r
-
-
+time python initmeta.py -c ../meridion.yaml -i -r
