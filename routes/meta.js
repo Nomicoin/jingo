@@ -186,6 +186,7 @@ function _viewAsset(req, res) {
     res.render("asset", {
       'title': metadata.asset.name,
       'imgsrc': "/api/v1/asset/" + metadata.base.xlink + "/" + metadata.asset.name,
+      'metadata': metadata,
       'snapshot': snapshot.commit
     });
   }
