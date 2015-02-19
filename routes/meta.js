@@ -86,6 +86,8 @@ function _getVPage(req, res) {
     age = "current";
   }
 
+  //console.log(">>> _getVPage", metadata);
+
   res.render("page", {
     'title': metadata.asset.title,
     'page': metadata,
@@ -214,11 +216,13 @@ function _editAsset(req, res) {
   var metadata = xidb.getMetadata(xid, cid);
   var snapshot = xidb.getMetadataFromLink(metadata.base.branch);
 
+  console.log("_editAsset", metadata);
+
   xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, data) {
     var asset = assets.createAsset(data, metadata);
     var editor = asset.getEditor();
 
-    console.log(">>>", editor);
+    console.log(">>> editor=", editor);
 
     res.render(editor, {
       'title': metadata.asset.title,

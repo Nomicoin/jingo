@@ -1,0 +1,39 @@
+extends layout
+
+include mixins/form
+
+block styles
+  mixin featuresStylesheets()
+
+block tools
+  mixin tools('edit', 'tbd page.wikiname')
+
+block content
+
+  #content.edit
+    mixin errors()
+    mixin warning()
+    h1 Edit page
+
+    form(action='/savePage/asdf/adsf', method='post', class='edit')
+
+      .form-group
+        input.form-control(required, type='text', placeholder='Enter the page title', name='pageTitle', value="todo page title")#pageTitle
+        input(type="hidden", name="_method", value="put")
+
+      .form-group
+        textarea.form-control(name="content", data-widearea="enable", rows=25)#editor #{content}
+
+      .form-group
+        input.form-control(type='text', name='message', placeholder='Write a small message here explaining this change (optional)')#message.span8
+
+      mixin saveAndCancel()
+
+  #preview(tabindex="-1").modal
+    mixin dialogBox("Page preview")
+
+  #syntax-reference(tabindex="-1").modal
+    mixin dialogBox("Markdown cheatsheet")
+
+block scripts
+  mixin featuresJavaScripts()
