@@ -15,6 +15,7 @@ router.get("/v/:wiki/:version/*", _getVPage);
 router.get("/view/:xid/:cid", _viewAsset);
 router.get("/edit/:xid/:cid", _editAsset);
 router.post("/save/:xid/:cid", _saveAsset);
+router.put("/save/:xid/:cid/markdown", _saveAssetMarkdown);
 
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
@@ -281,6 +282,17 @@ function _saveAsset(req, res) {
       res.redirect('/view/' + newLink);
     }
   });
+}
+
+function _saveAssetMarkdown(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
+  var xlink = xidb.createLink(xid, cid);
+  var content = req.body;
+
+  console.log(">>> saveAssetMarkdown", xlink, content);
+
+  res.redirect('/view/' + xlink);
 }
 
 function _addXidbLinks(section, xlink) {

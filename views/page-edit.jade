@@ -15,14 +15,14 @@ block content
     mixin warning()
     h1 Edit page
 
-    form(action='/savePage/asdf/adsf', method='post', class='edit')
+    form(action='/save/#{asset.getXLink()}/markdown', method='post', class='edit')
 
       .form-group
-        input.form-control(required, type='text', placeholder='Enter the page title', name='pageTitle', value="todo page title")#pageTitle
+        input.form-control(required, type='text', placeholder='Enter the page title', name='pageTitle', value="#{asset.getTitle()}")#pageTitle
         input(type="hidden", name="_method", value="put")
 
       .form-group
-        textarea.form-control(name="content", data-widearea="enable", rows=25)#editor #{content}
+        textarea.form-control(name="content", data-widearea="enable", rows=25)#editor #{asset.getText()}
 
       .form-group
         input.form-control(type='text', name='message', placeholder='Write a small message here explaining this change (optional)')#message.span8
