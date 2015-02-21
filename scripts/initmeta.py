@@ -16,9 +16,9 @@ def initMetadata(args):
 
     print
     print args
-    print guild.repoProject.snapshotsLoaded, "snapshots loaded"
-    print guild.repoProject.snapshotsCreated, "snapshots created"
-    print guild.repoProject.assetsCreated, "metadata created"
+    print guild.wikiProject.snapshotsLoaded, "snapshots loaded"
+    print guild.wikiProject.snapshotsCreated, "snapshots created"
+    print guild.wikiProject.assetsCreated, "metadata created"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Initialize xidb metadata")

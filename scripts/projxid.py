@@ -12,6 +12,7 @@ with open(args.config) as f:
 
 guild = Guild(config)
 print "guild project", guild.guildProject.xid
-print "repo project", guild.repoProject.xid
+print "wiki project", guild.wikiProject.xid
+print "viki project", guild.projProject.xid
 
 

@@ -229,7 +229,7 @@ class Guild:
         self.wiki = config['application']['title']
         self.guildDir = config['application']['guild']
         self.metaDir = os.path.join(self.guildDir, "meta")
-        self.repoDir = config['application']['repository']
+        self.wikiDir = config['application']['repository']
         self.projDir = config['application']['project']
 
         self.name = os.path.basename(self.guildDir)
@@ -237,7 +237,7 @@ class Guild:
         self.assets = {}
 
         self.guildProject = Project(self.name, self.guildDir, self.metaDir, self.assets)
-        self.repoProject = Project(self.wiki, self.repoDir, self.metaDir, self.assets)
+        self.wikiProject = Project(self.wiki, self.wikiDir, self.metaDir, self.assets)
         self.projProject = Project(self.project, self.projDir, self.metaDir, self.assets)
 
         if rebuild:
@@ -258,7 +258,7 @@ class Guild:
         self.types = self.loadTypes()
 
     def getMetadata(self, xlink):
-        path = self.repoProject.createPath(xlink)
+        path = self.wikiProject.createPath(xlink)
         with open(path) as f:
             meta = json.loads(f.read())
             meta['base']['path'] = path
@@ -283,14 +283,14 @@ class Guild:
         
     def init(self):
         self.guildProject.init()
-        self.repoProject.init()
+        self.wikiProject.init()
         self.projProject.init()
         self.connectAssets()
         self.saveIndex()
 
     def update(self):
         self.guildProject.update()
-        self.repoProject.update()
+        self.wikiProject.update()
         self.projProject.update()
         self.connectAssets()
         self.saveIndex()
@@ -298,7 +298,7 @@ class Guild:
     def connectAssets(self):
         assets = []
         assets.extend(self.guildProject.newAssets)
-        assets.extend(self.repoProject.newAssets)
+        assets.extend(self.wikiProject.newAssets)
         assets.extend(self.projProject.newAssets)
 
         assets = sorted(assets, key=lambda asset: asset.getTimestamp())
@@ -315,7 +315,7 @@ class Guild:
 
     def getAsset(self, xlink, asset=Asset()):
         # asset could be in any project, Guild should have a createPath()
-        path = self.repoProject.createPath(xlink)
+        path = self.wikiProject.createPath(xlink)
         with open(path) as f:
             meta = json.loads(f.read())
             meta['base']['path'] = path
@@ -416,6 +416,37 @@ class Guild:
         saveFile(fullPath, content)
         return self.commitFile(self.guildProject.repo, agent, asset, "asset", path)
 
+    def savePage(self, handle, xlink, title, content, message):
+        agent = self.getAgent(handle)
+        asset = self.getAsset(xlink)
+        path = asset.getName()
+        fullPath = os.path.join(self.wikiDir, path)
+
+        print ">>> savePage", title, fullPath, asset
+
+        # !!! TD: if title changes, move page first 
+        # !!! TD: repo update should detect asset moves
+
+        saveFile(fullPath, content)
+        return self.commitFile2(self.wikiProject.repo, agent, path, message)
+
+    def commitFile2(self, repo, agent, path, message):
+        index = repo.index
+
+        index.read()
+        index.add(path)
+        index.write()
+
+        tree = index.write_tree()
+        branch = repo.head.name
+        author = agent.getSignature()
+        committer = author #todo: should be this script agent
+        cid = repo.create_commit(branch, author, committer, message, tree, [repo.head.target])
+
+        self.update()
+        newAsset = self.assets[path]
+        return newAsset.xlink
+
     def commitFile(self, repo, agent, asset, type, path):
         index = repo.index
 
@@ -451,7 +482,7 @@ class Guild:
         Saves this project's info to an index file.
         """
         projects = {}
-        for project in [self.guildProject, self.repoProject, self.projProject]:
+        for project in [self.guildProject, self.wikiProject, self.projProject]:
             projects[project.name] = {
                 "xid": project.xid,
                 "repo": project.repo.path,

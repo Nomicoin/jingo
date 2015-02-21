@@ -288,11 +288,20 @@ function _saveAssetMarkdown(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
   var xlink = xidb.createLink(xid, cid);
-  var content = req.body;
+  var page = JSON.stringify(req.body, null, 4);
 
-  console.log(">>> saveAssetMarkdown", xlink, content);
+  console.log(">>> saveAssetMarkdown", xlink, page);
 
-  res.redirect('/view/' + xlink);
+  xidb.savePage(req.user, xlink, page, function(err, newLink) {
+    if (err) {
+      console.log(err);
+      res.redirect('/view/' + xlink);
+    }
+    else {
+      console.log(">>> newLink", newLink);
+      res.redirect('/view/' + newLink);
+    }
+  });
 }
 
 function _addXidbLinks(section, xlink) {
