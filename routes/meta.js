@@ -10,8 +10,12 @@ router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
 router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
+// wiki pages
+router.get("/vpage/:xid/:cid", _viewPage);
 router.get("/viki/:wiki/*", _getPage);
 router.get("/v/:wiki/:version/*", _getVPage);
+
+// metadata
 router.get("/view/:xid/:cid", _viewAsset);
 router.get("/edit/:xid/:cid", _editAsset);
 router.post("/save/:xid/:cid", _saveAsset);
@@ -25,6 +29,19 @@ router.get("/meta/:xid/:cid/branch", _getBranch);
 
 router.post("/comment/:xid/:cid", _newComment);
 router.post("/vote/:xid/:cid", _newVote);
+
+function _viewPage(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
+  var xlink = xidb.createLink(xid, cid);
+  var metadata = xidb.getMetadataFromLink(xlink);
+  var url = "/v/wiki/" + cid + "/" + metadata.asset.title;
+
+  console.log(">>> _viewPage", xlink, metadata);
+  console.log(">>> redirecting to", url);
+
+  res.redirect(url);
+}
 
 function _getPage(req, res) {
   var wiki = req.params.wiki;
@@ -299,7 +316,7 @@ function _saveAssetMarkdown(req, res) {
     }
     else {
       console.log(">>> newLink", newLink);
-      res.redirect('/view/' + newLink);
+      res.redirect('/vpage/' + newLink);
     }
   });
 }

@@ -427,6 +427,9 @@ class Guild:
         # !!! TD: if title changes, move page first 
         # !!! TD: repo update should detect asset moves
 
+        if not message:
+            message = "Updated {0} (markdown)".format(title)
+
         saveFile(fullPath, content)
         return self.commitFile2(self.wikiProject.repo, agent, path, message)
 
