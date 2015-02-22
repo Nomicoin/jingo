@@ -259,7 +259,8 @@ class Markdown(Text):
         self.page = self.name[:-3] # remove .md extension
         self.plink = os.path.join(self.vlink, self.page)
 
-        title = os.path.basename(self.name)
+        #title = os.path.basename(self.name)
+        title = self.name[:-3] # remove .md5
         title = os.path.splitext(title)[0]
         self.title = title.replace("-", " ")
 
