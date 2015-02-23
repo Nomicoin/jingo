@@ -419,7 +419,9 @@ class Guild:
     def savePage(self, handle, xlink, title, content, message):
         agent = self.getAgent(handle)
 
-        if not xlink:
+        print ">>> savePage", handle, xlink
+
+        if xlink == 'tbd':
             lastTitle = ''
         else:
             asset = self.getAsset(xlink)
@@ -428,7 +430,7 @@ class Guild:
         path = title.replace(" ", "-") + ".md"
         fullPath = os.path.join(self.wikiDir, path)
 
-        print ">>> savePage", title, lastTitle, fullPath, asset
+        print ">>> savePage", title, lastTitle, fullPath
 
         # !!! TD: if title changes, move page first 
         # !!! TD: repo update should detect asset moves

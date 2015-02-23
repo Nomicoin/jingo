@@ -19,7 +19,8 @@ router.get("/v/:wiki/:version/*", _getVPage);
 router.get("/view/:xid/:cid", _viewAsset);
 router.get("/edit/:xid/:cid", _editAsset);
 router.post("/save/:xid/:cid", _saveAsset);
-router.put("/save/:xid/:cid/markdown", _saveAssetMarkdown);
+router.put("/save/new/markdown", _saveNewMarkdown);
+router.put("/save/:xid/:cid/markdown", _saveMarkdown);
 
 router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
@@ -35,7 +36,7 @@ function _viewPage(req, res) {
   var cid = req.params.cid;
   var xlink = xidb.createLink(xid, cid);
   var metadata = xidb.getMetadataFromLink(xlink);
-  var url = "/v/wiki/" + cid + "/" + metadata.asset.title;
+  var url = "/v/wiki/" + cid + "/" + metadata.markdown.page;
 
   console.log(">>> _viewPage", xlink, metadata);
   console.log(">>> redirecting to", url);
@@ -65,8 +66,22 @@ function _getVPage(req, res) {
 
   if (xlink == null) {
     // check for legacy versioned URL
+    console.log(">>> check for legacy versioned URL");
+
     cid = path.basename(page);
     snapshot = xidb.getWikiSnapshot(wiki, cid);
+
+    if (snapshot == null) {
+      var pageTitle = page.replace("-", " ");
+
+      res.render("page-new.jade", {
+	'title': "New page",
+	'pageTitle': pageTitle,
+      });
+
+      return;
+    }
+
     page = path.dirname(page);
     file = page.replace(/ /g, "-") + '.md';
     xlink = xidb.getMetalink(snapshot, file, true);
@@ -77,6 +92,8 @@ function _getVPage(req, res) {
       res.redirect(url);
     }
     else {
+      console.log(">>> 404 not found");
+
       res.locals.title = "404 - Not found";
       res.statusCode = 404;
       res.render('404.jade');
@@ -301,13 +318,30 @@ function _saveAsset(req, res) {
   });
 }
 
-function _saveAssetMarkdown(req, res) {
+function _saveNewMarkdown(req, res) {
+  var page = JSON.stringify(req.body, null, 4);
+
+  console.log(">>> saveNewMarkdown", page);
+
+  xidb.savePage(req.user, 'tbd', page, function(err, newLink) {
+    if (err) {
+      console.log(err);
+      res.redirect('/view/' + xlink);
+    }
+    else {
+      console.log(">>> newLink", newLink);
+      res.redirect('/vpage/' + newLink);
+    }
+  });
+}
+
+function _saveMarkdown(req, res) {
   var xid = req.params.xid;
   var cid = req.params.cid;
   var xlink = xidb.createLink(xid, cid);
   var page = JSON.stringify(req.body, null, 4);
 
-  console.log(">>> saveAssetMarkdown", xlink, page);
+  console.log(">>> saveMarkdown", xlink, page);
 
   xidb.savePage(req.user, xlink, page, function(err, newLink) {
     if (err) {
