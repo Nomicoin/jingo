@@ -1,3 +1,30 @@
+Version 1.2.9, January 26th, 2014
+=================================
+
+- Fixes #64 (crash serving favicon)
+- Fixes #62 (missing titles on new and edit)
+- Fixes #60 (no sidebar on login page)
+
+Version 1.2.8, December 15th, 2014
+=================================
+
+- Fixes a bug on the pull git pull (Jon Richter, @almereyda)
+- Updates README (Jon Richter, @almereyda)
+- Re-enable the baseUrl config option (Jon Richter, @almereyda)
+- Upgrade some modules to a newest version
+
+Version 1.2.7, November 16th, 2014
+=================================
+
+- Merges #59 (add a validation for Github parameters)
+
+Version 1.2.6, November 4th, 2014
+=================================
+
+- Fixes #57 (removes the backdrop from modal)
+- Better accessibility for modal boxes
+- Better layout and typography for modal boxes
+
 Version 1.2.5, October 28st, 2014
 =================================
 
