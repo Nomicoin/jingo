@@ -123,6 +123,8 @@ function _getVPage(req, res) {
 
   //console.log(">>> _getVPage", metadata);
 
+  res.locals.canEdit = true;
+
   res.render("page", {
     'title': metadata.asset.title,
     'page': metadata,
