@@ -126,7 +126,7 @@ function _getVPage(req, res) {
     age = "current";
   }
 
-  //console.log(">>> _getVPage", metadata);
+  console.log(">>> _getVPage", metadata);
 
   res.locals.canEdit = true;
 

@@ -1,5 +1,19 @@
 include form
 
+mixin pagetools(page)
+  ul
+    if !isAnonymous() && canEdit
+      li
+        a(href="/edit/#{page.base.xlink}", title="Edit this page").btn.btn-sm.btn-default
+          i.icon.ion-compose
+
+    li
+      a(href="/meta/#{page.base.xid}", title="Page history").btn.btn-sm.btn-default
+        i.icon.ion-clock
+    li
+      a(href="/wiki", title="All pages").btn.btn-sm.btn-default
+        i.icon.ion-grid
+
 mixin versionInfo(snapshot, nav)
   table.table-bordered.table-hover.table-condensed
     tr 

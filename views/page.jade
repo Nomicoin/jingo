@@ -1,9 +1,10 @@
 extends layout
 
 include mixins/form
+include mixins/assets
 
 block tools
-  mixin tools('show', page.base.name)
+  mixin pagetools(page)
 
 block content
 
@@ -11,11 +12,7 @@ block content
     span(style="float:right")
       |#{age}
       |&nbsp;|&nbsp;
-      a(href="/meta/#{page.base.xid}") history
-      |&nbsp;|&nbsp;
       a(href="/viki/#{repo}/#{title}") latest
-      |&nbsp;|&nbsp;
-      a(href="/edit/#{page.base.xlink}") edit
     h1 #{title}
 
     !=content
