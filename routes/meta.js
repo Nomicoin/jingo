@@ -11,6 +11,7 @@ router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
 router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
 // wiki pages
+router.get("/", _getIndex);
 router.get("/vpage/:xid/:cid", _viewPage);
 router.get("/viki/:wiki/*", _getPage);
 router.get("/v/:wiki/:version/*", _getVPage);
@@ -42,6 +43,10 @@ function _viewPage(req, res) {
   console.log(">>> redirecting to", url);
 
   res.redirect(url);
+}
+
+function _getIndex(req, res) {
+  res.redirect("/viki/wiki/Home");
 }
 
 function _getPage(req, res) {
