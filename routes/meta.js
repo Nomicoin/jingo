@@ -15,6 +15,9 @@ router.get("/", _getIndex);
 router.get("/vpage/:xid/:cid", _viewPage);
 router.get("/viki/:wiki/*", _getPage);
 router.get("/v/:wiki/:version/*", _getVPage);
+router.get("/history/:wiki", _getHistory);
+
+router.get("/new/page", _newPage);
 
 // metadata
 router.get("/view/:xid/:cid", _viewAsset);
@@ -47,6 +50,12 @@ function _viewPage(req, res) {
 
 function _getIndex(req, res) {
   res.redirect("/viki/wiki/Home");
+}
+
+function _newPage(req, res) {
+  res.render("page-new", {
+    'title': "new page",
+  });
 }
 
 function _getPage(req, res) {
@@ -143,6 +152,35 @@ function _getVPage(req, res) {
     'voteResults': voteResults,
     'voteLink': "/vote/" + xlink,
   });
+}
+
+function _getHistory(req, res) {
+  var wiki = req.params.wiki;
+  var repoDir = xidb.getRepoGitDir(wiki);
+  var cid = xidb.getHeadCommit(repoDir);
+  var snapshot = xidb.getWikiSnapshot(wiki, cid);
+
+  console.log("_getHistory", wiki, repoDir, cid);
+  //console.log(snapshot);
+
+  var items = [];
+
+  for(var xid in snapshot.assets) {
+    //console.log(xid);
+    var asset = snapshot.assets[xid];
+    //console.log(asset);
+    var metadata = xidb.getMetadata(xid, asset.commit);
+    //console.log(metadata);
+    items.push(metadata);
+  }
+
+  items.sort(function(a,b) {
+    return a.base.timestamp.localeCompare(b.base.timestamp);
+  });
+  
+  console.log(items);
+
+  _getIndex(req, res);
 }
 
 function _apiv1GetAsset(req, res) {

@@ -2,6 +2,11 @@ include form
 
 mixin pagetools(page)
   ul
+    if !isAnonymous()
+      li
+        a(href="/new/page", title="Create new page").btn.btn-sm.btn-default
+          i.icon.ion-plus-round
+
     if !isAnonymous() && canEdit
       li
         a(href="/edit/#{page.base.xlink}", title="Edit this page").btn.btn-sm.btn-default
