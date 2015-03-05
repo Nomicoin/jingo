@@ -10,9 +10,20 @@ block content
 
   #content.show
     span(style="float:right")
-      |#{age}
+      if page.navigation
+        if page.navigation.first
+          a(href="/vpage/#{page.navigation.first}") first&nbsp;
+        if page.navigation.prev
+          a(href="/vpage/#{page.navigation.prev}") prev&nbsp;
+        if page.navigation.next
+          a(href="/vpage/#{page.navigation.next}") next&nbsp;
+        if page.navigation.last
+          a(href="/vpage/#{page.navigation.last}") last&nbsp;
+        |&nbsp;|&nbsp;
+        | #{page.navigation.version}
       |&nbsp;|&nbsp;
-      a(href="/viki/#{repo}/#{title}") latest
+      |#{age}
+
     h1 #{title}
 
     !=content

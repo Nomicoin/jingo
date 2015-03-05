@@ -171,7 +171,12 @@ function _getHistory(req, res) {
     //console.log(asset);
     var metadata = xidb.getMetadata(xid, asset.commit);
     //console.log(metadata);
-    items.push(metadata);
+
+    console.log(metadata.base.commit, cid);
+
+    if (cid == metadata.base.commit) {
+      items.push(metadata);
+    }
   }
 
   items.sort(function(a,b) {
