@@ -16,7 +16,7 @@ router.get("/vpage/:xid/:cid", _viewPage);
 router.get("/viki/:wiki/*", _getPage);
 router.get("/v/:wiki/:version/*", _getVPage);
 router.get("/history/:wiki", _getHistory);
-
+router.get("/list/:wiki", _listAll);
 router.get("/new/page", _newPage);
 
 // metadata
@@ -475,6 +475,24 @@ function _addAssetsLinks(section) {
   });
 
   return md;
+}
+
+function _listAll(req, res) {
+  var wiki = req.params.wiki;
+  var projects = xidb.getProjectIndex();
+  var url = "/bogus";
+
+  for(var i in projects) {
+    var project = projects[i];
+    if (project.name == wiki) {
+      var url = "/meta/" + project.xlink + "/branch";
+      break;
+    }
+  }
+
+  //console.log(">>> _listAll", wiki, projects, url);
+
+  res.redirect(url);
 }
 
 function _getBranch(req, res) {
