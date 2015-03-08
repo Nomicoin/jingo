@@ -445,11 +445,11 @@ function _addXidbLinks(section, xlink) {
       break;
 
     case 'page':
-      link = "/viki/"+ val;
+      link = "/viki/wiki/"+ val;
       break;
 
     case 'plink':
-      link = "/v/"+ val;
+      link = "/v/wiki/"+ val;
       break;
     }
 
