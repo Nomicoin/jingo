@@ -500,13 +500,20 @@ function _getBranch(req, res) {
   var cid = req.params.cid;
   var metadata = xidb.getMetadata(xid, cid);
   var assets = [];
+  var changed = [];
 
   for(xid in metadata.assets) {
     var asset = metadata.assets[xid];
-    assets.push({
+    var info = {
       'name': asset.name,
       'xlink': xidb.createLink(xid, asset.commit)
-    });
+    };
+
+    assets.push(info);
+
+    if (asset.commit.indexOf(cid) == 0) {
+      changed.push(info);
+    }
   }
 
   assets.sort(function(a,b) {
@@ -517,6 +524,7 @@ function _getBranch(req, res) {
     title: "branch",
     commit: metadata.commit,
     assets: assets,
+    changed: changed,
     nav: metadata.navigation
   });
 }
