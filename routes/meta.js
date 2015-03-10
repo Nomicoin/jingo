@@ -30,7 +30,8 @@ router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
 router.get("/meta/:xid/:cid", _getMetaPage);
 router.get("/meta/:xid/:cid/as/:format", _getAsFormat);
-router.get("/meta/:xid/:cid/branch", _getBranch);
+//router.get("/meta/:xid/:cid/branch", _getBranch);
+router.get("/branch/:xid/:cid", _getBranch);
 
 router.post("/comment/:xid/:cid", _newComment);
 router.post("/vote/:xid/:cid", _newVote);
@@ -436,7 +437,7 @@ function _addXidbLinks(section, xlink) {
       break;
 
     case 'branch':
-      link = "/meta/" + val + "/branch";
+      link = "/branch/" + val;
       break;
 
     case 'asset':
@@ -485,7 +486,7 @@ function _listAll(req, res) {
   for(var i in projects) {
     var project = projects[i];
     if (project.name == wiki) {
-      var url = "/meta/" + project.xlink + "/branch";
+      var url = "/branch/" + project.xlink;
       break;
     }
   }

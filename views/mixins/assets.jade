@@ -34,12 +34,12 @@ mixin versionInfo(snapshot, nav)
       td navigation
       td
         if nav.first
-          a(href="/view/#{nav.first}") first&nbsp;
+          a(href="../#{nav.first}") first&nbsp;
         else
           span first&nbsp;
 
         if nav.prev
-          a(href="/view/#{nav.prev}") prev&nbsp;
+          a(href="../#{nav.prev}") prev&nbsp;
         else
           span prev&nbsp;
 
@@ -49,12 +49,12 @@ mixin versionInfo(snapshot, nav)
           span [metadata]&nbsp;
 
         if nav.next
-          a(href="/view/#{nav.next}") next&nbsp;
+          a(href="../#{nav.next}") next&nbsp;
         else
           span next&nbsp;
 
         if nav.last
-          a(href="/view/#{nav.last}") last&nbsp;
+          a(href="../#{nav.last}") last&nbsp;
         else
           span last&nbsp;
 
