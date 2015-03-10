@@ -497,8 +497,45 @@ function _listAll(req, res) {
   res.redirect(url);
 }
 
+var TreeNode = function(asset) {
+  this.name = asset.name;
+  this.url = '/view/' + asset.xlink;
+  this.kids = [];
+}
+
+TreeNode.prototype.generateHtml = function() {
+  var html = '';
+
+  if (this.kids.length == 0) {
+    html += '<li>';
+    html += '<a href="' + this.url + '">' + this.name + '</a>';
+    html += '</li>';
+  }
+  else {
+    html += '<li>';
+    html += '<input type="checkbox" id="' + this.name + '" />';
+    html += '<label for="' + this.name + '">' + this.name + '</label>';
+    // insert kids
+    html += '</li>';
+  }
+
+  return html;
+}
+
 var TreeView = function(assets) {
   this.assets = assets;
+  this.nodes = [];
+
+  for(var i in assets) {
+    this.addNode(assets[i]);
+  }
+}
+
+TreeView.prototype.addNode = function(asset) {
+  console.log(">>> addNode", asset.name, asset.xlink);
+
+  var node = new TreeNode(asset);
+  this.nodes.push(node);
 }
 
 TreeView.prototype.generateHtml = function() {
@@ -527,6 +564,17 @@ TreeView.prototype.generateHtml = function() {
                 </li> \
             </ul> \
         </div>';
+
+  tree = '<div class="css-treeview">\n';
+  tree += '<ul>\n';
+
+  for(var i in this.nodes) {
+    var node = this.nodes[i];
+    tree += node.generateHtml();
+  }
+
+  tree += '</ul>\n';
+  tree += '</div>\n';
 
   return tree;
 }
