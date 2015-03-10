@@ -18,6 +18,7 @@ router.get("/v/:wiki/:version/*", _getVPage);
 router.get("/history/:wiki", _getHistory);
 router.get("/list/:wiki", _listAll);
 router.get("/new/page", _newPage);
+router.get("/tvtest", _treeView);
 
 // metadata
 router.get("/view/:xid/:cid", _viewAsset);
@@ -51,6 +52,41 @@ function _viewPage(req, res) {
 
 function _getIndex(req, res) {
   res.redirect("/viki/wiki/Home");
+}
+
+function _treeView(req, res) {
+
+  var tree = '';
+
+  var tree = ' \
+        <div class="css-treeview"> \
+            <ul> \
+                <li><input type="checkbox" id="item-0" /><label for="item-0">This Folder is Closed By Default</label> \
+                    <ul> \
+                        <li><input type="checkbox" id="item-0-0" /><label for="item-0-0">Ooops! A Nested Folder</label> \
+                            <ul> \
+                                <li><input type="checkbox" id="item-0-0-0" /><label for="item-0-0-0">Look Ma - No Hands!</label> \
+                                    <ul> \
+                                        <li><a href="./">First Nested Item</a></li>  \
+                                        <li><a href="./">Second Nested Item</a></li> \
+                                        <li><a href="./">Third Nested Item</a></li>  \
+                                        <li><a href="./">Fourth Nested Item</a></li> \
+                                    </ul> \
+                                </li> \
+                                <li><a href="./">Item 1</a></li> \
+                                <li><a href="./">Item 2</a></li> \
+                                <li><a href="./">Item 3</a></li> \
+                            </ul> \
+                        </li> \
+                    </ul> \
+                </li> \
+            </ul> \
+        </div>';
+
+  res.render("treeview", {
+    'title': "treeview test",
+    'tree': tree
+  });
 }
 
 function _newPage(req, res) {
