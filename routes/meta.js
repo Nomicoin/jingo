@@ -18,7 +18,6 @@ router.get("/v/:wiki/:version/*", _getVPage);
 router.get("/history/:wiki", _getHistory);
 router.get("/list/:wiki", _listAll);
 router.get("/new/page", _newPage);
-router.get("/tvtest", _treeView);
 
 // metadata
 router.get("/view/:xid/:cid", _viewAsset);
@@ -31,8 +30,9 @@ router.get("/meta", _getMeta);
 router.get("/meta/:xid", _getAssetVersions);
 router.get("/meta/:xid/:cid", _getMetaPage);
 router.get("/meta/:xid/:cid/as/:format", _getAsFormat);
-//router.get("/meta/:xid/:cid/branch", _getBranch);
+
 router.get("/branch/:xid/:cid", _getBranch);
+router.get("/snapshot/:xid/:cid", _getSnapshot);
 
 router.post("/comment/:xid/:cid", _newComment);
 router.post("/vote/:xid/:cid", _newVote);
@@ -52,41 +52,6 @@ function _viewPage(req, res) {
 
 function _getIndex(req, res) {
   res.redirect("/viki/wiki/Home");
-}
-
-function _treeView(req, res) {
-
-  var tree = '';
-
-  var tree = ' \
-        <div class="css-treeview"> \
-            <ul> \
-                <li><input type="checkbox" id="item-0" /><label for="item-0">This Folder is Closed By Default</label> \
-                    <ul> \
-                        <li><input type="checkbox" id="item-0-0" /><label for="item-0-0">Ooops! A Nested Folder</label> \
-                            <ul> \
-                                <li><input type="checkbox" id="item-0-0-0" /><label for="item-0-0-0">Look Ma - No Hands!</label> \
-                                    <ul> \
-                                        <li><a href="./">First Nested Item</a></li>  \
-                                        <li><a href="./">Second Nested Item</a></li> \
-                                        <li><a href="./">Third Nested Item</a></li>  \
-                                        <li><a href="./">Fourth Nested Item</a></li> \
-                                    </ul> \
-                                </li> \
-                                <li><a href="./">Item 1</a></li> \
-                                <li><a href="./">Item 2</a></li> \
-                                <li><a href="./">Item 3</a></li> \
-                            </ul> \
-                        </li> \
-                    </ul> \
-                </li> \
-            </ul> \
-        </div>';
-
-  res.render("treeview", {
-    'title': "treeview test",
-    'tree': tree
-  });
 }
 
 function _newPage(req, res) {
@@ -522,7 +487,7 @@ function _listAll(req, res) {
   for(var i in projects) {
     var project = projects[i];
     if (project.name == wiki) {
-      var url = "/branch/" + project.xlink;
+      var url = "/snapshot/" + project.xlink;
       break;
     }
   }
@@ -530,6 +495,77 @@ function _listAll(req, res) {
   //console.log(">>> _listAll", wiki, projects, url);
 
   res.redirect(url);
+}
+
+var TreeView = function(assets) {
+  this.assets = assets;
+}
+
+TreeView.prototype.generateHtml = function() {
+
+  var tree = ' \
+        <div class="css-treeview"> \
+            <ul> \
+                <li><input type="checkbox" id="item-0" /><label for="item-0">This Folder is Closed By Default</label> \
+                    <ul> \
+                        <li><input type="checkbox" id="item-0-0" /><label for="item-0-0">Ooops! A Nested Folder</label> \
+                            <ul> \
+                                <li><input type="checkbox" id="item-0-0-0" /><label for="item-0-0-0">Look Ma - No Hands!</label> \
+                                    <ul> \
+                                        <li><a href="./">First Nested Item</a></li>  \
+                                        <li><a href="./">Second Nested Item</a></li> \
+                                        <li><a href="./">Third Nested Item</a></li>  \
+                                        <li><a href="./">Fourth Nested Item</a></li> \
+                                    </ul> \
+                                </li> \
+                                <li><a href="/wiki/Rules">Rules</a></li> \
+                                <li><a href="./">Item 2</a></li> \
+                                <li><a href="./">Item 3</a></li> \
+                            </ul> \
+                        </li> \
+                    </ul> \
+                </li> \
+            </ul> \
+        </div>';
+
+  return tree;
+}
+
+function _getSnapshot(req, res) {
+  var xid = req.params.xid;
+  var cid = req.params.cid;
+  var metadata = xidb.getMetadata(xid, cid);
+  var assets = [];
+  var changed = [];
+
+  for(xid in metadata.assets) {
+    var asset = metadata.assets[xid];
+    var info = {
+      'name': asset.name,
+      'xlink': xidb.createLink(xid, asset.commit)
+    };
+
+    assets.push(info);
+
+    if (asset.commit.indexOf(cid) == 0) {
+      changed.push(info);
+    }
+  }
+
+  assets.sort(function(a,b) {
+    return a.name.localeCompare(b.name);
+  });
+
+  var treeView = new TreeView(assets);
+
+  res.render("snapshot", {
+    title: "snapshot",
+    commit: metadata.commit,
+    tree: treeView.generateHtml(),
+    assets: assets,
+    changed: changed,
+    nav: metadata.navigation
+  });
 }
 
 function _getBranch(req, res) {
