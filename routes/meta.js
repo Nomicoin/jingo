@@ -497,82 +497,93 @@ function _listAll(req, res) {
   res.redirect(url);
 }
 
-var TreeNode = function(asset) {
-  this.name = asset.name;
-  this.url = '/view/' + asset.xlink;
+
+var TreeNode = function(id) {
+  this.id = id;
+  this.parent = path.dirname(id);
+  this.name = path.basename(id);
   this.kids = [];
 }
 
 TreeNode.prototype.generateHtml = function() {
   var html = '';
 
-  if (this.kids.length == 0) {
-    html += '<li>';
-    html += '<a href="' + this.url + '">' + this.name + '</a>';
-    html += '</li>';
+  html += '<li>\n';
+  html += '  <input type="checkbox" checked="checked" id="' + this.name + '" />\n';
+  html += '  <label for="' + this.name + '">' + this.name + '</label>\n';
+
+  if (this.kids.length > 0) {
+    html += '    <ul>\n';
+    for(var i in this.kids) {
+      html += this.kids[i].generateHtml();
+    }
+    html += '    </ul>\n';
   }
-  else {
-    html += '<li>';
-    html += '<input type="checkbox" id="' + this.name + '" />';
-    html += '<label for="' + this.name + '">' + this.name + '</label>';
-    // insert kids
-    html += '</li>';
-  }
+
+  html += '</li>\n';
+
+  return html;
+}
+
+var LeafNode = function(asset) {
+  this.id = asset.name;
+  this.parent = path.dirname(asset.name);
+  this.name = path.basename(asset.name);
+  this.url = '/view/' + asset.xlink;
+}
+
+LeafNode.prototype = Object.create(TreeNode.prototype);
+
+LeafNode.prototype.generateHtml = function() {
+  var html = '';
+
+  html += '<li>\n';
+  html += '  <a href="' + this.url + '">' + this.name + '</a>\n';
+  html += '</li>\n';
 
   return html;
 }
 
 var TreeView = function(assets) {
   this.assets = assets;
-  this.nodes = [];
+
+  this.nodes = {};
+  this.root = new TreeNode('.');
+  this.nodes['.'] = this.root;
 
   for(var i in assets) {
-    this.addNode(assets[i]);
+    var node = new LeafNode(assets[i]);
+    this.addNode(node);
   }
 }
 
-TreeView.prototype.addNode = function(asset) {
-  console.log(">>> addNode", asset.name, asset.xlink);
+TreeView.prototype.getNode = function(id) {
+  console.log(">>> getNode", id);
 
-  var node = new TreeNode(asset);
-  this.nodes.push(node);
+  if (id in this.nodes) {
+    return this.nodes[id];
+  }
+  else {
+    var node = new TreeNode(id);
+    this.addNode(node);
+    return node;
+  }
+}
+
+TreeView.prototype.addNode = function(node) {
+  this.nodes[node.id] = node;
+
+  var parent = this.getNode(node.parent);
+  parent.kids.push(node);
+
+  console.log(">>> addNode", node.id, node.name, node.parent);
 }
 
 TreeView.prototype.generateHtml = function() {
 
-  var tree = ' \
-        <div class="css-treeview"> \
-            <ul> \
-                <li><input type="checkbox" id="item-0" /><label for="item-0">This Folder is Closed By Default</label> \
-                    <ul> \
-                        <li><input type="checkbox" id="item-0-0" /><label for="item-0-0">Ooops! A Nested Folder</label> \
-                            <ul> \
-                                <li><input type="checkbox" id="item-0-0-0" /><label for="item-0-0-0">Look Ma - No Hands!</label> \
-                                    <ul> \
-                                        <li><a href="./">First Nested Item</a></li>  \
-                                        <li><a href="./">Second Nested Item</a></li> \
-                                        <li><a href="./">Third Nested Item</a></li>  \
-                                        <li><a href="./">Fourth Nested Item</a></li> \
-                                    </ul> \
-                                </li> \
-                                <li><a href="/wiki/Rules">Rules</a></li> \
-                                <li><a href="./">Item 2</a></li> \
-                                <li><a href="./">Item 3</a></li> \
-                            </ul> \
-                        </li> \
-                    </ul> \
-                </li> \
-            </ul> \
-        </div>';
-
   tree = '<div class="css-treeview">\n';
   tree += '<ul>\n';
-
-  for(var i in this.nodes) {
-    var node = this.nodes[i];
-    tree += node.generateHtml();
-  }
-
+  tree += this.root.generateHtml();
   tree += '</ul>\n';
   tree += '</div>\n';
 

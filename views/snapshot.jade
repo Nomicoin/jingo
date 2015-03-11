@@ -8,26 +8,8 @@ block content
 
   mixin versionInfo(commit, nav)
 
-  hr
+  p
 
   .well
     !=tree
 
-  h3 changed
-
-  table.table-bordered.table-hover.table-condensed(width="100%")
-    each asset in changed
-      tr
-        td 
-           a(href="/view/#{asset.xlink}") #{asset.name}
-
-  p
-  h3 assets
-
-  table.table-bordered.table-hover.table-condensed(width="100%")
-    each asset in assets
-      tr
-        td 
-           a(href="/view/#{asset.xlink}") #{asset.name}
-
-  a(href="/meta") metadata index
