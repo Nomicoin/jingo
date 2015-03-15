@@ -240,6 +240,16 @@ function _getPageVersions(req, res) {
   var versions = xidb.resolveBranchLinks(versions);
   var repo = xidb.getBranchRepo(metadata.base.branch);
 
+  versions.reverse();
+
+  for(var i in versions) {
+    var version = versions[i];
+    age = moment(version.timestamp).fromNow();
+    //console.log(">>>", version.timestamp, age);
+    version.age = age;
+    version.timestamp = version.timestamp.replace('T', ' ');
+  }
+
   console.log(versions);
 
   res.render("revisions", {

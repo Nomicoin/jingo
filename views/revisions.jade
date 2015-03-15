@@ -12,9 +12,13 @@ block content
     each version in versions
       tr
         td
-          input(type="checkbox", value="#{version.xlink}")
+          input(type="checkbox", value="#{version.commit.substring(0,8)}")
         td #{version.version}
         td 
           a(href="/vpage/#{version.xlink}") #{version.timestamp}
-        td #{version.branch.commit.author}
+        td
+          if version.branch.commit.email
+            img(src=gravatar().url("#{version.branch.commit.email}", {s:16}))
+            |&nbsp;
+          |#{version.branch.commit.author}
         td #{version.branch.commit.message}
