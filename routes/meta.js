@@ -234,29 +234,16 @@ function _getMeta(req, res) {
 
 function _getPageVersions(req, res) {
   var xid = req.params.xid;
-  var versions = xidb.getMetaVersions(xid);
-  var latest = versions[versions.length-1];
+  var versions = xidb.getMetaVersions(xid).reverse();
+  var latest = versions[0];
   var metadata = xidb.getMetadataFromLink(latest.xlink);
   var versions = xidb.resolveBranchLinks(versions);
-  var repo = xidb.getBranchRepo(metadata.base.branch);
 
-  versions.reverse();
-
-  for(var i in versions) {
-    var version = versions[i];
-    age = moment(version.timestamp).fromNow();
-    //console.log(">>>", version.timestamp, age);
-    version.age = age;
-    version.timestamp = version.timestamp.replace('T', ' ');
-  }
-
-  console.log(versions);
+  //console.log(versions);
 
   res.render("revisions", {
     'title': metadata.asset.title,
-    'asset': metadata.asset,
     'name': metadata.asset.name,
-    'repo': repo,
     'versions': versions
   });
 }

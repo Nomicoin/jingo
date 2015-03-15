@@ -15,7 +15,7 @@ block content
           input(type="checkbox", value="#{version.commit.substring(0,8)}")
         td #{version.version}
         td 
-          a(href="/vpage/#{version.xlink}") #{version.timestamp}
+          a(href="/vpage/#{version.xlink}") #{version.timestamp.replace('T',' ')}
         td
           if version.branch.commit.email
             img(src=gravatar().url("#{version.branch.commit.email}", {s:16}))
