@@ -1,0 +1,20 @@
+extends layout
+
+include mixins/form
+
+block content
+
+  h1 revisions of #{name}
+  p
+    button(id="rev-compare", data-pageName="#{name}").btn.btn-primary Compare revisions
+
+  table.history.table.table-striped.table-bordered.table-hover.table-condensed
+    each version in versions
+      tr
+        td
+          input(type="checkbox", value="#{version.xlink}")
+        td #{version.version}
+        td 
+          a(href="/vpage/#{version.xlink}") #{version.timestamp}
+        td #{version.branch.commit.author}
+        td #{version.branch.commit.message}

@@ -19,6 +19,7 @@ router.get("/v/:wiki/:version/*", _getVPage);
 router.get("/history/:wiki", _getHistory);
 router.get("/list/:wiki", _listAll);
 router.get("/new/page", _newPage);
+router.get("/versions/:xid", _getPageVersions);
 
 // metadata
 router.get("/view/:xid/:cid", _viewAsset);
@@ -228,6 +229,25 @@ function _getMeta(req, res) {
   res.render("projindex", {
     'title': "projects",
     'index': xidb.getProjectIndex()
+  });
+}
+
+function _getPageVersions(req, res) {
+  var xid = req.params.xid;
+  var versions = xidb.getMetaVersions(xid);
+  var latest = versions[versions.length-1];
+  var metadata = xidb.getMetadataFromLink(latest.xlink);
+  var versions = xidb.resolveBranchLinks(versions);
+  var repo = xidb.getBranchRepo(metadata.base.branch);
+
+  console.log(versions);
+
+  res.render("revisions", {
+    'title': metadata.asset.title,
+    'asset': metadata.asset,
+    'name': metadata.asset.name,
+    'repo': repo,
+    'versions': versions
   });
 }
 
