@@ -7,6 +7,11 @@ var fs = require("fs");
 var moment = require("moment");
 var path = require('path');
 
+// temp ---
+var models = require("../lib/models");
+router.get("/viki/:page/compare/:revisions", _getCompare);
+// temp --
+
 router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
 router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
@@ -20,6 +25,7 @@ router.get("/history/:wiki", _getHistory);
 router.get("/list/:wiki", _listAll);
 router.get("/new/page", _newPage);
 router.get("/versions/:xid", _getPageVersions);
+
 
 // metadata
 router.get("/view/:xid/:cid", _viewAsset);
@@ -637,6 +643,114 @@ function _newVote(req, res) {
     }
     res.redirect(req.headers.referer + "#addVote");
   });
+}
+
+function _getCompare(req, res) {
+
+  var revisions = req.params.revisions;
+  var page = new models.Page(req.params.page);
+
+  page.fetch().then(function() {
+
+    return page.fetchRevisionsDiff(req.params.revisions);
+
+  }).then(function(diff) {
+
+    if (!page.error) {
+
+      console.log(">>> diff", diff, "<<<");
+
+      var lines = [];
+      diff.split("\n").slice(4).forEach(function(line) {
+
+        if (line.slice(0,1) != '\\') {
+          lines.push({
+            text: line,
+            ldln: leftDiffLineNumber(0, line),
+            rdln: rightDiffLineNumber(0, line),
+            className: lineClass(line)
+          });
+        }
+      });
+
+      var revs = req.params.revisions.split("..");
+      res.render('compare', {
+        page: page,
+        lines: lines,
+        title: 'Revisions compare',
+        revs: revs
+      });
+
+    }
+    else {
+      res.locals.title = "404 - Not found";
+      res.statusCode = 404;
+      res.render('404.jade');
+      return;
+    }
+  });
+
+  var ldln = 0,
+      cdln;
+
+  function leftDiffLineNumber(id, line) {
+
+    var li;
+
+    switch(true) {
+
+      case line.slice(0,2) == '@@':
+        li = line.match(/\-(\d+)/)[1];
+        ldln = parseInt(li, 10);
+        cdln = ldln;
+        return '...';
+
+      case line.slice(0,1) == '+':
+        return "";
+
+      case line.slice(0,1) == '-':
+      default:
+        ldln++;
+        cdln = ldln - 1;
+        return cdln;
+    }
+  }
+
+  var rdln = 0;
+  function rightDiffLineNumber(id, line) {
+
+    var ri;
+
+    switch(true) {
+
+      case line.slice(0,2) == '@@':
+        ri = line.match(/\+(\d+)/)[1];
+        rdln = parseInt(ri, 10);
+        cdln = rdln;
+        return '...';
+
+      case line.slice(0,1) == '-':
+        return ' ';
+
+      case line.slice(0,1) == '+':
+      default:
+        rdln += 1;
+        cdln = rdln - 1;
+        return cdln;
+    }
+  }
+
+  function lineClass(line) {
+    if (line.slice(0,2) === '@@') {
+      return "gc";
+    }
+    if (line.slice(0,1) === '-') {
+      return "gd";
+    }
+    if (line.slice(0,1) === '+') {
+      return "gi";
+    }
+  }
 }
 
 module.exports = router;
