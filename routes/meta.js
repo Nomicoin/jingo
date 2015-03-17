@@ -7,11 +7,6 @@ var fs = require("fs");
 var moment = require("moment");
 var path = require('path');
 
-// temp ---
-var models = require("../lib/models");
-router.get("/viki/:page/compare/:revisions", _getCompare);
-// temp --
-
 router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
 router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
@@ -19,6 +14,7 @@ router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 // wiki pages
 router.get("/", _getIndex);
 router.get("/vpage/:xid/:cid", _viewPage);
+router.get("/viki/:page/compare/:revisions", _getCompare);
 router.get("/viki/:wiki/*", _getPage);
 router.get("/v/:wiki/:version/*", _getVPage);
 router.get("/history/:wiki", _getHistory);
@@ -647,16 +643,13 @@ function _newVote(req, res) {
 
 function _getCompare(req, res) {
 
+  var file = req.params.page;
+  var page = file.substring(0, file.length-3);
   var revisions = req.params.revisions;
-  var page = new models.Page(req.params.page);
 
-  page.fetch().then(function() {
+  xidb.getDiff(file, revisions, function(err, diff) {
 
-    return page.fetchRevisionsDiff(req.params.revisions);
-
-  }).then(function(diff) {
-
-    if (!page.error) {
+    if (!err) {
 
       console.log(">>> diff", diff, "<<<");
 
@@ -674,8 +667,9 @@ function _getCompare(req, res) {
       });
 
       var revs = req.params.revisions.split("..");
-      res.render('compare', {
+      res.render('diff', {
         page: page,
+	wiki: 'wiki',
         lines: lines,
         title: 'Revisions compare',
         revs: revs

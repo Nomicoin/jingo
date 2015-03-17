@@ -1,0 +1,25 @@
+extends layout
+
+block content
+
+  #content.compare
+    h2 Compare two revisions of:&nbsp;
+      b.page-param #{page}
+
+    ul.nav.nav-pills
+      if (revs[0])
+        li
+          a(href="/v/#{wiki}/#{revs[0]}/#{page}") #{revs[0]}
+      li
+        a(href="/v/#{wiki}/#{revs[1]}/#{page}") #{revs[1]}
+      li
+        a(href="/viki/#{wiki}/#{page}") Current
+      li
+        a(href="/tbd") History
+
+    table.compare.table.table-bordered.table-hover.table-condensed
+      each line in lines
+        tr
+          td.ln #{line.ldln}
+          td.ln #{line.rdln}
+          td(class="#{line.className}") #{line.text}
