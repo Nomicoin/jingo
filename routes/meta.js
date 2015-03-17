@@ -13,6 +13,7 @@ router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
 // wiki pages
 router.get("/", _getIndex);
+router.get("/wiki/:page", _redirectJingo);
 router.get("/vpage/:xid/:cid", _viewPage);
 router.get("/viki/:page/compare/:revisions", _getCompare);
 router.get("/viki/:wiki/*", _getPage);
@@ -21,7 +22,6 @@ router.get("/history/:wiki", _getHistory);
 router.get("/list/:wiki", _listAll);
 router.get("/new/page", _newPage);
 router.get("/versions/:xid", _getPageVersions);
-
 
 // metadata
 router.get("/view/:xid/:cid", _viewAsset);
@@ -40,6 +40,11 @@ router.get("/snapshot/:xid/:cid", _getSnapshot);
 
 router.post("/comment/:xid/:cid", _newComment);
 router.post("/vote/:xid/:cid", _newVote);
+
+function _redirectJingo(req, res) {
+  var url = "/viki/wiki/" + req.params.page;
+  res.redirect(url);
+}
 
 function _viewPage(req, res) {
   var xid = req.params.xid;
