@@ -16,6 +16,7 @@ router.get("/", _getIndex);
 router.get("/wiki/:page", _redirectJingo);
 router.get("/vpage/:xid/:cid", _viewPage);
 router.get("/viki/:page/compare/:revisions", _getCompare);
+router.get("/viki/history/:wiki/*", _getPageHistory);
 router.get("/viki/:wiki/*", _getPage);
 router.get("/v/:wiki/:version/*", _getVPage);
 router.get("/history/:wiki", _getHistory);
@@ -69,6 +70,21 @@ function _newPage(req, res) {
   });
 }
 
+function _getPageHistory(req, res) {
+  var wiki = req.params.wiki;
+  var page = req.params['0'];
+  var file = page.replace(/ /g, "-") + '.md';
+  var repoDir = xidb.getRepoGitDir(wiki);
+  var cid = xidb.getHeadCommit(repoDir);
+  var snapshot = xidb.getWikiSnapshot(wiki, cid);
+  var xlink = xidb.getMetalink(snapshot, file, true);
+  var metadata = xidb.getMetadataFromLink(xlink);
+
+  //console.log(">>> _getPageHistory", wiki, page, xlink, metadata);
+
+  res.redirect("/versions/" + metadata.base.xid);
+}
+
 function _getPage(req, res) {
   var wiki = req.params.wiki;
   var repoDir = xidb.getRepoGitDir(wiki);
@@ -88,7 +104,7 @@ function _getVPage(req, res) {
   var file = page.replace(/ /g, "-") + '.md';
   var snapshot = xidb.getWikiSnapshot(wiki, cid);
   var xlink = xidb.getMetalink(snapshot, file, true);
-
+ 
   if (xlink == null) {
     // check for legacy versioned URL
     console.log(">>> check for legacy versioned URL");
