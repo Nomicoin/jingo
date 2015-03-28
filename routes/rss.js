@@ -2,6 +2,7 @@ var router = require("express").Router(),
 tools  = require("../lib/tools"),
 models = require("../lib/models"),
 app    = require("../lib/app").getInstance(),
+xidb   = require("../lib/xidb");
 Feed   = require("feed");
 
 models.use(Git);
@@ -18,8 +19,38 @@ function _getRSS2(req, res) {
     link: 'http://' + req.headers['host'] + req.url
   });
 
-  res.write (feed.render('rss-2.0')); 
-  res.end();
+  var projects = xidb.getProjectList();
+  var project = projects[appconfig.application.title];
+  var xid = project.xid.slice(0, 8);
+
+  console.log(projects, project, xid);
+
+  xidb.getLog(function(err, items) {
+    console.log(err, items);
+
+    items.forEach (function(item){
+      var xlink = xid + '/' + item.cid.slice(0,8);
+
+      var url = 'http://' + req.headers['host'] + '/branch/' + xlink;
+
+      feed.addItem({
+	title: item.subject,
+	guid: item.cid,
+	link: url,
+	content: 'See changes: ' + url,
+	description: 'Last updated by ' + item.name,
+	date: new Date(item.date),
+	author: [
+          {
+            name: item.name
+          }
+	]
+      });
+    });
+
+    res.write (feed.render('rss-2.0')); 
+    res.end();
+  });
 }
 
 function _getRSS(req, res) {
