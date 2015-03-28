@@ -1,13 +1,26 @@
 var router = require("express").Router(),
-    tools  = require("../lib/tools"),
-    models = require("../lib/models"),
-    app    = require("../lib/app").getInstance(),
-    Feed   = require("feed");
+tools  = require("../lib/tools"),
+models = require("../lib/models"),
+app    = require("../lib/app").getInstance(),
+Feed   = require("feed");
 
 models.use(Git);
 
 router.get("/rss", _getRSS);
+router.get("/rss2", _getRSS2);
 //server.use(express.basicAuth('test','testpass'));
+
+function _getRSS2(req, res) {
+  var appconfig = app.locals.config.get();
+  var feed = new Feed({
+    title: appconfig.application.title,
+    description: 'RSS Feed',
+    link: 'http://' + req.headers['host'] + req.url
+  });
+
+  res.write (feed.render('rss-2.0')); 
+  res.end();
+}
 
 function _getRSS(req, res) {
   var items = [];
@@ -16,9 +29,9 @@ function _getRSS(req, res) {
   var appconfig = app.locals.config.get();
 
   var feed = new Feed({
-          title: appconfig.application.title,
-          description: 'RSS Feed',
-          link: 'http://' + req.headers['host'] + req.url
+    title: appconfig.application.title,
+    description: 'RSS Feed',
+    link: 'http://' + req.headers['host'] + req.url
   });
 
   pages.fetch(pagen,100).then(function() {
@@ -30,25 +43,28 @@ function _getRSS(req, res) {
         });
       }
     });
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-   
-   items.forEach (function(item){
-     feed.addItem({
-       title: item.page.title + ' was updated by ' + item.page.metadata.author,
-       link: 'http://' + req.headers['host'] + item.page.urlForShow(),
-       content: 'Compare changes: http://' + req.headers['host'] + item.page.urlForCompare() + "/" + item.hashes,
-       description: 'Last updated by ' + item.page.metadata.author,
-       date: new Date(item.page.metadata.date),
-       author: [
-         {
-           name: item.page.metadata.author
-         }
-       ]
-     });
-   });
 
-   res.write (feed.render('rss-2.0')); 
-   res.end();
+    console.log(items);
+
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    
+    items.forEach (function(item){
+      feed.addItem({
+	title: item.page.title + ' was updated by ' + item.page.metadata.author,
+	link: 'http://' + req.headers['host'] + item.page.urlForShow(),
+	content: 'Compare changes: http://' + req.headers['host'] + item.page.urlForCompare() + "/" + item.hashes,
+	description: 'Last updated by ' + item.page.metadata.author,
+	date: new Date(item.page.metadata.date),
+	author: [
+          {
+            name: item.page.metadata.author
+          }
+	]
+      });
+    });
+
+    res.write (feed.render('rss-2.0')); 
+    res.end();
 
   }).catch(function(ex) {
     console.log(ex);
