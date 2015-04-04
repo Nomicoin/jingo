@@ -527,7 +527,7 @@ function _listAll(req, res) {
 
   for(var i in projects) {
     var project = projects[i];
-    if (project.name == wiki) {
+    if (project.name == wiki || project.repo.search(wiki) > 0) {
       var url = "/snapshot/" + project.xlink;
       break;
     }
