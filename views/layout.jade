@@ -45,7 +45,7 @@ html
     .container
 
       .row
-        if hasSidebar()
+        if _sidebar
           .col-md-2.with-sidebar
             .content !{_sidebar}
         else
@@ -54,7 +54,7 @@ html
         #main.hide-tools.col-md-8
           block content
 
-      if hasFooter()
+      if _footer
         .row
           .col-md-2
           .col-md-8.with-footer

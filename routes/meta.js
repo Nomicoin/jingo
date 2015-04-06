@@ -162,9 +162,25 @@ function _getVPage(req, res) {
     age = "current";
   }
 
-  console.log(">>> _getVPage", metadata);
+  //console.log(">>> _getVPage", metadata);
 
   res.locals.canEdit = true;
+  res.locals._sidebar = null;
+  res.locals._footer = null;
+
+  var sidebarXlink = xidb.getMetalink(snapshot, "_Sidebar.md", true);
+  if (sidebarXlink) {
+    var sidebarMetadata = xidb.getMetadataFromLink(sidebarXlink);
+    res.locals._sidebar = sidebarMetadata.as.html;
+    console.log(">>> sidebar link", sidebarXlink, sidebarMetadata);
+  }
+
+  var footerXlink = xidb.getMetalink(snapshot, "_Footer.md", true);
+  if (footerXlink) {
+    var footerMetadata = xidb.getMetadataFromLink(footerXlink);
+    res.locals._footer = footerMetadata.as.html;
+    console.log(">>> footer link", footerXlink, footerMetadata);
+  }
 
   res.render("page", {
     'title': metadata.asset.title,
