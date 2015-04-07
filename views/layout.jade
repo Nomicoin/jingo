@@ -12,7 +12,7 @@ html
     link(rel="stylesheet", href="/css/shCoreDefault.css")
     link(rel="stylesheet", href="/css/treeview.css")
     block styles
-    if hasCustomStyle()
+    if _style
       style.
         !{_style}
   body
@@ -68,6 +68,6 @@ html
     script.
       Jingo.init();
     block scripts
-    if hasCustomScript()
+    if _script
       script.
         !{_script}

@@ -1,8 +1,6 @@
-var router = require("express").Router(),
-    path = require("path")
-    models = require("../lib/models");
-
-models.use(Git);
+var router = require("express").Router();
+var path = require("path");
+var xidb = require("../lib/xidb");
 
 router.get("/search", _getSearch);
 
@@ -20,13 +18,12 @@ function _getSearch(req, res) {
     renderResults();
   } else {
 
-    models.pages.findStringAsync(res.locals.term).then(function(items) {
-
+    xidb.grep(res.locals.term, function(err, items) {
       items.forEach(function(item) {
         if (item.trim() !== "") {
           record = item.split(":");
           res.locals.matches.push({
-            pageName: path.basename(record[0].split(".")[0]),
+            pageName: record[0].split(".")[0],
             line: record[1] ? ":" + record[1] : "",
             text: record.slice(2).join('')
           });
