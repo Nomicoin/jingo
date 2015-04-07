@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 /*
- * Jingo, wiki engine
- * http://github.com/claudioc/jingo
- *
- * Copyright 2015 Claudio Cicali <claudio.cicali@gmail.com>
+ * viki, secure wiki engine
+ * http://github.com/nomicoin/viki
+ * 
+ * Forked from http://github.com/claudioc/jingo
  * Released under the MIT license
  */
 var program = require('commander'),
@@ -64,6 +64,6 @@ function start() {
   }
 
   http.createServer(app).listen(config.get("server").port, listenAddr, function() {
-    console.log((new Date()) + " - Jingo%sserver v%s listening on port %s", config.get("server").localOnly ? " (local) " : " ", program.version(), config.get("server").port);
+    console.log((new Date()) + " - Viki%sserver v%s listening on port %s", config.get("server").localOnly ? " (local) " : " ", program.version(), config.get("server").port);
   });
 }
