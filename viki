@@ -16,8 +16,6 @@ var program = require('commander'),
     os      = require('os'),
     semver  = require('semver');
 
-//global.Git = require('./lib/gitmech');
-
 program.version('1.2.10')
        .option('-c, --config <path>', 'Specify the config file')
        .option('-#, --hash-string <string>', 'Create an hash for a string')
