@@ -382,26 +382,29 @@ class Guild:
                     min=min,
                     max=max)
         evalLink = self.saveEval(agent, xlink, eval)
-        #self.saveComment(agent, evalLink, comment)
         return evalLink
 
-    def makeEvalPath(self, ext):
-        fileName = datetime.now().isoformat() + ext
-        fileName = fileName.replace("-","/")
-        fileName = fileName.replace("T","/")
-        return os.path.join("evals", fileName) 
+    def makeEvalPath(self, eval):
+        agentXid, agentCid = eval['agent'].split('/')
+        return os.path.join("evals", agentXid, eval['ref'], eval['type'] + '.json')
 
     def saveEval(self, agent, xlink, eval):
         asset = self.getAsset(xlink)
-        path = self.makeEvalPath(".json")
+        path = self.makeEvalPath(eval)
         fullPath = os.path.join(self.guildDir, path)
 
         saveJSON(fullPath, eval)
         return self.commitFile(self.guildProject.repo, agent, asset, eval['type'], path)
 
+    def makeCommentPath(self, ext):
+        fileName = datetime.now().isoformat() + ext
+        fileName = fileName.replace("-","/")
+        fileName = fileName.replace("T","/")
+        return os.path.join("comments", fileName) 
+
     def saveComment(self, agent, xlink, comment):
         asset = self.getAsset(xlink)
-        path = self.makeEvalPath(".md")
+        path = self.makeCommentPath(".md")
         fullPath = os.path.join(self.guildDir, path)
 
         saveFile(fullPath, comment)
