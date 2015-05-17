@@ -160,6 +160,12 @@ class Asset(object):
     def getTitle(self):
         return self.metadata['asset']['title']
 
+    def getXid(self):
+        return self.metadata['base']['xid']
+
+    def getXlink(self):
+        return self.metadata['base']['xlink']
+
     def setTitle(self, title):
         self.metadata['asset']['title'] = title
         self.save()
@@ -200,6 +206,31 @@ class Json(Text):
     def isValid(self):
         return (super(Json, self).isValid() and self.data)
 
+class Proposal(Json):
+    def __init__(self):
+        super(Proposal, self).__init__()
+
+    def init(self):
+        super(Proposal, self).init()
+
+    def isValid(self):
+        return (self.checkExtension(['.json']) 
+                and self.name.find("proposals") == 0
+                and super(Proposal, self).isValid())
+
+    def addMetadata(self):
+        super(Proposal, self).addMetadata()
+        self.metadata['proposal'] = self.data
+
+    def getOwner():
+        return self.data['owner']
+
+    def getName():
+        return self.data['name']
+
+    def getDescription():
+        return self.data['description']
+
 class Agent(Json):
     def __init__(self):
         super(Agent, self).__init__()
@@ -224,12 +255,6 @@ class Agent(Json):
 
     def getEmail(self):
         return self.getContact()['email']
-
-    def getXid(self): # promote to Asset?
-        return self.metadata['base']['xid']
-
-    def getXlink(self): # promote to Asset?
-        return self.metadata['base']['xlink']
 
     def getSignature(self):
         return Signature(self.getName(), self.getEmail())
@@ -492,6 +517,8 @@ allTypes = [
     lambda : Agent(),
     lambda : Vote(),
     lambda : Comment(),
+    lambda : Proposal(),
+    lambda : Json(),
     lambda : Markdown(),
     lambda : Text(),
     lambda : Png(),
