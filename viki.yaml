@@ -1,35 +1,43 @@
 ---
 # Configuration sample file for Jingo (YAML)
 application:
-  title: Viki
-  repository: "/home/david/dev/viki"
-  guild: "/home/david/dev/guilds/Archetech"
-  docSubdir: "viki"
+  title: Courtagen Viki
+  repository: "/home/david/guilds/Courtagen/wiki"
+  project: "/home/david/guilds/Courtagen/viki"
+  guild: "/home/david/guilds/Courtagen/vault"
+  docSubdir: ""
   remote: ""
   pushInterval: 30
-  secret: change me
+  secret: Courtagen
   git: git
   skipGitCheck: false
   loggingMode: 1
+  staticWhitelist: "/\\.png$/i, /\\.jpg$/i, /\\.gif$/i, /\\.pdf$/i, /\\.gliffy$/i, /\\.vcf$/i, /\\.pptx$/i"
 authentication:
   google:
-    enabled: false
-    clientId: replace me with the real value
-    clientSecret: replace me with the real value
-  alone:
     enabled: true
-    username: "macterra"
-    passwordHash: "d033e22ae348aeb5660fc2140aec35850c4da997"
-    email: "davidmc@gmail.com"
+    clientId: 633001072526-49rn6s6o1p8vm503grga81rqcn4ea335.apps.googleusercontent.com
+    clientSecret: bJE3by-zsykur16gK2XKqmEZ
+  github:
+    enabled: true
+    clientId: cc72adf1e2e4518b495e
+    clientSecret: 2968ffcc174fbbd3ed6a61953668734fd1effb52
+  alone:
+    enabled: false
+    username: ""
+    passwordHash: ""
+    email: ""
+  rsshttp:
+    enabled: false
 features:
   markitup: false
   codemirror: true
 server:
-  hostname: localhost
-  port: 6067
+  hostname: courtagen.archetech.com
+  port: 42000
   localOnly: false
 authorization:
-  anonRead: true
+  anonRead: false
   validMatches: .+
 pages:
   index: Home

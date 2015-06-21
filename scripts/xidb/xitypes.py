@@ -199,12 +199,28 @@ class Json(Text):
         super(Json, self).init()
 
         try:
-            self.data = json.loads(self.blob.data)
+            self.data = json.loads(self.text)
         except:
             self.data = None
 
     def isValid(self):
-        return (super(Json, self).isValid() and self.data)
+        return (super(Json, self).isValid() and self.data != None)
+
+class Strain(Json):
+    def __init__(self):
+        super(Strain, self).__init__()
+
+    def init(self):
+        super(Strain, self).init()
+
+    def isValid(self):
+        return (self.checkExtension(['.json']) 
+                and self.name.find("strains") == 0
+                and super(Strain, self).isValid())
+
+    def addMetadata(self):
+        super(Strain, self).addMetadata()
+        self.metadata['strain'] = self.data['strain']
 
 class Proposal(Json):
     def __init__(self):
@@ -518,6 +534,7 @@ allTypes = [
     lambda : Vote(),
     lambda : Comment(),
     lambda : Proposal(),
+    lambda : Strain(),
     lambda : Json(),
     lambda : Markdown(),
     lambda : Text(),
