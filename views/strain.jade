@@ -1,0 +1,50 @@
+extends layout
+
+include mixins/assets
+
+block content
+  - var strain = asset.data.strain
+
+  h1 #{strain.name}
+
+  span(style="float:right")
+    a(href="/edit/#{metadata.base.xlink}") edit
+  mixin showMetadata(asset.data)
+
+  if metadata.strain.qrcode
+    h2 QRCode for this site
+    p
+      img(src="#{metadata.strain.qrcode}")
+
+  h2 Meta-information:
+  table.table-bordered.table-hover.table-condensed
+    tr 
+      td Strain name
+      td #{strain.name}
+    tr
+      td Source
+      td #{strain.source}
+    tr
+      td Date of submission
+      td #{strain.submission_date}
+
+  if metadata.strain.photo
+    h2 Plant
+    p
+      img(src="#{metadata.strain.photo}")
+
+  if metadata.strain.phylo
+    h2 Genomic Information:
+    p
+      img(src="#{metadata.strain.phylo}")
+
+  if metadata.strain.ITS
+    h2 Microbiome Information:
+    p
+      img(src="#{metadata.strain.ITS}")
+
+  if strain.blockchain_poe
+    h2 Distributed Consensus Information:
+    p 
+      a(href="http://blockchain.info/address/#{strain.blockchain_poe}") #{strain.blockchain_poe}
+
