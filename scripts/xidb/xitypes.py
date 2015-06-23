@@ -222,6 +222,40 @@ class Strain(Json):
         super(Strain, self).addMetadata()
         self.metadata['strain'] = self.data['strain']
 
+    def connect(self, guild):
+        branch = self.getBase()['branch']
+        print ">> Strain connect", branch
+        for snapshot in guild.wikiProject.snapshots:
+            if snapshot.xlink == branch:
+                self.connectSubassets(snapshot)
+                return
+
+    def connectSubassets(self, snapshot):
+        folder = self.getFolder()
+        for xid in snapshot.assets:
+            asset = snapshot.assets[xid]
+            name = asset['name']
+            if name.find(folder) == 0:
+                cid = asset['commit']
+                xlink = createLink(xid, cid)
+                url = xlink + '/' + name
+                print "found", xid, name, xlink
+                if name.find('photo') > 0:
+                    self.metadata['strain']['photo'] = url
+                if name.find('qrcode') > 0:
+                    self.metadata['strain']['qrcode'] = url
+                if name.find('phylo') > 0:
+                    self.metadata['strain']['phylo'] = url
+        self.save()
+                            
+    def getFolder(self):
+        name = self.getName()
+        i = name.rfind('/')
+        if i > 0:
+            return name[0:i]
+        else:
+            return None
+
 class Proposal(Json):
     def __init__(self):
         super(Proposal, self).__init__()
