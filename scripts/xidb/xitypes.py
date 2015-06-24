@@ -25,15 +25,16 @@ class Asset(object):
         base = meta['base']
         cid = base['commit']
         xid = base['xid']
+        repo = base['repo']
 
         asset = meta['asset']
         sha = asset['sha']
         name = asset['name']
 
         self.metadata = meta
-        self.configure(cid, sha, xid, name)
+        self.configure(cid, sha, xid, name, repo)
 
-    def configure(self, cid, sha, xid, name):
+    def configure(self, cid, sha, xid, name, repo):
         self.xid = str(xid)
         self.name = name
         self.title = os.path.basename(name)
@@ -41,7 +42,8 @@ class Asset(object):
         self.cid = str(cid)
         self.sha = str(sha)
         self.xlink = createLink(self.xid, self.cid)
- 
+        self.repo = repo
+
     def save(self, path=None):
         base = self.getBase()
 
@@ -62,7 +64,7 @@ class Asset(object):
             self.cid = cid
             self.xlink = createLink(self.xid, self.cid)
 
-    def generate(self, blob, snapshot):
+    def generate(self, blob, snapshot, repo):
         """ Generates metadata and returns a kind (subclass instance) of Asset """
         data = {}
 
@@ -71,6 +73,7 @@ class Asset(object):
             'commit': str(snapshot.commit.id),
             'xlink': createLink(self.xid, snapshot.commit.id),
             'branch': snapshot.xlink,
+            'repo': repo,
             'timestamp': snapshot.timestamp,
             'ref': '',
             'kind': ''
@@ -90,7 +93,7 @@ class Asset(object):
 
         for factory in allTypes:
             obj = factory()
-            obj.configure(self.cid, self.sha, self.xid, self.name)
+            obj.configure(self.cid, self.sha, self.xid, self.name, self.repo)
             obj.blob = blob
             obj.metadata = data
             obj.snapshot = snapshot
@@ -129,6 +132,9 @@ class Asset(object):
 
     def getTimestamp(self):
         return self.getBase()['timestamp']
+
+    def getRepo(self):
+        return self.getBase()['repo']
 
     def addMetadata(self):
         self.metadata['asset']['content-type'] = self.contentType

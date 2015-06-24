@@ -7,11 +7,12 @@ from xidb.xitypes import Agent, Asset
 from xidb.utils import *
 
 class Snapshot:
-    def __init__(self, xid, commit, link, path):
+    def __init__(self, xid, commit, link, path, repo):
         self.xid = xid
         self.commit = commit
         self.xlink = link
         self.path = path
+        self.repo = repo
         self.timestamp = datetime.fromtimestamp(commit.commit_time).isoformat()
         self.assets = {}
 
@@ -34,6 +35,8 @@ class Snapshot:
             'branch': self.xlink,
             'commit': str(self.commit.id),
             'timestamp': self.timestamp,
+            'path': self.path,
+            'repo': self.repo,
             'ref': '',
         }
 
@@ -118,7 +121,7 @@ class Project:
                 else:
                     xid = genxid(snapshot.commit.id, obj.id)
                     asset = Asset()
-                    asset.configure(snapshot.commit.id, obj.id, xid, name)
+                    asset.configure(snapshot.commit.id, obj.id, xid, name, self.repoDir)
                     self.assets[name] = asset
                 snapshot.add(asset)
 
@@ -126,7 +129,7 @@ class Project:
         for commit in self.repo.walk(self.repo.head.target, GIT_SORT_TIME):
             link = createLink(self.xid, commit.id)
             path = self.createPath(link)
-            snapshot = Snapshot(self.xid, commit, link, path)
+            snapshot = Snapshot(self.xid, commit, link, path, self.repoDir)
             self.snapshots.insert(0, snapshot)
             if os.path.exists(path):
                 break
@@ -137,7 +140,7 @@ class Project:
         for commit in self.repo.walk(self.repo.head.target, GIT_SORT_TIME | GIT_SORT_REVERSE):
             link = createLink(self.xid, commit.id)
             path = self.createPath(link)
-            snapshot = Snapshot(self.xid, commit, link, path)
+            snapshot = Snapshot(self.xid, commit, link, path, self.repoDir)
             self.snapshots.append(snapshot)
         # load all snapshots in project
         self.loadSnapshots(True)
@@ -160,7 +163,7 @@ class Project:
                     else:
                         # print "Adding %s as %s" % (name, xid)
                         asset = Asset()
-                        asset.configure(commit, sha, xid, name)
+                        asset.configure(commit, sha, xid, name, self.repoDir)
                         self.assets[name] = asset
                         self.newAssets.append(asset)
                     snapshot.add(asset)
@@ -217,7 +220,7 @@ class Project:
                 asset = self.assets[name]
 
                 if not os.path.isfile(path):
-                    asset = asset.generate(blob, snapshot)
+                    asset = asset.generate(blob, snapshot, self.repoDir)
                     asset.save(path)
                     self.assets[name] = asset
                     self.newAssets.append(asset)
@@ -256,6 +259,17 @@ class Guild:
 
         self.agents = self.loadAgents()
         self.types = self.loadTypes()
+
+    def getProject(self, repoDir):
+        project = None
+
+        if repoDir == self.guildDir:
+            project = self.guildProject
+        if repoDir == self.wikiDir:
+            project = self.wikiProject
+        if repoDir == self.projDir:
+            project = self.projProject
+        return project
 
     def getMetadata(self, xlink):
         path = self.wikiProject.createPath(xlink)
@@ -409,10 +423,13 @@ class Guild:
         agent = self.getAgent(handle)
         asset = self.getAsset(xlink)
         path = asset.getName()
-        fullPath = os.path.join(self.guildDir, path)
+        repoDir = asset.getRepo()
+        project = self.getProject(repoDir)
+        fullPath = os.path.join(repoDir, path)
 
         saveFile(fullPath, content)
-        return self.commitFile(self.guildProject.repo, agent, asset, "asset", path)
+
+        return self.commitFile(project.repo, agent, asset, "asset", path)
 
     def savePage(self, handle, xlink, title, content, message):
         agent = self.getAgent(handle)
