@@ -231,12 +231,14 @@ class Strain(Json):
     def connect(self, guild):
         branch = self.getBase()['branch']
         print ">> Strain connect", branch
+        if not 'images' in self.data:
+            return
         for snapshot in guild.wikiProject.snapshots:
             if snapshot.xlink == branch:
-                self.connectSubassets(snapshot)
+                self.connectSubassets(snapshot, self.data['images'])
                 return
 
-    def connectSubassets(self, snapshot):
+    def connectSubassets(self, snapshot, images):
         folder = self.getFolder()
         for xid in snapshot.assets:
             asset = snapshot.assets[xid]
@@ -246,13 +248,13 @@ class Strain(Json):
                 xlink = createLink(xid, cid)
                 url = '/api/v1/asset/' + xlink + '/' + name
                 print "found", xid, name, xlink
-                if name.find('photo') > 0:
+                if name == images['photo']:
                     self.metadata['strain']['photo'] = url
-                if name.find('qrcode') > 0:
+                if name == images['qrcode']:
                     self.metadata['strain']['qrcode'] = url
-                if name.find('phylo') > 0:
+                if name == images['phylo']:
                     self.metadata['strain']['phylo'] = url
-                if name.find('ITS') > 0:
+                if name == images['ITS']:
                     self.metadata['strain']['ITS'] = url
         self.save()
                             
