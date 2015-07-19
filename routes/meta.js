@@ -11,6 +11,9 @@ router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
 router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
+// courtagen
+router.get("/strains", _getStrains);
+
 // wiki pages
 router.get("/", _getIndex);
 router.get("/wiki/:page", _redirectJingo);
@@ -41,6 +44,12 @@ router.get("/snapshot/:xid/:cid", _getSnapshot);
 
 router.post("/comment/:xid/:cid", _newComment);
 router.post("/vote/:xid/:cid", _newVote);
+
+function _getStrains(req, res) {
+  res.render("strains", {
+    'title': "Strains",
+  });
+}
 
 function _redirectJingo(req, res) {
   var url = "/viki/wiki/" + req.params.page;
@@ -97,14 +106,25 @@ function _getPage(req, res) {
   res.redirect(url);
 }
 
+function getPageXlink(page, snapshot) {
+  var file = page.replace(/ /g, "-") + '.md';
+  var xlink = xidb.getMetalink(snapshot, file, true);
+
+  return xlink;
+}
+
 function _getVPage(req, res) {
   var wiki = req.params.wiki;
   var cid = req.params.version;
   var page = req.params['0'];
   var file = page.replace(/ /g, "-") + '.md';
   var snapshot = xidb.getWikiSnapshot(wiki, cid);
-  var xlink = xidb.getMetalink(snapshot, file, true);
- 
+  var xlink; // = xidb.getMetalink(snapshot, file, true);
+
+  console.log(">>> _getVPage", file);
+
+  xlink = getPageXlink(page, snapshot);
+
   if (xlink == null) {
     // check for legacy versioned URL
     console.log(">>> check for legacy versioned URL");
@@ -172,14 +192,14 @@ function _getVPage(req, res) {
   if (sidebarXlink) {
     var sidebarMetadata = xidb.getMetadataFromLink(sidebarXlink);
     res.locals._sidebar = sidebarMetadata.as.html;
-    console.log(">>> sidebar link", sidebarXlink, sidebarMetadata);
+    //console.log(">>> sidebar link", sidebarXlink, sidebarMetadata);
   }
 
   var footerXlink = xidb.getMetalink(snapshot, "_Footer.md", true);
   if (footerXlink) {
     var footerMetadata = xidb.getMetadataFromLink(footerXlink);
     res.locals._footer = footerMetadata.as.html;
-    console.log(">>> footer link", footerXlink, footerMetadata);
+    //console.log(">>> footer link", footerXlink, footerMetadata);
   }
 
   res.render("page", {
