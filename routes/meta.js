@@ -46,8 +46,26 @@ router.post("/comment/:xid/:cid", _newComment);
 router.post("/vote/:xid/:cid", _newVote);
 
 function _getStrains(req, res) {
+  var snapshot = xidb.getLatestWikiSnapshot('wiki');
+  var strains = [];
+
+  for(xid in snapshot.assets) {
+    var asset = snapshot.assets[xid];
+    var match = asset.name.match(/^strains\/(.*)\/strain.json$/);
+
+    if (match) {
+      console.log(match);
+      asset.title = match[1].replace(/-/g, ' ');
+      asset.xlink = xidb.createLink(xid, asset.commit);
+      strains.push(asset);
+    }
+  }
+
+  console.log(strains);
+
   res.render("strains", {
     'title': "Strains",
+    'strains': strains
   });
 }
 

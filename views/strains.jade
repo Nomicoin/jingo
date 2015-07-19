@@ -3,4 +3,7 @@ extends layout
 block content
   h1 #{title}
 
-  p strains ftw
+  ul
+  each strain in strains
+    li
+      a(href="/view/#{strain.xlink}") #{strain.title}
