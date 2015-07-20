@@ -13,6 +13,7 @@ router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
 // courtagen
 router.get("/strains", _getStrains);
+router.post("/strains/new", _newStrain);
 
 // wiki pages
 router.get("/", _getIndex);
@@ -54,18 +55,32 @@ function _getStrains(req, res) {
     var match = asset.name.match(/^strains\/(.*)\/strain.json$/);
 
     if (match) {
-      console.log(match);
       asset.title = match[1].replace(/-/g, ' ');
       asset.xlink = xidb.createLink(xid, asset.commit);
       strains.push(asset);
     }
   }
 
-  console.log(strains);
-
   res.render("strains", {
     'title': "Strains",
     'strains': strains
+  });
+}
+
+function _newStrain(req, res) {
+  var title = req.body.strainTitle;
+
+  console.log(">>> new strain", title);
+
+  xidb.newStrain(req.user, title, function(err, newLink) {
+    if (err) {
+      console.log(err);
+      res.redirect('/strains');
+    }
+    else {
+      console.log(">>> newLink", newLink);
+      res.redirect('/view/' + newLink);
+    }
   });
 }
 

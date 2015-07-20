@@ -1,5 +1,7 @@
 extends layout
 
+include mixins/form
+
 block content
   h1 #{title}
 
@@ -7,3 +9,10 @@ block content
   each strain in strains
     li
       a(href="/view/#{strain.xlink}") #{strain.title}
+
+  hr 
+
+  form(action='/strains/new', method='post', class='edit')
+    input.form-control(required, type='text', placeholder='Enter the strain title', name='strainTitle', value="strain title")#strainTitle
+    input(type='submit',value='new strain').btn.btn-primary
+
