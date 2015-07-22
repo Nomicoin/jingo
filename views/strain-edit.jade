@@ -7,3 +7,6 @@ block content
 
   mixin editMetadata(metadata.base.xlink, asset.data)
 
+  form(action="/strain/upload", method="post", enctype="multipart/form-data")
+    input(type="file", name="photo")
+    input(type='submit',value='upload').btn.btn-primary

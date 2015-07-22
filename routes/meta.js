@@ -6,6 +6,7 @@ var ui = require('../lib/ui');
 var fs = require("fs");
 var moment = require("moment");
 var path = require('path');
+var multer = require('multer');
 
 router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
@@ -14,6 +15,9 @@ router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 // courtagen
 router.get("/strains", _getStrains);
 router.post("/strains/new", _newStrain);
+
+var upload = multer({ dest: 'uploads/'});
+router.post("/strain/upload", upload.single('photo'), _uploadStrain);
 
 // wiki pages
 router.get("/", _getIndex);
@@ -82,6 +86,13 @@ function _newStrain(req, res) {
       res.redirect('/view/' + newLink);
     }
   });
+}
+
+function _uploadStrain(req, res) {
+  console.log(">> upload:");
+  console.log(req.body);
+  console.log(req.file);
+  res.redirect('/strains');
 }
 
 function _redirectJingo(req, res) {
