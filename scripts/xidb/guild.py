@@ -449,7 +449,7 @@ class Guild:
 
         # !!! TD: if title changes, move page first 
         # !!! TD: repo update should detect asset moves
-
+ 
         if not message:
             message = "Updated {0} (markdown)".format(title)
 
@@ -461,7 +461,7 @@ class Guild:
         folder = title.replace(" ", "-")
         path = os.path.join("strains", folder, "strain.json")
         fullPath = os.path.join(self.wikiDir, path)
-
+ 
         strain = { 
             "strain": { 
                 "name": title,
@@ -480,6 +480,18 @@ class Guild:
         saveJSON(fullPath, strain)
 
         message = "Added new strain {0}".format(title)
+        return self.commitFile2(self.wikiProject.repo, agent, path, message)
+
+    def uploadStrain(self, handle, upload, file, strain):
+        agent = self.getAgent(handle)
+        src = os.path.join(self.projDir, upload)
+        folder = os.path.dirname(strain)
+        path = os.path.join(folder, file)
+        dest = os.path.join(self.wikiDir, path)
+
+        shutil.move(src, dest)
+
+        message = "Uploaded file {0}".format(path)
         return self.commitFile2(self.wikiProject.repo, agent, path, message)
 
     def commitFile2(self, repo, agent, path, message):

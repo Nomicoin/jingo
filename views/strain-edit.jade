@@ -9,4 +9,5 @@ block content
 
   form(action="/strain/upload", method="post", enctype="multipart/form-data")
     input(type="file", name="photo")
+    input(type="hidden", name="strain", value="#{metadata.asset.name}")
     input(type='submit',value='upload').btn.btn-primary

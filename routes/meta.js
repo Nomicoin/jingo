@@ -92,7 +92,14 @@ function _uploadStrain(req, res) {
   console.log(">> upload:");
   console.log(req.body);
   console.log(req.file);
-  res.redirect('/strains');
+  console.log(req.headers.referer);
+
+  xidb.uploadStrain(req.user, req.file.path, req.file.originalname, req.body.strain, function(err, link) {
+    if (err) {
+      console.log(err);
+    }
+    res.redirect(req.headers.referer);
+  });
 }
 
 function _redirectJingo(req, res) {
