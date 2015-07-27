@@ -482,11 +482,11 @@ class Guild:
         message = "Added new strain {0}".format(title)
         return self.commitFile2(self.wikiProject.repo, agent, path, message)
 
-    def uploadStrain(self, handle, upload, file, strain):
+    def uploadStrain(self, handle, upload, name, field, strain):
         agent = self.getAgent(handle)
         src = os.path.join(self.projDir, upload)
         folder = os.path.dirname(strain)
-        path = os.path.join(folder, file)
+        path = os.path.join(folder, name)
         dest = os.path.join(self.wikiDir, path)
 
         shutil.move(src, dest)

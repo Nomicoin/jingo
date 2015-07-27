@@ -7,7 +7,14 @@ block content
 
   mixin editMetadata(metadata.base.xlink, asset.data)
 
+  h2 Upload Image
+
   form(action="/strain/upload", method="post", enctype="multipart/form-data")
-    input(type="file", name="photo")
+    select(name="field")
+      option photo
+      option phylo
+      option qrcode
+      option ITS
+    input(type="file", name="image")
     input(type="hidden", name="strain", value="#{metadata.asset.name}")
     input(type='submit',value='upload').btn.btn-primary

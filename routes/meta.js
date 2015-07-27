@@ -17,7 +17,7 @@ router.get("/strains", _getStrains);
 router.post("/strains/new", _newStrain);
 
 var upload = multer({ dest: 'uploads/'});
-router.post("/strain/upload", upload.single('photo'), _uploadStrain);
+router.post("/strain/upload", upload.single('image'), _uploadStrain);
 
 // wiki pages
 router.get("/", _getIndex);
@@ -94,12 +94,13 @@ function _uploadStrain(req, res) {
   console.log(req.file);
   console.log(req.headers.referer);
 
-  xidb.uploadStrain(req.user, req.file.path, req.file.originalname, req.body.strain, function(err, link) {
-    if (err) {
-      console.log(err);
-    }
-    res.redirect(req.headers.referer);
-  });
+  xidb.uploadStrain(req.user, req.file.path, req.file.originalname, req.body.field, req.body.strain, 
+		    function(err, link) {
+		      if (err) {
+			console.log(err);
+		      }
+		      res.redirect(req.headers.referer);
+		    });
 }
 
 function _redirectJingo(req, res) {
