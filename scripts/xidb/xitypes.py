@@ -59,10 +59,11 @@ class Asset(object):
         sha = str(sha)
         cid = str(cid)
         if (self.sha != sha):
-            # print "new version for", self.name, self.sha, sha
+            print "new version for", self.name, self.sha, sha
             self.sha = sha
             self.cid = cid
             self.xlink = createLink(self.xid, self.cid)
+            print "new xlink for", self.name, self.xlink
 
     def generate(self, blob, snapshot, repo):
         """ Generates metadata and returns a kind (subclass instance) of Asset """
@@ -168,6 +169,9 @@ class Asset(object):
 
     def getXid(self):
         return self.metadata['base']['xid']
+
+    def getCid(self):
+        return self.metadata['base']['cid']
 
     def getXlink(self):
         return self.metadata['base']['xlink']

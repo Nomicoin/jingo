@@ -133,6 +133,10 @@ class Project:
             self.snapshots.insert(0, snapshot)
             if os.path.exists(path):
                 break
+
+        for snapshot in self.snapshots:
+            print "%%% updateSnapshots", snapshot.xlink, snapshot.timestamp
+
         # load only snapshots since last update
         self.loadSnapshots()
 
@@ -142,6 +146,7 @@ class Project:
             path = self.createPath(link)
             snapshot = Snapshot(self.xid, commit, link, path, self.repoDir)
             self.snapshots.append(snapshot)
+
         # load all snapshots in project
         self.loadSnapshots(True)
 
@@ -518,7 +523,18 @@ class Guild:
 
         self.update()
         newAsset = self.assets[path]
-        return newAsset.xlink
+
+        print "%%% commitFile2", newAsset.xlink, cid
+
+        xlink = newAsset.xlink
+        xid, assetCid = xlink.split('/')
+        newCid = str(cid)
+
+        if (newCid.find(assetCid) != 0):
+            xlink = createLink(xid, cid)
+            print "%%% error: created new xlink", xlink
+
+        return xlink
 
     def commitFile(self, repo, agent, asset, type, path):
         index = repo.index
