@@ -492,7 +492,16 @@ class Guild:
         shutil.move(src, dest)
 
         message = "Uploaded file {0}".format(path)
-        return self.commitFile2(self.wikiProject.repo, agent, path, message)
+        self.commitFile2(self.wikiProject.repo, agent, path, message)
+
+        fullPath = os.path.join(self.wikiDir, strain)
+        with open(fullPath) as f:
+            doc = json.loads(f.read())
+        doc['images'][field] = path
+        saveJSON(fullPath, doc)
+        
+        message = "Updated strain {0}, setting {1}={2}".format(strain, field, path)
+        return self.commitFile2(self.wikiProject.repo, agent, strain, message)
 
     def commitFile2(self, repo, agent, path, message):
         index = repo.index

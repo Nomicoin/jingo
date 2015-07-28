@@ -94,13 +94,20 @@ function _uploadStrain(req, res) {
   console.log(req.file);
   console.log(req.headers.referer);
 
-  xidb.uploadStrain(req.user, req.file.path, req.file.originalname, req.body.field, req.body.strain, 
-		    function(err, link) {
-		      if (err) {
-			console.log(err);
-		      }
-		      res.redirect(req.headers.referer);
-		    });
+  var orig = req.file.originalname;
+  var field = req.body.field;
+  var strain = req.body.strain;
+
+  xidb.uploadStrain(req.user, req.file.path, orig, field, strain, function(err, newLink) {
+    if (err) {
+      console.log(err);
+      res.redirect('/strains');
+    }
+    else {
+      console.log(">>> upload newLink", newLink);
+      res.redirect('/edit/' + newLink);
+    }
+  });
 }
 
 function _redirectJingo(req, res) {

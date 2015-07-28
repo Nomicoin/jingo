@@ -27,5 +27,8 @@ with open(config) as f:
 
 guild = Guild(config)
 print "guild:", guild.guildProject.xid
-print guild.uploadStrain(args.agent, args.upload, args.name, args.field, args.strain)
+
+xlink = guild.uploadStrain(args.agent, args.upload, args.name, args.field, args.strain)
+print "updated xlink:", xlink
+print xlink
 
