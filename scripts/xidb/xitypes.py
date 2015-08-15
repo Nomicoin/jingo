@@ -234,7 +234,7 @@ class Strain(Json):
 
     def connect(self, guild):
         branch = self.getBase()['branch']
-        print ">> Strain connect", branch
+        print ">> Strain connect", branch, self.getName()
         if not 'images' in self.data:
             return
         for snapshot in guild.wikiProject.snapshots:
@@ -284,7 +284,7 @@ class Proposal(Json):
 
     def addMetadata(self):
         super(Proposal, self).addMetadata()
-        self.metadata['proposal'] = self.data
+        self.metadata['proposal'] = self.data['proposal']
 
     def getOwner():
         return self.data['owner']

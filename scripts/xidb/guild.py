@@ -170,7 +170,10 @@ class Project:
                         asset = Asset()
                         asset.configure(commit, sha, xid, name, self.repoDir)
                         self.assets[name] = asset
-                        self.newAssets.append(asset)
+
+                        # why are we adding asset to new here?
+                        #self.newAssets.append(asset)
+
                     snapshot.add(asset)
                 self.snapshotsLoaded += 1
             else:
@@ -231,6 +234,8 @@ class Project:
                     self.newAssets.append(asset)
                     print "wrote metadata for", link, name, asset.typeName()
                     self.assetsCreated += 1
+
+        print "wrote metadata for", self.assetsCreated, "new assets"
 
 class Guild:
     def __init__(self, config, rebuild=False):
@@ -323,6 +328,7 @@ class Guild:
         assets = sorted(assets, key=lambda asset: asset.getTimestamp())
 
         for asset in assets:
+            print "connecting asset", asset.xlink
             asset.connect(self)
 
         print ">>> connectAssets", len(assets)
