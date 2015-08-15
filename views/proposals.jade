@@ -1,0 +1,18 @@
+extends layout
+
+include mixins/form
+
+block content
+  h1 #{title}
+
+  ul
+  each proposal in proposals
+    li
+      a(href="/view/#{proposal.xlink}") #{proposal.title}
+
+  hr 
+
+  form(action='/proposals/new', method='post', class='edit')
+    input.form-control(required, type='text', placeholder='Enter the title', name='newTitle', value="title")#newTitle
+    input(type='submit',value='new strain').btn.btn-primary
+

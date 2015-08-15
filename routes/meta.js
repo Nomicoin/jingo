@@ -19,6 +19,8 @@ router.post("/strains/new", _newStrain);
 var upload = multer({ dest: 'uploads/'});
 router.post("/strain/upload", upload.single('image'), _uploadStrain);
 
+router.get("/proposals", _getProposals);
+
 // wiki pages
 router.get("/", _getIndex);
 router.get("/wiki/:page", _redirectJingo);
@@ -49,6 +51,29 @@ router.get("/snapshot/:xid/:cid", _getSnapshot);
 
 router.post("/comment/:xid/:cid", _newComment);
 router.post("/vote/:xid/:cid", _newVote);
+
+function _getProposals(req, res) {
+  var snapshot = xidb.getLatestWikiSnapshot('wiki');
+  var proposals = [];
+
+  for(xid in snapshot.assets) {
+    var asset = snapshot.assets[xid];
+    var match = asset.name.match(/^proposals\/(.*)\/index.json$/);
+
+    if (match) {
+      asset.title = 'Proposal ' + match[1];
+      asset.xlink = xidb.createLink(xid, asset.commit);
+      proposals.push(asset);
+    }
+  }
+
+  console.log(">>>", proposals);
+
+  res.render("proposals", {
+    'title': "Proposals",
+    'proposals': proposals
+  });
+}
 
 function _getStrains(req, res) {
   var snapshot = xidb.getLatestWikiSnapshot('wiki');
