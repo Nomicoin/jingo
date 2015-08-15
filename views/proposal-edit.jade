@@ -1,0 +1,9 @@
+extends layout
+
+include mixins/assets
+
+block content
+  h1 Edit: #{metadata.asset.name}
+
+  mixin editMetadata(metadata.base.xlink, asset.data)
+

@@ -1,0 +1,24 @@
+extends layout
+
+include mixins/assets
+
+block content
+  - var proposal = asset.data.proposal
+
+  h1 #{proposal.name}
+
+  span(style="float:right")
+    a(href="/edit/#{metadata.base.xlink}") edit
+
+  h2 Meta-information:
+  table.table-bordered.table-hover.table-condensed
+    tr 
+      td Title
+      td #{proposal.title}
+    tr
+      td Sponsor
+      td #{proposal.sponsor}
+    tr
+      td Status
+      td #{proposal.status}
+
