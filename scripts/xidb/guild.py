@@ -3,7 +3,7 @@ from pygit2 import *
 from glob import glob
 from datetime import datetime
 from xidb.genxid import genxid
-from xidb.xitypes import Agent, Asset
+from xidb.xitypes import Agent, Asset, allTypes
 from xidb.utils import *
 
 class Snapshot:
@@ -465,6 +465,21 @@ class Guild:
             message = "Updated {0} (markdown)".format(title)
 
         saveFile(fullPath, content)
+        return self.commitFile2(self.wikiProject.repo, agent, path, message)
+
+    def getKind(self, kind):
+        for factory in allTypes:
+            obj = factory()
+            if kind == obj.__class__.__name__:
+                return obj
+        return None
+
+    def newAsset(self, handle, kind, title):
+        agent = self.getAgent(handle)
+        asset = self.getKind(kind)
+        asset.initNew(handle, title)
+        path = asset.saveNew(self.wikiDir)
+        message = "Added new {0} {1}".format(kind, title)
         return self.commitFile2(self.wikiProject.repo, agent, path, message)
 
     def newStrain(self, handle, title):

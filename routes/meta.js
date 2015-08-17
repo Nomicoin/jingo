@@ -20,6 +20,7 @@ var upload = multer({ dest: 'uploads/'});
 router.post("/strain/upload", upload.single('image'), _uploadStrain);
 
 router.get("/proposals", _getProposals);
+router.post("/proposals/new", _newProposal);
 
 // wiki pages
 router.get("/", _getIndex);
@@ -72,6 +73,23 @@ function _getProposals(req, res) {
   res.render("proposals", {
     'title': "Proposals",
     'proposals': proposals
+  });
+}
+
+function _newProposal(req, res) {
+  var title = req.body.newTitle;
+
+  console.log(">>> new proposal", title);
+
+  xidb.newAsset(req.user, "Proposal", title, function(err, newLink) {
+    if (err) {
+      console.log(err);
+      res.redirect('/proposals');
+    }
+    else {
+      console.log(">>> newLink", newLink);
+      res.redirect('/view/' + newLink);
+    }
   });
 }
 

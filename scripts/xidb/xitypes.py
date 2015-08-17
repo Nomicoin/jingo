@@ -280,20 +280,35 @@ class Proposal(Json):
     def isValid(self):
         return (self.checkExtension(['.json']) 
                 and self.name.find("proposals") == 0
-                and super(Proposal, self).isValid())
+                and super(Proposal, self).isValid()
+                and 'proposal' in self.data)
 
     def addMetadata(self):
         super(Proposal, self).addMetadata()
         self.metadata['proposal'] = self.data['proposal']
 
-    def getOwner():
-        return self.data['owner']
+    def initNew(self, agent, title):
+        proposal = {
+            "id": 0,
+            "title": title,
+            "sponsor": agent,
+            "status": "wip",
+            "text": "",
+            "rationale": ""
+        }
+        self.data = {'proposal': proposal}
+        return self.data
 
-    def getName():
-        return self.data['name']
+    def getId(self, wikiDir):
+        return "0003"
 
-    def getDescription():
-        return self.data['description']
+    def saveNew(self, wikiDir):
+        id = self.getId(wikiDir)
+        self.data['proposal']['id'] = id
+        self.path = os.path.join("proposals", str(id), "index.json")
+        fullPath = os.path.join(wikiDir, self.path)
+        saveJSON(fullPath, self.data)
+        return self.path
 
 class Agent(Json):
     def __init__(self):
