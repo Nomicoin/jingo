@@ -5,5 +5,39 @@ include mixins/assets
 block content
   h1 Edit: #{metadata.asset.name}
 
-  mixin editMetadata(metadata.base.xlink, asset.data)
+  - var proposal = asset.data.proposal
 
+  form(action='/save/#{metadata.base.xlink}', method='post', class='edit')
+    .form-group
+      table.table-bordered.table-hover.table-condensed
+        tr
+          td Title
+          td 
+            input.form-control(type='text', placeholder='', name='proposal.title', value="#{proposal.title}")
+        tr
+          td Sponsor
+          td 
+            input.form-control(type='text', placeholder='', name='proposal.sponsor', value="#{proposal.sponsor}")
+        tr
+          td Status
+          td
+            select(name="proposal.status", value="#{proposal.status}")
+              option wip
+              option voting
+              option passed
+              option rejected
+              option withdrawn
+
+        tr
+          td Text
+          td 
+            textarea.form-control(name="proposal.text", data-widearea="enable", rows=10) #{proposal.text}
+        tr
+          td Rationale
+          td 
+            textarea.form-control(name="proposal.rationale", data-widearea="enable", rows=4) #{proposal.rationale}
+
+      .well
+        input(type='submit',value='Save').btn.btn-primary
+        |&nbsp;
+        a(href="/view/#{xlink}").btn Cancel

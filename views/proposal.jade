@@ -5,20 +5,27 @@ include mixins/assets
 block content
   - var proposal = asset.data.proposal
 
-  h1 #{proposal.name}
+  h1 Proposal #{proposal.id}
 
   span(style="float:right")
     a(href="/edit/#{metadata.base.xlink}") edit
 
-  h2 Meta-information:
+  h2 #{proposal.title}
+
   table.table-bordered.table-hover.table-condensed
     tr 
-      td Title
-      td #{proposal.title}
+      td Timestamp
+      td #{metadata.base.timestamp}
     tr
       td Sponsor
       td #{proposal.sponsor}
     tr
       td Status
       td #{proposal.status}
+    tr
+      td Text
+      td #{proposal.text}
+    tr
+      td Rationale
+      td #{proposal.rationale}
 
