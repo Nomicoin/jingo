@@ -3,9 +3,10 @@ extends layout
 include mixins/assets
 
 block content
-  h1 Edit: #{metadata.asset.name}
-
   - var proposal = asset.data.proposal
+  - var statuses = [ 'wip', 'voting', 'passed', 'rejected', 'withdrawn' ]
+
+  h1 Edit: #{metadata.asset.name}
 
   form(action='/save/#{metadata.base.xlink}', method='post', class='edit')
     .form-group
@@ -21,12 +22,9 @@ block content
         tr
           td Status
           td
-            select(name="proposal.status", value="#{proposal.status}")
-              option wip
-              option voting
-              option passed
-              option rejected
-              option withdrawn
+            select(name="proposal.status")
+              for status in statuses
+                option(selected= status == proposal.status) #{status}
 
         tr
           td Text
@@ -40,4 +38,4 @@ block content
       .well
         input(type='submit',value='Save').btn.btn-primary
         |&nbsp;
-        a(href="/view/#{xlink}").btn Cancel
+        a(href="/view/#{metadata.base.xlink}").btn Cancel
