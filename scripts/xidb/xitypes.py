@@ -300,7 +300,17 @@ class Proposal(Json):
         return self.data
 
     def getId(self, wikiDir):
-        return "0003"
+        propDir = os.path.join(wikiDir, "proposals")
+        folders = os.listdir(propDir)
+        maxId = 0
+        for f in folders:
+            try:
+                id = int(f)
+                if id > maxId:
+                    maxId = id
+            except:
+                pass
+        return "{0:04d}".format(maxId+1)
 
     def saveNew(self, wikiDir):
         id = self.getId(wikiDir)
