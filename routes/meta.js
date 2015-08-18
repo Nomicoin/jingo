@@ -68,6 +68,10 @@ function _getProposals(req, res) {
     }
   }
 
+  proposals.sort(function(a,b) {
+    return a.name.localeCompare(b.name);
+  });
+
   console.log(">>>", proposals);
 
   res.render("proposals", {
