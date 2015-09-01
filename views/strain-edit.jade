@@ -9,12 +9,12 @@ block content
 
   h2 Upload Image
 
-  form(action="/strain/upload", method="post", enctype="multipart/form-data")
+  form(action="/image/upload", method="post", enctype="multipart/form-data")
     select(name="field")
       option photo
       option phylo
       option qrcode
       option ITS
     input(type="file", name="image")
-    input(type="hidden", name="strain", value="#{metadata.asset.name}")
+    input(type="hidden", name="asset", value="#{metadata.asset.name}")
     input(type='submit',value='upload').btn.btn-primary

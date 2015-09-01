@@ -508,10 +508,10 @@ class Guild:
         message = "Added new strain {0}".format(title)
         return self.commitFile2(self.wikiProject.repo, agent, path, message)
 
-    def uploadStrain(self, handle, upload, name, field, strain):
+    def uploadImage(self, handle, upload, name, field, asset):
         agent = self.getAgent(handle)
         src = os.path.join(self.projDir, upload)
-        folder = os.path.dirname(strain)
+        folder = os.path.dirname(asset)
         path = os.path.join(folder, name)
         dest = os.path.join(self.wikiDir, path)
 
@@ -520,14 +520,14 @@ class Guild:
         message = "Uploaded file {0}".format(path)
         self.commitFile2(self.wikiProject.repo, agent, path, message)
 
-        fullPath = os.path.join(self.wikiDir, strain)
+        fullPath = os.path.join(self.wikiDir, asset)
         with open(fullPath) as f:
             doc = json.loads(f.read())
         doc['images'][field] = path
         saveJSON(fullPath, doc)
         
-        message = "Updated strain {0}, setting {1}={2}".format(strain, field, path)
-        return self.commitFile2(self.wikiProject.repo, agent, strain, message)
+        message = "Updated asset {0}, setting {1}={2}".format(asset, field, path)
+        return self.commitFile2(self.wikiProject.repo, agent, asset, message)
 
     def commitFile2(self, repo, agent, path, message):
         index = repo.index
