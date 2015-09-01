@@ -12,7 +12,8 @@ block content
 
   hr 
 
-  form(action='/strains/new', method='post', class='edit')
-    input.form-control(required, type='text', placeholder='Enter the strain title', name='strainTitle', value="strain title")#strainTitle
+  form(action='/new/asset', method='post', class='edit')
+    input.form-control(required, type='text', placeholder='Enter the strain title', name='newTitle', value="strain title")
+    input(type='hidden',name='kind',value='Strain')
     input(type='submit',value='new strain').btn.btn-primary
 

@@ -232,6 +232,30 @@ class Strain(Json):
         super(Strain, self).addMetadata()
         self.metadata['strain'] = self.data['strain']
 
+    def initNew(self, agent, title):
+        self.title = title
+        strain = { 
+            "name": title,
+            "source": "",
+            "submission_date": "",
+            "blockchain_poe": "",
+        }
+        images = {
+            "photo": "",
+            "phylo": "",
+            "qrcode": "",
+            "ITS": "",
+        }
+        self.data = {'strain': strain, 'images': images}
+        return self.data
+
+    def saveNew(self, wikiDir):
+        folder = self.title.replace(" ", "-")
+        path = os.path.join("strains", folder, "strain.json")
+        fullPath = os.path.join(wikiDir, path)
+        saveJSON(fullPath, self.data)
+        return path
+
     def connect(self, guild):
         branch = self.getBase()['branch']
         print ">> Strain connect", branch, self.getName()
@@ -301,6 +325,8 @@ class Proposal(Json):
 
     def getId(self, wikiDir):
         propDir = os.path.join(wikiDir, "proposals")
+        if not os.path.exists(propDir):
+            os.makedirs(propDir)
         folders = os.listdir(propDir)
         maxId = 0
         for f in folders:

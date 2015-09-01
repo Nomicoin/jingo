@@ -21,6 +21,7 @@ router.post("/strain/upload", upload.single('image'), _uploadStrain);
 
 router.get("/proposals", _getProposals);
 router.post("/proposals/new", _newProposal);
+router.post("/new/asset", _newAsset);
 
 // wiki pages
 router.get("/", _getIndex);
@@ -89,6 +90,24 @@ function _newProposal(req, res) {
     if (err) {
       console.log(err);
       res.redirect('/proposals');
+    }
+    else {
+      console.log(">>> newLink", newLink);
+      res.redirect('/view/' + newLink);
+    }
+  });
+}
+
+function _newAsset(req, res) {
+  var title = req.body.newTitle;
+  var kind = req.body.kind;
+
+  console.log(">>> new asset", kind, title);
+
+  xidb.newAsset(req.user, kind, title, function(err, newLink) {
+    if (err) {
+      console.log(err);
+      res.redirect(req.headers.referer);
     }
     else {
       console.log(">>> newLink", newLink);
