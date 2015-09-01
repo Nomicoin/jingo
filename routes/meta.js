@@ -17,7 +17,6 @@ router.get("/strains", _getStrains);
 router.post("/strains/new", _newStrain);
 
 var upload = multer({ dest: 'uploads/'});
-router.post("/strain/upload", upload.single('image'), _uploadStrain);
 router.post("/image/upload", upload.single('image'), _uploadImage);
 
 router.get("/proposals", _getProposals);
@@ -169,28 +168,6 @@ function _uploadImage(req, res) {
     if (err) {
       console.log(err);
       res.redirect(req.headers.referer);
-    }
-    else {
-      console.log(">>> upload newLink", newLink);
-      res.redirect('/edit/' + newLink);
-    }
-  });
-}
-
-function _uploadStrain(req, res) {
-  console.log(">> upload:");
-  console.log(req.body);
-  console.log(req.file);
-  console.log(req.headers.referer);
-
-  var orig = req.file.originalname;
-  var field = req.body.field;
-  var strain = req.body.strain;
-
-  xidb.uploadStrain(req.user, req.file.path, orig, field, strain, function(err, newLink) {
-    if (err) {
-      console.log(err);
-      res.redirect('/strains');
     }
     else {
       console.log(">>> upload newLink", newLink);

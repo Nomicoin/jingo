@@ -482,32 +482,6 @@ class Guild:
         message = "Added new {0} {1}".format(kind, title)
         return self.commitFile2(self.wikiProject.repo, agent, path, message)
 
-    def newStrain(self, handle, title):
-        agent = self.getAgent(handle)
-        folder = title.replace(" ", "-")
-        path = os.path.join("strains", folder, "strain.json")
-        fullPath = os.path.join(self.wikiDir, path)
- 
-        strain = { 
-            "strain": { 
-                "name": title,
-                "source": "",
-                "submission_date": "",
-                "blockchain_poe": "",
-             },
-            "images": {
-                "photo": "",
-                "phylo": "",
-                "qrcode": "",
-                "ITS": "",
-            }
-        }
-
-        saveJSON(fullPath, strain)
-
-        message = "Added new strain {0}".format(title)
-        return self.commitFile2(self.wikiProject.repo, agent, path, message)
-
     def uploadImage(self, handle, upload, name, field, asset):
         agent = self.getAgent(handle)
         src = os.path.join(self.projDir, upload)
