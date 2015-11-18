@@ -12,10 +12,6 @@ router.get("/api/v1/asset/:xid/:cid*", _apiv1GetAsset);
 router.get("/api/v1/meta/:xid/:cid*", _apiv1GetMetadata);
 router.get("/api/v1/versions/:xid*", _apiv1GetVersions);
 
-// courtagen
-router.get("/strains", _getStrains);
-router.post("/strains/new", _newStrain);
-
 var upload = multer({ dest: 'uploads/'});
 router.post("/image/upload", upload.single('image'), _uploadImage);
 
@@ -108,44 +104,6 @@ function _newAsset(req, res) {
     if (err) {
       console.log(err);
       res.redirect(req.headers.referer);
-    }
-    else {
-      console.log(">>> newLink", newLink);
-      res.redirect('/view/' + newLink);
-    }
-  });
-}
-
-function _getStrains(req, res) {
-  var snapshot = xidb.getLatestWikiSnapshot('wiki');
-  var strains = [];
-
-  for(xid in snapshot.assets) {
-    var asset = snapshot.assets[xid];
-    var match = asset.name.match(/^strains\/(.*)\/strain.json$/);
-
-    if (match) {
-      asset.title = match[1].replace(/-/g, ' ');
-      asset.xlink = xidb.createLink(xid, asset.commit);
-      strains.push(asset);
-    }
-  }
-
-  res.render("strains", {
-    'title': "Strains",
-    'strains': strains
-  });
-}
-
-function _newStrain(req, res) {
-  var title = req.body.strainTitle;
-
-  console.log(">>> new strain", title);
-
-  xidb.newStrain(req.user, title, function(err, newLink) {
-    if (err) {
-      console.log(err);
-      res.redirect('/strains');
     }
     else {
       console.log(">>> newLink", newLink);
