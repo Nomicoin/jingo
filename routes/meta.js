@@ -443,15 +443,30 @@ function _viewAsset(req, res) {
     xidb.getBlob(metadata.base.branch, metadata.asset.sha, function(err, data) {
       var asset = assets.createAsset(data, metadata);
       var view = asset.getView();
+      var xlink = metadata.base.xlink;
+      var comments = xidb.getComments(xlink);
+      var votes = xidb.getVotes(xlink);
+      var voteResults = xidb.getVoteResults(metadata, votes);
+      var branch = xidb.getMetadataFromLink(metadata.base.branch);
 
       console.log(">>>", view);
+      console.log(">>>", asset);
+      console.log(">>> xlink = ", asset.metadata.base.xlink);
+      console.log(">>> comments = ", comments);
+      console.log(">>> votes = ", votes);
 
       res.render(view, {
 	'title': metadata.asset.title,
 	'asset': asset,
 	'content': data,
 	'metadata': metadata,
-	'snapshot': snapshot.commit
+	'snapshot': snapshot.commit,
+	'comments': comments,
+	'commentLink': "/comment/" + xlink,
+	'votes': votes,
+	'voteResults': voteResults,
+	'voteLink': "/vote/" + xlink,
+	'commit': branch.commit
       });
     });
   }

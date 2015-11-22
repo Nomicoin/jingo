@@ -97,3 +97,36 @@ mixin JsonTable(dict)
         td #{key}
         td #{val}
 
+mixin footer()
+  p.footer Updated by&nbsp;
+    if commit.email
+      img(src=gravatar().url("#{commit.email}", {s:16}))
+    b  #{commit.author}
+    |,&nbsp;
+    | #{commit.timestamp} &ndash; #{metadata.base.xlink}
+
+
+mixin commentSection(comments, commentLink)
+    h2 Discussion
+
+    if comments
+      each comment in comments
+        if comment.comment.email
+          img(src=gravatar().url("#{comment.comment.authorEmail}", {s:20}))
+          | &nbsp;
+        a(href="#{comment.comment.authorLink}") #{comment.comment.authorName}
+        | &nbsp; &ndash; 
+        a(href="/view/#{comment.base.xlink}") #{comment.base.timestamp} 
+        | (#{comment.comment.age})
+
+        .well.well-sm
+          !=comment.as.html
+
+    h3 Add Comment
+
+    a(id="addComment")
+    form(action='#{commentLink}', method='post', class='edit')
+      .form-group
+        textarea.form-control(name="comment", data-widearea="enable", rows=2)#editor
+
+      mixin saveAndCancel()
