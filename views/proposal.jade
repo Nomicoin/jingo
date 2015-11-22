@@ -5,6 +5,8 @@ include mixins/assets
 block content
   - var proposal = asset.data.proposal
   
+  mixin navigationLinks(metadata.navigation)
+
   h1 Proposal #{proposal.id}
 
   span(style="float:right")

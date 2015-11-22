@@ -447,9 +447,9 @@ function _viewAsset(req, res) {
       var comments = xidb.getComments(xlink);
       var votes = xidb.getVotes(xlink);
       var voteResults = xidb.getVoteResults(metadata, votes);
-      var branch = xidb.getMetadataFromLink(metadata.base.branch);
 
       console.log(">>>", view);
+      //console.log(">>>", metadata);
 
       res.render(view, {
 	'title': metadata.asset.title,
@@ -462,7 +462,7 @@ function _viewAsset(req, res) {
 	'votes': votes,
 	'voteResults': voteResults,
 	'voteLink': "/vote/" + xlink,
-	'commit': branch.commit
+	'commit': snapshot.commit
       });
     });
   }

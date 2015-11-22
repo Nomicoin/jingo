@@ -97,6 +97,22 @@ mixin JsonTable(dict)
         td #{key}
         td #{val}
 
+mixin navigationLinks(navigation)
+    span(style="float:right")
+      if navigation
+        if navigation.first
+          a(href="/view/#{navigation.first}") first&nbsp;
+        if navigation.prev
+          a(href="/view/#{navigation.prev}") prev&nbsp;
+        if navigation.next
+          a(href="/view/#{navigation.next}") next&nbsp;
+        if navigation.last
+          a(href="/view/#{navigation.last}") last&nbsp;
+        |&nbsp;|&nbsp;
+        | #{navigation.version}
+      |&nbsp;|&nbsp;
+      |#{navigation.age}
+
 mixin footer()
   p.footer Updated by&nbsp;
     if commit.email
