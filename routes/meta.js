@@ -450,10 +450,6 @@ function _viewAsset(req, res) {
       var branch = xidb.getMetadataFromLink(metadata.base.branch);
 
       console.log(">>>", view);
-      console.log(">>>", asset);
-      console.log(">>> xlink = ", asset.metadata.base.xlink);
-      console.log(">>> comments = ", comments);
-      console.log(">>> votes = ", votes);
 
       res.render(view, {
 	'title': metadata.asset.title,
