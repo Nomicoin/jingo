@@ -297,8 +297,10 @@ class Guild:
         for name in index:
             xlink = index[name]
             agent = self.agentFromXlink(xlink)
-            id = os.path.basename(name)
+            #id = os.path.basename(name)
+            id = agent.getEmail()
             agents[id] = agent
+            print ">>> loadAgents", id, agent
         return agents
 
     def loadTypes(self):

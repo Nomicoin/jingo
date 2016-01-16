@@ -564,7 +564,7 @@ function _saveMarkdown(req, res) {
   var xlink = xidb.createLink(xid, cid);
   var page = JSON.stringify(req.body, null, 4);
 
-  console.log(">>> saveMarkdown", xlink, page);
+  console.log(">>> saveMarkdown", xlink, page, req.user);
 
   xidb.savePage(req.user, xlink, page, function(err, newLink) {
     if (err) {
